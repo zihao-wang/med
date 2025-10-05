@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from moddim.experiment import Experiment
+from src.mean_embedding.experiment import Experiment
 
 
 def parse_args() -> argparse.Namespace:
