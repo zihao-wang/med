@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 
 from src.mean_embedding.experiment import Experiment
+from src.mean_embedding.trainer_sgd import SGDConfig
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,9 +22,30 @@ def parse_args() -> argparse.Namespace:
         default="inner_product",
         choices=["inner_product", "l2", "cosine", "l1"],
     )
+
+    # Trainer selection
+    parser.add_argument(
+        "--trainer",
+        type=str,
+        default="gd",
+        choices=["gd", "sgd"],
+        help="Training algorithm: full-batch GD or SGD",
+    )
+
+    # Common hyperparameters
     parser.add_argument("--num_epochs", type=int, default=10000)
-    parser.add_argument("--patience", type=int, default=1000)
-    parser.add_argument("--learning_rate", type=float, default=1e-2)
+    parser.add_argument("--patience", type=int, default=1000, help="GD patience; SGD uses config.patience")
+    parser.add_argument("--learning_rate", type=float, default=1e-2, help="GD learning rate; SGD uses config.learning_rate")
+
+    # SGD-specific options
+    parser.add_argument("--sgd_batch_size", type=int, default=256)
+    parser.add_argument("--sgd_num_samples", type=int, default=50_000)
+    parser.add_argument("--sgd_workers", type=int, default=0)
+    parser.add_argument("--sgd_patience", type=int, default=500)
+    parser.add_argument("--sgd_lr", type=float, default=1e-2)
+    parser.add_argument("--sgd_max_steps", type=int, default=None)
+    parser.add_argument("--sgd_negative_sampling", type=int, default=None)
+
     parser.add_argument("--plot", action="store_true", help="Generate plots after run")
     return parser.parse_args()
 
@@ -31,7 +53,25 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     print("Starting experiment with early stopping...")
-    experiment = Experiment(args.scoring_function)
+
+    sgd_config = None
+    if args.trainer == "sgd":
+        sgd_config = SGDConfig(
+            batch_size=args.sgd_batch_size,
+            num_loader_workers=args.sgd_workers,
+            num_samples=args.sgd_num_samples,
+            learning_rate=args.sgd_lr,
+            patience=args.sgd_patience,
+            max_steps=args.sgd_max_steps,
+            negative_sampling=args.sgd_negative_sampling,
+        )
+
+    experiment = Experiment(
+        scoring_function=args.scoring_function,
+        trainer_type=args.trainer,
+        sgd_config=sgd_config,
+    )
+
     minimal_dims = experiment.find_minimal_dimension(
         args.k,
         args.n_values,
