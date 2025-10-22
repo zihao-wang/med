@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Literal, Optional
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .trainer import Trainer, ScoringFn
+from .train_gd import Trainer, ScoringFn
+from .trainer_sgd import SGDTrainer, SGDConfig
 
 
 @dataclass
 class Experiment:
     scoring_function: ScoringFn
+    trainer_type: Literal["gd", "sgd"] = "gd"
+    sgd_config: Optional[SGDConfig] = None
     search_paths: Dict[int, List[dict]] = field(default_factory=dict)
     minimal_dimensions: Dict[int, int] = field(default_factory=dict)
 
@@ -29,7 +32,12 @@ class Experiment:
             print("#" * 10 + "new task" + "#" * 10)
             print(f"Finding minimal dimension for n={n}, k={k}")
             print("#" * 30)
-            trainer = Trainer(n, k, self.scoring_function)
+            if self.trainer_type == "gd":
+                trainer = Trainer(n, k, self.scoring_function)
+            elif self.trainer_type == "sgd":
+                trainer = SGDTrainer(n, k, self.scoring_function, config=self.sgd_config or SGDConfig())
+            else:
+                raise ValueError(f"Unknown trainer_type: {self.trainer_type}")
 
             self.search_paths[n] = []
             left, right = last_minimal + 1, last_minimal + 6
@@ -41,12 +49,19 @@ class Experiment:
                     mid = 1
                 print(f"\t>>>>Testing dimension d={mid}")
 
-                violations = trainer.train(
-                    d=mid,
-                    num_epochs=num_epochs,
-                    learning_rate=learning_rate / np.log2(n),
-                    patience=patience,
-                )
+                if self.trainer_type == "gd":
+                    violations = trainer.train(
+                        d=mid,
+                        num_epochs=num_epochs,
+                        learning_rate=learning_rate / np.log2(n),
+                        patience=patience,
+                    )
+                else:
+                    # SGD trainer uses its own config for lr/patience/steps
+                    violations = trainer.train(
+                        d=mid,
+                        num_epochs=num_epochs,
+                    )
 
                 print(f"\t<<<<Violations for d={mid}: {violations}")
                 self.search_paths[n].append({"dimension": mid, "violations": violations})
