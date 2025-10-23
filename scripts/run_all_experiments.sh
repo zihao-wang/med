@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Master script to run all experiment sets.
-# Allows overriding environment variables for specific scripts.
+# Master script to run both dependencies for GD and SGD.
 
 SCRIPT_DIR="/workspace/scripts"
 
@@ -12,12 +11,12 @@ if ! python -c 'import torch, numpy, matplotlib, tqdm' >/dev/null 2>&1; then
   pip install -r /workspace/requirements.txt
 fi
 
-# Run Goal 1 (k=2 vs n) for GD and SGD
-"${SCRIPT_DIR}/run_goal1_gd.sh"
-"${SCRIPT_DIR}/run_goal1_sgd.sh"
+# m-dependency: med vs n (k fixed)
+"${SCRIPT_DIR}/run_m_dependency.sh" gd
+"${SCRIPT_DIR}/run_m_dependency.sh" sgd
 
-# Run Goal 2 (k sweep) for GD and SGD
-"${SCRIPT_DIR}/run_goal2_gd.sh"
-"${SCRIPT_DIR}/run_goal2_sgd.sh"
+# k-dependency: med vs k (n fixed)
+"${SCRIPT_DIR}/run_k_dependency.sh" gd
+"${SCRIPT_DIR}/run_k_dependency.sh" sgd
 
 echo "All experiments completed."
