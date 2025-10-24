@@ -8,7 +8,14 @@ from src.mean_embedding.trainer_sgd import SGDConfig
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run minimal-dimension experiments")
-    parser.add_argument("--k", type=int, default=2, help="Subset size k")
+    parser.add_argument("--k", type=int, default=None, help="Subset size k (single)")
+    parser.add_argument(
+        "--k_values",
+        type=int,
+        nargs="*",
+        default=None,
+        help="List of k values (grid mode)",
+    )
     parser.add_argument(
         "--n_values",
         type=int,
@@ -72,18 +79,30 @@ def main() -> None:
         sgd_config=sgd_config,
     )
 
-    minimal_dims = experiment.find_minimal_dimension(
-        args.k,
-        args.n_values,
-        learning_rate=args.learning_rate,
-        num_epochs=args.num_epochs,
-        patience=args.patience,
-    )
+    # Dispatch: grid mode if k_values provided, else single-k mode
+    if args.k_values is not None and len(args.k_values) > 0:
+        grid = experiment.find_minimal_dimension_grid(
+            k_values=args.k_values,
+            n_values=args.n_values,
+            learning_rate=args.learning_rate,
+            num_epochs=args.num_epochs,
+            patience=args.patience,
+        )
+        print("\n Grid minimal dimensions found:", grid)
+    else:
+        k_value = args.k if args.k is not None else 2
+        minimal_dims = experiment.find_minimal_dimension(
+            k_value,
+            args.n_values,
+            learning_rate=args.learning_rate,
+            num_epochs=args.num_epochs,
+            patience=args.patience,
+        )
 
-    print("\n Minimal dimensions found:", minimal_dims)
-    if args.plot:
-        experiment.plot_minimal_dimension_vs_n(args.k)
-        experiment.plot_violations_vs_d(args.k)
+        print("\n Minimal dimensions found:", minimal_dims)
+        if args.plot:
+            experiment.plot_minimal_dimension_vs_n(k_value)
+            experiment.plot_violations_vs_d(k_value)
 
 
 if __name__ == "__main__":
