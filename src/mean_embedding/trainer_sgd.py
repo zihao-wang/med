@@ -60,7 +60,7 @@ class SGDTrainer:
         self.k = k
         self.scoring_function = scoring_function
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print("Using device", self.device)
+        print(f"[SGD] Using device: {self.device}")
 
         self.config = config or SGDConfig()
 
@@ -132,7 +132,7 @@ class SGDTrainer:
         total_steps = self.config.max_steps or (num_epochs * max(1, len(loader)))
 
         step = 0
-        with trange(total_steps, desc=f"\t\t n={self.n}, k={self.k}, d={d} [SGD]") as pbar:
+        with trange(total_steps, desc=f"\t\t [SGD] n={self.n}, k={self.k}, d={d}") as pbar:
             data_iter = iter(loader)
             while step < total_steps:
                 try:
@@ -163,10 +163,10 @@ class SGDTrainer:
                     epochs_no_improve += 1
 
                 if min_violations == 0:
-                    print("Early stopping: No violations found (SGD).")
+                    print("[SGD] Early stopping: No violations found.")
                     break
                 if epochs_no_improve >= self.config.patience:
-                    print(f"Early stopping: No improvement for {self.config.patience} steps (SGD).")
+                    print(f"[SGD] Early stopping: No improvement for {self.config.patience} steps.")
                     break
 
                 step += 1

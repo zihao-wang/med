@@ -14,7 +14,7 @@ class Trainer:
         self.k = k
         self.scoring_function = scoring_function
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print("Using device", self.device)
+        print(f"[GD] Using device: {self.device}")
 
         self.all_combinations = list(itertools.combinations(range(self.n), self.k))
         self.subset_indices_tensor = torch.tensor(
@@ -74,7 +74,7 @@ class Trainer:
         min_violations = self.total_violations
         epochs_no_improve = 0
 
-        with trange(num_epochs, desc=f"\t\t n={self.n}, k={self.k}, d={d}") as epoch_iterator:
+        with trange(num_epochs, desc=f"\t\t [GD] n={self.n}, k={self.k}, d={d}") as epoch_iterator:
             for _ in epoch_iterator:
                 optimizer.zero_grad()
                 loss, violations = self.calculate_loss()
@@ -100,12 +100,10 @@ class Trainer:
                     epochs_no_improve += 1
 
                 if violations == 0:
-                    print("Early stopping: No violations found.")
+                    print("[GD] Early stopping: No violations found.")
                     break
                 if epochs_no_improve >= patience:
-                    print(
-                        f"Early stopping: No improvement in violations for {patience} epochs."
-                    )
+                    print(f"[GD] Early stopping: No improvement in violations for {patience} epochs.")
                     break
 
         return min_violations

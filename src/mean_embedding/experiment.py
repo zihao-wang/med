@@ -17,6 +17,9 @@ class Experiment:
     sgd_config: Optional[SGDConfig] = None
     search_paths: Dict[int, List[dict]] = field(default_factory=dict)
     minimal_dimensions: Dict[int, int] = field(default_factory=dict)
+    # Grid results when sweeping over both k and n
+    grid_minimal_dimensions: Dict[int, Dict[int, int]] = field(default_factory=dict)
+    grid_search_paths: Dict[int, Dict[int, List[dict]]] = field(default_factory=dict)
 
     def find_minimal_dimension(
         self,
@@ -29,8 +32,8 @@ class Experiment:
     ) -> Dict[int, int]:
         last_minimal = left0
         for n in n_values:
-            print("#" * 10 + "new task" + "#" * 10)
-            print(f"Finding minimal dimension for n={n}, k={k}")
+            print("#" * 10 + " new task " + "#" * 10)
+            print(f"[EXP] Finding minimal dimension for n={n}, k={k}")
             print("#" * 30)
             if self.trainer_type == "gd":
                 trainer = Trainer(n, k, self.scoring_function)
@@ -47,7 +50,7 @@ class Experiment:
                 mid = (left + right) // 2
                 if mid == 0:
                     mid = 1
-                print(f"\t>>>>Testing dimension d={mid}")
+                print(f"\t[EXP] Testing dimension d={mid}")
 
                 if self.trainer_type == "gd":
                     violations = trainer.train(
@@ -63,7 +66,7 @@ class Experiment:
                         num_epochs=num_epochs,
                     )
 
-                print(f"\t<<<<Violations for d={mid}: {violations}")
+                print(f"\t[EXP] Violations for d={mid}: {violations}")
                 self.search_paths[n].append({"dimension": mid, "violations": violations})
 
                 if violations == 0:
@@ -76,12 +79,59 @@ class Experiment:
             last_minimal = minimal_d
 
             with open("minimal_dem_log.txt", "at") as f:
-                f.write(f"minimal dimension @ k={k}&n={n} is {minimal_d}\n")
-            print("#" * 10 + " Task Finished" + "#" * 10)
-            print(f"minimal dimension @ k={k}&n={n} is {minimal_d}\n")
+                f.write(f"[RESULT] minimal dimension @ k={k} & n={n} is {minimal_d}\n")
+            print("#" * 10 + " Task Finished " + "#" * 10)
+            print(f"[RESULT] minimal dimension @ k={k} & n={n} is {minimal_d}\n")
             print("#" * 30)
 
         return self.minimal_dimensions
+
+    def find_minimal_dimension_grid(
+        self,
+        k_values: List[int],
+        n_values: List[int],
+        left0: int = 0,
+        num_epochs: int = 100,
+        learning_rate: float = 0.1,
+        patience: int = 10,
+    ) -> Dict[int, Dict[int, int]]:
+        """
+        Run minimal dimension search across a grid of k and n values.
+
+        For each k in k_values, this method leverages the existing
+        find_minimal_dimension routine to sweep over n_values while
+        reusing a warm-start lower bound for the searched dimension.
+
+        Returns a nested mapping {k: {n: minimal_d}}.
+        """
+        self.grid_minimal_dimensions = {}
+        self.grid_search_paths = {}
+
+        warm_start = left0
+        for k in k_values:
+            print("#" * 10 + f" Starting k={k} grid row " + "#" * 10)
+            # Reset per-k accumulators so search paths and results are isolated
+            self.search_paths = {}
+            self.minimal_dimensions = {}
+            minimal_for_k = self.find_minimal_dimension(
+                k=k,
+                n_values=n_values,
+                left0=warm_start,
+                num_epochs=num_epochs,
+                learning_rate=learning_rate,
+                patience=patience,
+            )
+
+            # Persist per-k results and search paths
+            self.grid_minimal_dimensions[k] = dict(minimal_for_k)
+            self.grid_search_paths[k] = dict(self.search_paths)
+
+            # Update warm-start for next k using smallest feasible d found
+            feasible_ds = [d for d in minimal_for_k.values() if d != -1]
+            if feasible_ds:
+                warm_start = min(feasible_ds)
+
+        return self.grid_minimal_dimensions
 
     def plot_minimal_dimension_vs_n(self, k: int) -> None:
         if not self.minimal_dimensions:
