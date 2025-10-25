@@ -44,10 +44,12 @@ SGD_MAX_STEPS=${SGD_MAX_STEPS:-}
 SGD_NEGATIVE_SAMPLING=${SGD_NEGATIVE_SAMPLING:-}
 
 RUN_ID="$(date +%Y%m%d_%H%M%S)"
-export PYTHONPATH="/workspace:${PYTHONPATH:-}"
+# Project root under user's home directory
+PROJECT_ROOT="${HOME}/med"
+export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}"
 
 for metric in "${METRICS[@]}"; do
-  OUT_DIR="/workspace/results/${TRAINER}/${metric}/m_dependency/k_${K}/${RUN_ID}"
+  OUT_DIR="${PROJECT_ROOT}/results/${TRAINER}/${metric}/m_dependency/k_${K}/${RUN_ID}"
   mkdir -p "${OUT_DIR}"
   pushd "${OUT_DIR}" >/dev/null
 
@@ -78,9 +80,9 @@ for metric in "${METRICS[@]}"; do
   if [[ -n "${SGD_MAX_STEPS}" ]]; then ARGS+=(--sgd_max_steps "${SGD_MAX_STEPS}"); fi
   if [[ -n "${SGD_NEGATIVE_SAMPLING}" ]]; then ARGS+=(--sgd_negative_sampling "${SGD_NEGATIVE_SAMPLING}"); fi
 
-  echo "[CMD] python -u /workspace/main.py ${ARGS[*]}" | tee -a run.log
+  echo "[CMD] python -u ${PROJECT_ROOT}/main.py ${ARGS[*]}" | tee -a run.log
   /usr/bin/env time -f "[TIME] elapsed=%E user=%U sys=%S maxrss=%MKB" \
-    python -u /workspace/main.py "${ARGS[@]}" |& tee -a run.log
+    python -u "${PROJECT_ROOT}/main.py" "${ARGS[@]}" |& tee -a run.log
   echo "[DONE] m_dependency ${TRAINER} ${metric} saved to ${OUT_DIR}" | tee -a run.log
   popd >/dev/null
 

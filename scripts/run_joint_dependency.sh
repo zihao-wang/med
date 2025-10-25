@@ -41,10 +41,12 @@ SGD_MAX_STEPS=${SGD_MAX_STEPS:-}
 SGD_NEGATIVE_SAMPLING=${SGD_NEGATIVE_SAMPLING:-}
 
 RUN_ID="$(date +%Y%m%d_%H%M%S)"
-export PYTHONPATH="/workspace:${PYTHONPATH:-}"
+# Project root under user's home directory
+PROJECT_ROOT="${HOME}/med"
+export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}"
 
 for metric in "${METRICS[@]}"; do
-  OUT_DIR="/workspace/results/${TRAINER}/${metric}/joint_grid/${RUN_ID}"
+  OUT_DIR="${PROJECT_ROOT}/results/${TRAINER}/${metric}/joint_grid/${RUN_ID}"
   mkdir -p "${OUT_DIR}"
   pushd "${OUT_DIR}" >/dev/null
 
@@ -75,13 +77,13 @@ for metric in "${METRICS[@]}"; do
   if [[ -n "${SGD_MAX_STEPS}" ]]; then ARGS+=(--sgd_max_steps "${SGD_MAX_STEPS}"); fi
   if [[ -n "${SGD_NEGATIVE_SAMPLING}" ]]; then ARGS+=(--sgd_negative_sampling "${SGD_NEGATIVE_SAMPLING}"); fi
 
-  echo "[CMD] python -u /workspace/main.py ${ARGS[*]}" | tee -a run.log
+  echo "[CMD] python -u ${PROJECT_ROOT}/main.py ${ARGS[*]}" | tee -a run.log
   /usr/bin/env time -f "[TIME] elapsed=%E user=%U sys=%S maxrss=%MKB" \
-    python -u /workspace/main.py "${ARGS[@]}" |& tee -a run.log
+    python -u "${PROJECT_ROOT}/main.py" "${ARGS[@]}" |& tee -a run.log
 
   # Copy the log where minimal_dem_log.txt is generated to keep context
-  if [[ -f /workspace/minimal_dem_log.txt ]]; then
-    cp /workspace/minimal_dem_log.txt ./minimal_dem_log.copy.txt
+  if [[ -f "${OUT_DIR}/minimal_dem_log.txt" ]]; then
+    cp "${OUT_DIR}/minimal_dem_log.txt" "./minimal_dem_log.copy.txt"
   fi
 
   echo "[DONE] joint grid ${TRAINER} ${metric} saved to ${OUT_DIR}" | tee -a run.log
