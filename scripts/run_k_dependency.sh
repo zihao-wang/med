@@ -58,6 +58,9 @@ for metric in "${METRICS[@]}"; do
   echo "n=${N}" | tee -a run.log
   echo "k_values=${K_LIST_ARR[*]}" | tee -a run.log
   echo "timestamp=${RUN_ID}" | tee -a run.log
+  echo "git_commit=$(git rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
+  echo "hostname=$(hostname)" | tee -a run.log
+  echo "python=$(python -V 2>&1)" | tee -a run.log
 
   for k in "${K_LIST_ARR[@]}"; do
     if (( k > N )); then
@@ -83,7 +86,9 @@ for metric in "${METRICS[@]}"; do
     if [[ -n "${SGD_MAX_STEPS}" ]]; then ARGS+=(--sgd_max_steps "${SGD_MAX_STEPS}"); fi
     if [[ -n "${SGD_NEGATIVE_SAMPLING}" ]]; then ARGS+=(--sgd_negative_sampling "${SGD_NEGATIVE_SAMPLING}"); fi
 
-    python -u /workspace/main.py "${ARGS[@]}" |& tee -a "k_${k}.log"
+    echo "[CMD] python -u /workspace/main.py ${ARGS[*]}" | tee -a "k_${k}.log"
+    /usr/bin/env time -f "[TIME] elapsed=%E user=%U sys=%S maxrss=%MKB" \
+      python -u /workspace/main.py "${ARGS[@]}" |& tee -a "k_${k}.log"
   done
 
   echo "[DONE] k_dependency ${TRAINER} ${metric} saved to ${OUT_DIR}" | tee -a run.log

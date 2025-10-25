@@ -32,8 +32,8 @@ class Experiment:
     ) -> Dict[int, int]:
         last_minimal = left0
         for n in n_values:
-            print("#" * 10 + "new task" + "#" * 10)
-            print(f"Finding minimal dimension for n={n}, k={k}")
+            print("#" * 10 + " new task " + "#" * 10)
+            print(f"[EXP] Finding minimal dimension for n={n}, k={k}")
             print("#" * 30)
             if self.trainer_type == "gd":
                 trainer = Trainer(n, k, self.scoring_function)
@@ -50,7 +50,7 @@ class Experiment:
                 mid = (left + right) // 2
                 if mid == 0:
                     mid = 1
-                print(f"\t>>>>Testing dimension d={mid}")
+                print(f"\t[EXP] Testing dimension d={mid}")
 
                 if self.trainer_type == "gd":
                     violations = trainer.train(
@@ -66,7 +66,7 @@ class Experiment:
                         num_epochs=num_epochs,
                     )
 
-                print(f"\t<<<<Violations for d={mid}: {violations}")
+                print(f"\t[EXP] Violations for d={mid}: {violations}")
                 self.search_paths[n].append({"dimension": mid, "violations": violations})
 
                 if violations == 0:
@@ -79,9 +79,9 @@ class Experiment:
             last_minimal = minimal_d
 
             with open("minimal_dem_log.txt", "at") as f:
-                f.write(f"minimal dimension @ k={k}&n={n} is {minimal_d}\n")
-            print("#" * 10 + " Task Finished" + "#" * 10)
-            print(f"minimal dimension @ k={k}&n={n} is {minimal_d}\n")
+                f.write(f"[RESULT] minimal dimension @ k={k} & n={n} is {minimal_d}\n")
+            print("#" * 10 + " Task Finished " + "#" * 10)
+            print(f"[RESULT] minimal dimension @ k={k} & n={n} is {minimal_d}\n")
             print("#" * 30)
 
         return self.minimal_dimensions

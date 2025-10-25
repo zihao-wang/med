@@ -54,6 +54,9 @@ for metric in "${METRICS[@]}"; do
   echo "k_values=${K_VALUES_ARR[*]}" | tee -a run.log
   echo "n_values=${N_VALUES_ARR[*]}" | tee -a run.log
   echo "timestamp=${RUN_ID}" | tee -a run.log
+  echo "git_commit=$(git rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
+  echo "hostname=$(hostname)" | tee -a run.log
+  echo "python=$(python -V 2>&1)" | tee -a run.log
 
   ARGS=(
     --trainer "${TRAINER}"
@@ -72,7 +75,9 @@ for metric in "${METRICS[@]}"; do
   if [[ -n "${SGD_MAX_STEPS}" ]]; then ARGS+=(--sgd_max_steps "${SGD_MAX_STEPS}"); fi
   if [[ -n "${SGD_NEGATIVE_SAMPLING}" ]]; then ARGS+=(--sgd_negative_sampling "${SGD_NEGATIVE_SAMPLING}"); fi
 
-  python -u /workspace/main.py "${ARGS[@]}" |& tee -a run.log
+  echo "[CMD] python -u /workspace/main.py ${ARGS[*]}" | tee -a run.log
+  /usr/bin/env time -f "[TIME] elapsed=%E user=%U sys=%S maxrss=%MKB" \
+    python -u /workspace/main.py "${ARGS[@]}" |& tee -a run.log
 
   # Copy the log where minimal_dem_log.txt is generated to keep context
   if [[ -f /workspace/minimal_dem_log.txt ]]; then
