@@ -1,0 +1,327 @@
+\section{Introduction}
+
+Embedding-based retrieval systems answer queries by vector comparison. One common setting of such systems is that the system maintains each element $x_i\in X$ as a vector $\vx_i\in \real^d$, where $X$ is the universe set of elements and $\real^d$ is the vector space\footnote{Other metric spaces may apply. $\real^d$ is chosen because it is the most commonly used.}. 
+Each query $q$ to answer is also embedded as a vector $\vw_q\in \real^d$. The answers to a query $q$ are retrieved by (1) comparing $\vw_q$ against each of the $\vx_i$ with a scoring function $s(\cdot, \cdot)$ to obtain a score $s_{i|q} = s(\vx_i, \vw_q)$ and (2) retrieving the answers with the $k$ largest scores $s_{i|q}$\footnote{Other notions of answer sets may apply, but top-$k$ is chosen also because its common usage.}.
+This paper investigates a fundamental question of the aforementioned retrieval systems. One informal statement is:
+\begin{tcolorbox}[colback=yellow!20, colframe=black, sharp corners, boxrule=1pt]
+Given the universe $X$ with \underline{$m$ elements} and a \underline{scoring function $s$}, what is the \textbf{minimal} \underline{dimension $d$} of $\real^d$ such that \textbf{every} query with \underline{at most $k$ answers} is perfectly retrievable?
+\end{tcolorbox}
+This question concerns the ``Minimal Embeddable Dimension (MED)'' $d$, as will be formally defined in Section~\ref{sec:problem-definition}, which depends on the function $s$, the cardinality $m$ of the universe $X$, and also the cardinality $k$ of the answer set to queries we are interested in. For convenience, we say a set of embeddings for elements and subsets is an \textbf{embeddable configuration} if and only if all answers can be retrieved by score comparison.
+
+The study of the minimal embeddable dimension is fundamentally related to several classic research directions, including the VC-dimension in statistical learning theory~\citep{mohri2018foundations} and the $k$-set problem in combinatorial geometry~\citep{matousek2013lectures}. It is widely acknowledged that this question is related to the fundamental boundary underlying modern information retrieval~\citep{lee2019latent,weller2025mfollowir}, data compression~\citep{andoni2008near}, and representation learning~\citep{izacard2021unsupervised,wang2022text}. 
+
+
+The effectiveness of embedding-based retrieval has been demonstrated to depend on the dimension $d$ of the space when the size $m$ of the universe is large~\citep{yin2018dimensionality,reimers2021curse}. Very recently, \citet{weller2025theoretical} suggested that the fundamental property of the underlying geometric space limits the effectiveness of embedding-based retrieval, as supported by both theoretical findings and numerical simulations. On the theory side, they considered a retrieval problem defined by a query-relevance matrix $A\in \{0, 1\}^{m\times n}$ and $s(\vx_i, \vw_q) = \langle \vx_i, \vw_q \rangle$ is the inner product\footnote{To present all top-$k$ subset queries, the query-relevance matrix A  is in the huge space $\{0,1\}^{\binom{m}{k} \times m}$.}. They connected the minimal dimension $d$ with the sign-rank from the query-relevance matrix $A$, specifically, ${\rm rank}_{\pm} (2A-1) - 1 \leq d \leq {\rm rank}_{\pm} (2A-1) $, where the sign-rank of a matrix $M\in \real^{m\times n}$ is defined as ${\rm rank}_{\pm} M = \min\{{\rm rank} B | B\in \real^{m\times n} \text{ such that for all } i, j \text{ we have } {\rm sign}B_{ij} = M_{ij}\}$. However, they failed to explicitly construct the relationship in terms of $m$ due to the hardness of computing the sign rank.
+Their simulation, on the other hand, employs a \textit{free embedding optimization} to check whether there exists an embeddable configuration of $m$ elements and $\binom{m}{k}$ subsets in $\real^d$. They empirically established a \textit{polynomial} relationship between $d$ and $m$. \textbf{It is this empirical fitting result that suggested the minimal dimension $d$ required grows with the number of elements $m$ to be retrieved, and indicated the fundamental limit lies in the geometric space.}
+
+
+% Please add the following required packages to your document preamble:
+\begin{table*}[]
+\caption{Tight bounds of minimal dimensions in the standard setting (MED) and the centroid setting (MED-C) of important scoring functions. Theorems are stated in Section~\ref{sec:optimal-standard-theory} and Section~\ref{sec:maed_and_exp}. $m$ denotes the size of the universe, $k$ indicates the largest size subset to query. Interestingly, the MED does not depend on $m$. The $O(\log m)$ upper bound of MED-C can be easily observed in simulation.MED is the lower bound of MED-C by definition, so the $\Omega(k)$ lower bound of MED-C is omitted in the table.}\label{tab:major_results}
+\centering
+% \resizebox{\linewidth}{!}{
+\begin{tabular}{lrrr}
+\toprule
+\multirow{2}{*}{Scoring function} & \multicolumn{2}{l}{Standard setting (MED)} & Centroid setting (MED-C) \\\cmidrule{2-4}
+                                  & Lower bound       & Upper bound      & Upper bound                             \\\midrule
+Linear (inner product)            & $k-1$             & $2k$             & $O(k^2\log m)$                             \\
+Cosine similarity                 & $k-1$             & $2k+1$           & $O(k^2\log m)$                              \\
+Euclidean distance ($\ell_2$)     & $k-1$             & $2k$             & $O(k^2\log m)$                            \\\bottomrule
+\end{tabular}
+% }
+\end{table*}
+
+
+This paper questions the conclusions by \citet{weller2025theoretical} by studying the MED problem, as will be formalized in Section~\ref{sec:problem-definition}, from the perspective of approximability. That means we also work on the fundamental property of geometric spaces as in \citet{weller2025theoretical} but with an extended set of essential scoring functions: in addition to the inner product previously discussed~\citep{weller2025theoretical}, cosine similarity and Euclidean distances are also included due to their wide application in embedding-based systems and representation learning. This paper discusses \textbf{when those spaces are large enough} to contain the subset membership of at most $k$ elements. This perspective, due to its theoretical nature, is not practical enough to help develop scalable ML algorithms. However, \textit{it still allows people to determine whether the effectiveness of embedding-based systems is limited by} \textbf{approximability} (a fundamental property of geometric spaces) \textit{or by} \textbf{learnability} (the way we build specific retrieval systems). If it turns out to be an approximability issue, any methodological effort might make little progress before the dimension of the vector space is large enough. Otherwise, there is still hope in developing more performant embedding-based retrieval systems.
+
+
+\textbf{Theoretical Contribution.} We establish a clear quantitative relation $d = \Theta(k)$ between the MED $d$ and the maximum cardinality $k$ of the answer set for all three scoring functions. The major results are presented in Table~\ref{tab:major_results}, ``Standard setting (MED)''. Our theoretical results are independent of the universe's size $m$, suggesting that the fundamental property of geometric space \textbf{does not} limit the embedding-based retrieval system. They sharpen the theoretical bounds by~\citet{weller2025theoretical} and contradict the empirical results in~\citet{weller2025theoretical}.
+
+\textbf{Empirical Support.} We also conduct numerical simulations to show that the minimal dimension, where an embeddable configuration of embeddings can be found by optimization, does not grow polynomially with $m$, but at most logarithmically. The numerical simulations also justify the correctness of our tight bounds in MED and credit the limitation of the effectiveness of embedding-based systems to learnability rather than approximability. Some brief details are presented here, and more information can be found in Section~\ref{sec:maed_and_exp}.
+
+
+
+In our simulation, we \textbf{further assume} the query vector of $q$ to be given by $\vw_q:= \frac{1}{|S|}\sum_{x\in S} \vx$ as the centroid of vectors in the answer set $S$ and denoted as the \textbf{centroid setting}. Our centroid setting is ``more achievable'' than the ``free embedding optimization'' setting~\citep{weller2025theoretical} because our setting only requires optimising $m$ embeddings for elements, but requires no optimization of the $\binom{m}{k}$ embeddings of the subsets. Simulations in both settings only show the existence of an embeddable configuration of $m$ elements in specific dimensions. By definition, they reveal upper bounds on MED. 
+
+Another interesting finding is that the simulation in the centroid setting reveals an empirical logarithmic upper bound of MED. This $O(\log m)$ dependency agrees with our theoretical upper bounds from a probabilistic construction. The minimal embeddable dimension in the centroid setting is denoted MED-C, and listed in Table~\ref{tab:major_results}. Compared to the polynomial dependency revealed by the free embedding optimization~\citep{weller2025theoretical}, it might be counterintuitive because the centroid setting has fewer degrees of freedom ($\binom{m}{k}$ subset query embeddings are not optimized in the centroid setting), providing a perfect example of the bottleneck in learnability rather than approximability. More discussion can be found in Section~\ref{sec:maed_and_exp}.
+
+In summary, our work reframes the debate from geometric limits to learnability, offering both theoretical guarantees and empirical evidence that low-dimensional embeddings suffice for perfect retrieval.
+This paper is organized as follows. Section~\ref{sec:problem-definition} formally defines the Minimal Embeddable Dimension (MED), establishes some inequalities of MED, and also introduces the centroid setting. Section~\ref{sec:optimal-standard-theory} proves the tight bounds of the MED under various scoring function classes. Section~\ref{sec:maed_and_exp} derives the bounds for MED in centroid settings and validates them through numerical simulations. Section~\ref{sec:related} discusses two highly related works. Finally, Section~\ref{sec:conclusion} concludes the paper with limitations and future directions.
+
+\section{Minimal Embeddable Dimension}\label{sec:problem-definition}
+
+For convenience, we summarize the notations in this paper.
+$m, n, d, k$ are positive integers. $n$ and $d$ are both used for dimension. They can be used interchangeably. The subtle difference is that $d$ usually represents dimension in general while $n$ appeared in the quantitative relations. $X$ is the set of $m$ elements to be embedded and $\vx \in \real^d$ denotes the embeddings of $x\in X$. For simplicity, we don't distinguish the embedding $\vx$ and element $x$, so it is fine to state $X = \{\vx_i\}_{i=1}^m \subseteq \real^d$.
+We study all possible queries $q$ that concern at most $ k$ objects in $X$. In that sense, it is equivalent to consider all subsets of at most $k$ elements in $X$ ($k \leq m$ by default), denoted as $ \collection_k=\{S\subseteq X, |S|\leq k\}$ and $\collection_m=2^X$. We also use $q$ to denote a subset in $X$.
+The scoring function $s: \real^d \times \real^d\mapsto \real$ measures the relatedness of two vectors in $\real^d$. The description of $\real^d$ is omitted if the context is clear. The scoring functions of our interest include:
+\begin{compactdesc}
+    \item[Linear:] $s_{\rm linear}(\vx, \vw) = \langle \vx, \vw\rangle$, where $\vw$ is a query vector, $\langle \cdot, \cdot\rangle$ is the inner product.
+    \item[Cosine similarity:] $s_{\cos}(\vx, \vw) = \frac{\langle \vx, \vw \rangle }{ \|\vx\|\|\vw\|}$.
+    \item[Euclidean distance ($\ell_2$):] $s_{\ell_2}(\vx, \vw) = - \|\vx - \vw\|_2 $.
+\end{compactdesc}
+For convenience, we consider the functional classes $\functionals$ induced by those three scoring functions, e.g. The linear functional class $\fln = \{f(\cdot ):= s_{\rm linear}(\cdot, \vw) | \vw \in \real^d\}$, the cosine family$\fcos = \{  f(\cdot ):= s_{\cos}(\cdot, \vw) | \vw \in \real^d\}$, and the $\ell_2$ family $\fl{2} = \{f(\cdot ):= s_{\ell_2}(\cdot, \vw) | \vw \in \real^d\}$. Each functional $f\in \functionals: \real^d\mapsto\real$. We use the subscript to indicate that the specific function $f_q\in \functionals$ is used for a specific query $q$ or $f_S$ for a subset $S$.
+
+
+
+The primary focus of this section is to present the definition and general properties of the Minimal Embeddable Dimension (MED). Notably, we dedicate the last subsection~\ref{sec:maed} to a special \textbf{centroid} setting, where the $\vw_q = \frac{1}{|S|} \sum_{x\in S} \vx$, which concerns the MED in centroid (\textbf{MED-C}), an upper bound of MED.
+
+\subsection{$k$-shatter problem}
+To formally define the minimal embeddable dimension, we introduce the concept of $k$-shattering.
+\begin{definition}[$k$-shattering]
+    Let $X\subseteq \real^d$ be a set of $m$ points. \textbf{$X$ is $k$-shattered by $\functionals$} if and only if  $\forall S\in \collection_k,\exists f_S\in \functionals,\forall \vx \in S,\forall \vy\notin S, f_S(\vx) > b_S > f_S(\vy)$, where $b_S\in \real$ depends on $S$ and $\functionals$.
+\end{definition} 
+
+\begin{remark}
+    The definition of $k$-shattering precisely determines whether there exists a configuration of vectors in $X$ under a specific functional family or scoring function with query embeddings such that \textbf{the embedding-based retrieval built upon this configuration succeeds on all queries concerning at most $k$ elements}.
+\end{remark}
+
+Minimal Embeddable Dimension ($\med$) is then defined based on $k$-shattering, which depends on $m$, $k$, and $\functionals$. For convenience, $\med$ is denoted as a function $n^*=\med(m, k; \functionals)$.
+\begin{definition}[Minimal Embeddable Dimension]\label{def:med}
+    Given $m$, $k$, $\functionals$, $\med$ $n^*$ is the integer that a configuration of $m$ points that can be $k$-shattered by $\functionals$ exists in $\real^{n^*}$ but not in $\real^{(n^*-1)}$.
+\end{definition}
+
+One direct result, according to Definition~\ref{def:med}, is the non-strict monotonicity of $\med(m, k; \functionals)$.
+\begin{proposition}\label{prop:monotonic}
+For $2\leq k\leq m$, the following inequality holds:
+\begin{align*}
+    \med(m, k-1;\functionals) &\leq \med(m, k; \functionals) \leq \med(m+1, k; \functionals).
+\end{align*}
+\end{proposition}
+
+Meanwhile, when all subsets of at most half the points can be shattered, all subsets can be shattered.
+\begin{proposition}\label{prop:half-shatter}
+    For $k\geq \lfloor \frac{m}{2} \rfloor$, $\med(m, k;\functionals) = \med(m, m;\functionals)$.
+\end{proposition}
+
+
+\subsection{General bounds of $\med$ by VC dimension}
+
+The definition of $k$-shattering also defines the VC dimension~\citep{mohri2018foundations}, which is redefined below in terms of $k$-shattering.
+\begin{definition}[VC dimension]
+    The VC dimension of a functional family $\functionals$ (maps $\real^n$ to $\real$) is the maximal size $m$ of a set $X$ that can be $m$-shattered by $\functionals$, denoted as $m = \vcd(n; \functionals)$.
+\end{definition}
+VC dimension is a measure of the capacity of classes of sets or binary functions~\citep{vapnik2013nature}. This concept plays a fundamental role in statistical learning theory, particularly in the study of approximability. By defining both the MED and VC dimensions using $k$-shattering, it is reasonable to expect some connections to hold between them, and indeed they do. For notational convenience, we define the ``inversion" of VC dimension as $$\vcd^{-1}(m; \functionals)=\min \{i \mid s.t. \vcd(i;\functionals)\ge m\},$$ namely the minimum dimension required. Notably, the function $\vcd(\cdot ;\functionals)$ is not guaranteed to increase strictly; therefore, there is no inverse function formally.
+\begin{lemma}\label{lemma:connection-VCD}
+    $\med(m, m;\functionals) = \vcd^{-1}(m;\functionals)$.
+\end{lemma}
+
+\begin{proof}
+    Let $n = \vcd^{-1}(m, \functionals)$, then (1) $m$ points in $\real^n$ can be $m$-shattered by $\functionals$ but (2) $m$ points in $\real^{(n-1)}$ cannot be $m$-shattered by $\functionals$. Those two claims imply, in the sense of \med, that (1) $\med(m, m, \functionals) \leq n$ and (2) $\med(m, m, \functionals) > n - 1$. Thus $\med(m, m, \functionals) = n$
+\end{proof}
+
+
+Additionally, combining Proposition~\ref{prop:monotonic} and Lemma~\ref{lemma:connection-VCD} yields the following proposition.
+\begin{proposition}\label{prop:vc-bounds}
+    $$\vcd^{-1}(k; \functionals) \leq \med(m, k; \functionals) \leq \vcd^{-1}(m; \functionals).$$
+\end{proposition}
+Thus, a rough lower and upper bound of $\med$ can be derived from the VC dimension. Specifically, the upper (lower) bounds of VC dimensions now form the lower (upper) bounds of $\med$, respectively.
+
+\subsection{MED in the centroid setting}\label{sec:maed}
+We present the centroid setting, where the query embedding is the simple average of the element embeddings. The centroid setting imposes more constraints than $k$-shattering. Formal definitions are now provided.
+
+We begin with the definition of $k$-centroid shattering as the restricted version of $k$-shattering.
+\begin{definition}[$k$-centroid shattering]
+    Let $X\subseteq \real^d$ be a set of $m$ points, $X$ is $k$-centroid shattered by a scoring function $s(\cdot, \cdot)$ if and only if $\forall S\in \collection_k, \forall \vx\in S, \forall \vy \notin S, s(\vx, \vc_S) > s(\vy, \vc_S)$, where $\vc_S = \sum_{x \in S} \frac{1}{|S|}\vx$ is the center vector of $S$.
+\end{definition}
+\begin{remark}
+    We stress that the concept of centroid shattering concerns a specific scoring function ($s_{\rm linear}, s_{\cos}, s_{\ell_p}$) rather than a functional class $\fln, \fcos, \flp$ because we already fix the vector for each of the query as the center of its answer set $S$, specifically, $\vw:= \vc_S$.
+\end{remark}
+
+Then, the MED in the centroid setting is defined below,
+\begin{definition}[MED in Centroids (MED-C)]
+    Given $m, k, s(\cdot, \cdot)$, MED-C $n^* = \medc(m, k; s)$ is the integer that a configuration of $m$ points that can be $k$-centroid shattered by $s(\cdot, \cdot)$ exists in $\real^{n^*}$ but not in $\real^{(n^*-1)}$.
+\end{definition}
+
+\textbf{MED-C and MED. In the original definition of MED, only the existence of functionals is required to prove the $k$-shattering definition. In the centroid setting, $k$-centroid shattering fixes the subset query embeddings $\vc_S$, which further determine functionals explicitly. Noticing that the number of ``free'' functionals involved in $k$-shattering is $\binom{m}{k}$, the $k$-centroid setting reduces the freedom into as few as $m$ vectors, which facilitates numerical simulation. For the same reason, however, MED lower bounds MED-C because of the flexibility to freely determine $f(\cdot)$ other than the centroid one $s(\cdot, \vc_S)$}. Formally, we have the following proposition.
+\begin{proposition}
+    $\med(m, k; \functionals) \leq \medc (m, k; s)$, where $\functionals$ is the functional family induced by the scoring function $s$.
+\end{proposition}
+\begin{proof}
+    Let $n = \medc(m, k; s)$, we consider the configuration of vectors $\vx_i$ for $i=1,...,m$ elements. Let the functionals for each $S\in \collection_k$, we select the functional $f_S(\cdot) := s(\cdot, \vc_S)$, where $\vc_S =\frac{1}{|S|} \sum_{x \in S} \vx$. We can say that this configuration is also $k$-shattered by $\functionals$. Then, $\med(m, k; \functionals) \leq \medc(m,k;s)$ by definition.
+\end{proof}
+
+\textbf{MED-C and neural set embeddings.} One of the common deep learning approaches to compute a set embedding is to aggregate the embeddings of contained elements~\citep{zaheer2017deep}. We can also study the Minimum Embeddable Dimension in the Neural set embedding setting (MED-N), where the set embedding $\vw_S = {\rm NN}(\{\vx: x \in S\})$ is computed by a complex neural architecture (such as MLP or multi-head self attention). The centroid setting simplifies the aggregation of complex neural networks by simple averaging. Therefore, one could expect that the MED-C is not smaller than the MED-N due to a less capable averaging operation. Combined with the definition of MED, this informal discussion suggested that we can roughly consider MED-N to be between MED and MED-C.
+
+\section{Tight bounds for MED and discussions}\label{sec:optimal-standard-theory}
+
+This section derives tight bounds of $\med$ under $\fln$, $\fcos$, and $\fl{2}$. 
+The choices are based on the broad interest of their applications in modern machine learning and representation learning. By Proposition~\ref{prop:half-shatter}, we only need to study the cases where $2\leq k \leq \lfloor \frac{m}{2} \rfloor$. The general proof strategy applied here is to find the upper bound of $\med$ by construction, and to find the lower bound by VC dimension by Proposition~\ref{prop:vc-bounds}.
+
+\subsection{Tight bounds of $\med(m, k;\fln)$}\label{sec:linear-bounds}
+To begin with, let's consider the cyclic polytope~\citep{ziegler2012lectures}.
+\begin{example}[Cyclic polytope]\label{eg:cyclic-polytope}
+	Given moment curve $\vx(t) = (1, t, t^2, ..., t^d)\in \real^d, 0\leq t\leq 1$, a cyclic polytope is the convex hull ${\rm Conv}(\vx(t_1), \vx(t_2), \dots, \vx(t_m))$, where $t_1 < t_2 < \cdots < t_m$ can be arbitrary real numbers.
+\end{example}
+One of the most well-known results of cyclic polytopes is that a cyclic polytope in $\real^d$ is an $\lfloor \frac{d}{2} \rfloor$-neighborly polytope, in which every $k$ vertices form a face when $k\leq \lfloor \frac{d}{2} \rfloor$~\citep{ziegler2012lectures}. By forming a $k$-face, it means that the $k$ vertices in this face can be linearly separated from the rest of the vertices of the polytope.
+
+\begin{theorem}\label{thm:linear-lower-upper}
+    $$k-1\leq \med(m, k; \fln) \leq 2k.$$
+\end{theorem}
+\begin{proof}
+Noticing the VC dimension of $\fln$ in $\real^n$ is $n+1$~\citep{mohri2018foundations}, the lower bound is derived as a direct result of Proposition~\ref{prop:vc-bounds}. The upper bound is by the cyclic polytope construct in Example~\ref{eg:cyclic-polytope}.
+\end{proof}
+
+We see that $\med(m, k, \fln)$ only depends on $k$. Ignoring the coefficient, $\med(m, k; \fln) = \Theta(k)$ also holds. Then, we show that the $\fcos$ and $\fl{2}$ share the similar bounds as $\fln$.
+
+\subsection{Tight bounds of $\med(m, k;\fl{2})$}~\label{sec:generalize_linear}
+
+By geometric constructions in $\real^n$ regarding the $k$-shattering, the following relation is revealed.
+
+\begin{proposition}\label{prop:l2<linear}
+
+$$\med(m, k; \fl{2}) \leq \med(m, k; \fln). $$
+
+\end{proposition}
+\begin{proof}
+Given a configuration that can be $k$-shattered by $\fln$, then for each set $S, |S| \leq k$, there exists a hyperplane $H_S$ that separates $S$ from $X-S$. We can always find an $\ell_2$ ball that includes $S$ and is tangent to $H_S$, which automatically does not contain $X-S$.
+\end{proof}
+When considering the Proposition~\ref{prop:l2<linear}, we conclude $\med(m, k;\fl{2})$ in Theorem~\ref{thm:l2-lower-upper} with additional information that $\vcd(n;\fl{2}) = n+1$ and Proposition~\ref{prop:vc-bounds}.
+
+\begin{theorem}\label{thm:l2-lower-upper}
+    $$k-1\leq \med(m, k; \fl{2}) \leq 2k.$$
+\end{theorem}
+
+\subsection{Tight bounds of $\med(m, k; \fcos)$}
+
+\begin{proposition}\label{prop:linear=cos}
+\begin{align*}
+    \med(m, k; \fln)) &\leq \med(m, k; \fcos) \leq \med(m, k; \fln)) + 1.
+\end{align*}
+\end{proposition}
+\noindent\textit{Proof sketch:} Notice that the decision boundary by cosine similarity on a sphere is the intersection between hyperplanes and this sphere. Given a configuration in $\real^n$ that can be $k$-shattered by $\fln$, one could use the inverse stereographic projection to project onto a sphere in $\real^{n+1}$, where the original points are projected to the points on the sphere. Meanwhile, suppose a configuration can be $k$-shattered by cosine similarities. In that case, one can first project every point onto the sphere by $x\mapsto \frac{x}{\|x\|_2}$; then, the decision boundaries on spheres can be extended to hyperplanes. The full proof can be found in Appendix~\ref{app:proof:prop:linear=cos}.
+
+Combination of the Theorem~\ref{thm:linear-lower-upper} and the Proposition~\ref{prop:linear=cos} also shows that $\med(m, k; \fcos) = \Theta(k)$.
+
+\begin{theorem}\label{thm:cos-lower-upper}
+    $$k-1\leq \med(m, k; \fcos) \leq 2k+1.$$
+\end{theorem}
+
+\subsection{Discussion on $\Theta(k)$ bound of MEDs}
+To summarize, the minimum embeddable dimension for $\fln$, $\fcos$, and $\fl{2}$ are all $\Theta(k)$, which is independent of the number of total elements in the set system. This result suggests that, despite the difficulty, it is possible to encode all top-$k$ queries into a space of no more than $2k$ dimensions, regardless of the number of elements to embed.
+
+\noindent\textbf{The real performance bottleneck of the embedding-based retrieval}. The bounds clearly show that the geometric space \textbf{does not} limit the effectiveness of the embedding-based retrieval system. To make this even more transparent, one possible strategy to build a perfect top-$k$ queries of a retrieval system with $m$ elements is to (1) put elements in the vertices of a cyclic polytope in $\real^{2k}$, (2) learn the query embeddings model which predict the query embedding that clearly separates the (at most $k$) answers from the rest. Our theory guarantees that such query embeddings exist, but the real problem is how to build a function to predict them. Knowing that neural networks can universally approximate functions~\citep {hornik1989multilayer}, the bottleneck of embedding-based retrieval is essentially a learnability problem: how to actually learn such a function with embedding dimension $2k$ from data.
+
+\noindent\textbf{Can the $\Theta(k)$ bounds be observed?} Although the fundamental property of the underlying geometric space does not put any restrictions on embedding-based retrieval. However, two issues still challenge whether we can observe this bound in the real world. (1) \textbf{limited numerical precision:} Even with the cyclic polytope example, it is still questionable when $m$ embeddings are represented in a fixed-digit floating-point number. The budget of float points does not have infinite capacity. (2) \textbf{infeasible number of functionals to determine:} To realize $\Theta(k)$ bound, one would search for $\binom{m}{k}$ functionals. The total number of tasks is infeasible to complete. Those two issues 
+
+
+\section{Upper bounds of MED-C, Simulation, and Implications}~\label{sec:maed_and_exp}
+
+This section discusses the minimal embeddable dimension in the centroid setting (MED-C).
+We will see that MED-C grows logarithmically with the universe's size $m$ in both theory and experiments.
+
+\subsection{Upper bounds}
+
+For inner product, cosine similarity, and Euclidean distance, we use the probabilistic method as a common proving strategy to prove the logarithmic upper bound. In short, we sample $m$ element embeddings from a probabilistic distribution in $\real^n$ and find the conditions on $k$, $m$, and $n$ such that the desired $k$-centroid shattering configuration occurs with positive probability. The random vectors here are part of the probabilistic construction and do not directly link to the simulation.
+
+\begin{theorem}\label{thm:medc-linear}
+    $\medc(m, k; s_{\rm linear})=O(k^2\log m)$
+\end{theorem}
+\noindent\textit{Proof sketch:} We consider the probabilistic method, where $v_1, \dots, v_m \sim \mathcal{N}(0, 1/n)$ in $\real^n$, we show there is positive probability such that for any subset $S$, $|S|\leq k$, $v_1\in S$ and $v_2\notin S$
+$ \langle v_1, \sum_{u\in S} u \rangle > \langle v_2 ,  \sum_{u\in S} u \rangle$ under the condition of $n>Ck^2\log m$. The full proof can be found in Appendix~\ref{app:proof:thm:maed-linear}.
+
+Following a similar probabilistic construction, we can also prove that $\fcos$ and $\fl{2}$ share the same upper bound. The proofs are also in the Appendix~\ref{app:proof:thm:maed-linear}.
+\begin{theorem}\label{thm:medc-cos}
+$\medc(m, k; \fcos)=O(k^2\log m).$
+\end{theorem}
+\begin{theorem}\label{thm:medc-l2}
+$\medc(m, k; \fl{2})=O(k^2\log m).$
+\end{theorem}
+
+Although the $O(k^2\log m)$ bound may not be tight, it still suffices to make significant implications. An easy lower bound for MED-C is the lower bound of MED, which is $\Omega(k)$. We can see that the gap between the lower and upper bounds is a factor of $O(\log m)\times O(k)$. We discuss those two factors separately. For the factor of $O(\log m)$, it still demonstrates that a sublinear growth for MED-C with the size $m$ of the universe is feasible. For more complex neural set embedding settings, such as MED-N discussed in Section~\ref{sec:maed}, a similar upper bound also applies. For the additional factor $O(k)$, we would like to convince the readers that $O(k\log m)$ is not very easy to achieve, so the $O(k^2 \log m)$ is not very bad. To the best of the authors' knowledge, the most similar (but not exact) problem setting to MED-C is 1-bit compress sensing~\citep{aksoylar2014information}, with a lower bound of $\Omega(k\log \frac{m}{k}) $, which cancels the additional $O(k)$ factor (compare $O(k^2\log m)$ for MED-C with $\Theta(k)$ for MED) but requires an additional sparse recovery algorithm rather than simply comparing scores independently. This related work suggests that the extra cost should be paid to achieve the bound $O(k\log m)$ of MED-C.
+
+
+\subsection{Numerical simulation}
+
+The situation where $k \ll m$ is of particular interest because there are many documents to be retrieved, and only a very small subset is required in a real-world scenario. Therefore, numerical simulation typically focuses on large $m$ and small $k$ to demonstrate the effectiveness of the bounds.
+In the numerical simulation, we use "critical" to denote the largest possible number of objects for a given dimension, or the smallest dimension required to accommodate a specified number of objects.
+
+\noindent\textbf{Experiment settings.} We use optimize $m$ embeddings randomly initialized in by standard normal distribution in $\real^d$. The objective function is a hinge loss computed over all pairwise positive and negative pairs across the top-$k$ queries. We use the Adam optimizer~\citep{kingma2014adam} with a learning rate of 1. The optimization stops either after 1,000 steps or after every query finds its perfect answers. To facilitate full reproducibility, we list our Python code in the Appendix to disclose other details.
+
+\noindent\textbf{Comparison with baselines}
+Previous work~\citep{weller2025theoretical} didn't provide a quantitative relation in their theory, but instead offered an empirical relation via optimization of free embeddings, which corresponds to the standard setting in this paper. They search for the critical cardinality of the universe $m^*$ in a fixed dimension $d$ for the $k=2$ case, and established the following empirical results. We list their curve in Equation~\ref{eq:baseline}.
+\begin{align}\label{eq:baseline}
+    m_{\rm WBNL}(d) = -10.5322 + 4.0309 d + 0.0520d^2 + 0.0037 d ^3.
+\end{align}
+This result yields a pessimistic implication: the largest number of objects we can support grows with $d$ only cubically. However, our  bounds in MED-C suggests that the number of objects grows exponentially with $d$.
+
+\begin{figure*}[t]
+    \centering
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{compare_plot1.pdf}  % or your first page/image
+        \caption{}  % empty caption here (required technically, but suppressed)
+        \label{fig:first}
+    \end{subfigure}
+    \hfill  % maximizes separation between the two
+    \begin{subfigure}[t]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{compare_plot2.pdf}  % or your second page/image
+        \caption{}  % empty caption here
+        \label{fig:second}
+    \end{subfigure}
+    
+    % Single shared caption for both subfigures
+    \caption{(a) The comparison of the growth of the critical number of points in our simulation and the curve fitted in Equation~\ref{eq:baseline}.; (b)  The comparison of the growth of the critical dimensions in our simulation and the curve fitted in Equation~\ref{eq:baseline}, and the $x$ axis is plotted in a log scale.}
+    \label{fig:two-pages-together}
+\end{figure*}
+
+It is a crucial question: how can the critical points identified by simulation in the centroid setting be compared with those found in the free embedding optimization setting~\citep{weller2025theoretical}. 
+The goal of \textbf{numerical simulation} is to estimate the minimum dimension such that $m$ elements can be $k$-shattered in some sense (or the maximum number of elements can be located in a given dimension). Therefore, all critical points found by any numerical simulations only suggest an upper bound of the minimal dimension (or lower bound of the maximum number of elements). The goal of \textbf{this paper} is to show that the MED (or the lower bound) grows slowly enough so that the fundamental property of the geometric space does not bottleneck the embedding-based retrieval. Therefore, results from simulations, whether computed from a centroid setting or a free embedding optimization setting, can serve as empirical evidence of the MED upper bound.
+
+To compare with their empirical results, we also ran the experiments with $k=2$ on the centroid setting. We plot the results in Figure~\ref{fig:first} and Figure~\ref{fig:second}. Figure~\ref{fig:first} suggests that the number of critical points found in our centroid setting surpasses the curve fitted by~\citet{weller2025theoretical} easily. From Fig~\ref{fig:second}, we can see from the results that our theory of MED-C agrees well with the empirical log-linear fitting, which is of a lower complexity family than the fitted result in~\citet{weller2025theoretical}.
+
+
+
+\subsection{Practical implication}
+
+\noindent\textbf{Regarding the bottleneck of the embedding-based retrieval.} The empirical results above suggested that the actual limitation of embedding-based retrieval, i.e., the number of objects that can be embedded, actually grows at least exponentially with the dimension. This contradicts the previous claims made by~\citet{weller2025theoretical}: The stagnation of the performance in the embedding-based system does NOT necessarily come from the fundamental geometric property of the vector space. The empirical findings resonated with the conclusion from $\Theta(k)$ bounds in a weaker form: we can observe the exponential growth of critical points and logarithmic growth of MED, but not a vertical line or horizontal line.
+
+\noindent\textbf{Why numerical simulation in centroid setting achieves stronger points than free embedding optimization?}
+It is also a little bit counterintuitive that, optimizing with $\Theta(\binom{m}{k})$, more degrees of freedom actually leads to weaker results. Specifically, one should expect the optimums of the free embedding optimization and centroid setting to follow the following inequality:
+\begin{align*}
+    &\overbrace{\min_{\vw_S: S\in \collection_k}}^{\text{additional variables}} \min_{\vx: x\in X}  L_{\rm Free Embedding} \leq \min_{\vx: x\in X} L_{\rm Centroid},
+\end{align*}
+where we define hinge losses $L_{\rm Free Embedding} := \sum_{S \in \collection_k,x\in S,y\notin S}\max(0, s(\vy, \vw_S) - s(\vx, \vw_S))$ and $L_{\rm Centroid} :=  \sum_{S \in \collection_k,x\in S,y\notin S}\max(0, s(\vy, \frac{1}{|S|}\sum_{x\in S} \vx) - s(\vx, \frac{1}{|S|}\sum_{x\in S} \vx))$ are optimization objectives in free-embedding setting and centroid setting, respectively.
+
+However, the simulation empirically reveals the inequality in the other direction. It is another perfect example of how optimization affects the final results and further distorts the empirical findings.
+
+
+\section{Related Theoretical Works}\label{sec:related}
+
+Given the fundamental nature of embedding-based retrieval, we omit a survey of empirical efforts and instead discuss related theoretical contributions.
+In particular, two works considered related settings are also worth discussing.
+
+\citet{guo2019breaking} studies a multi-class classification problem over embeddings. Their work established the dependency of dimension $d$ and $K$ (the total number of classes) and $s$ (maximal number of classes associated with each object), as $d=O(s^2 \log (K))$ in their Theorem 2.1. Applying to our study of MED, the total number of top $k$ queries of $m$ objects defines the total number of classes as $K:=\binom{m}{k}$, and the maximal number of classes on one object is $s:=\binom{m-1}{k-1}$. Plugging those two values back suggests an upper bound of MED by $O(\binom{m-1}{k-1}^2 \log \binom{m}{k})$, which is significantly worse than our $\Theta(k)$ bound.
+
+\citet{you2025hierarchical} studies the embedding-based retrieval in a specified "Hierarchical Retrieval (HR)" setting. It assumes a directed acyclic graph $\mathcal{G}$ between objects. The answer set $S(q_i)$ of one query $q_i$ is defined by all "reachable objects" in $\mathcal{G}$ from the exact match object $E(q_i)$, i.e., $E(q_i)$ and all its neighbors in $\mathcal{G}$. The upper bound is established as $d = O(\max(s\log m, \frac{1}{\epsilon^2} \log m))$, where $s$ is the largest cardinality of all answer sets. However, we argue that the HR setting and our study of top-$k$ queries are fundamentally different, which is clearly revealed by considering the number of \textit{effective} queries or the total number of different answer sets.  In the HR setting, noticing that each answer set is defined by the reachability in a DAG, we can conclude that there are no more than $m$ different answer sets. In a sharp contrast, the total number of answer sets of all top-$k$ queries is $\binom{m}{k} \approx k^m$. Translating their results in such a strong assumption still suggests a $\max(O(k\log m), O(\frac{1}{\epsilon^2})\log m)$ upper bound of MED, which is worse than our $\Theta(k)$ bound due to its dependency on $\log m$.
+
+% \section{Discussion}\label{sec:discussion}
+
+% In this section, we briefly discuss other variations. 
+
+% \subsection{$\fl{0}$}
+
+% For another $\ell_0$ case, we also prove the upper bound by Example~\ref{eg:l0}.
+
+% \begin{example}\label{eg:l0}
+%     For $1, 2, ..., m$. Given $k>1$, the $i$-th element is embedded as $(i, i, i, ..., i) \in \real^k$, and arbitrary subset $S$ of $\{i_1, ..., i_k\}$ (sorted and zero padded) is embedded as $(i_1, i_2, ..., i_k)$. For any $a\in S, b\notin S$, $\|a-S\|_0 = k-1 < k = \|b-S\|_0$. Then, the embeddability condition is satisfied.
+% \end{example}
+
+% We then obtain the following matching bound, which has a linear lower bound given by the VC dimension. 
+% \begin{theorem}\label{thm:l0-lower-upper}
+% $\med(m, k; \fl{0}) = k$.
+% \end{theorem}
+% \begin{proof}
+% The above example showcases the upper bound.
+% \end{proof}
+
+
+% \section{Related works}\label{sec:related}
+
+
+
+\section{Conclusion and future work}\label{sec:conclusion}
+
+This paper establishes the theoretical bounds for the minimal embeddable dimensions and studies an additional centroid setting. It revealed a positive fact: we can use a small number of  dimensions to support an extensive retrieval system, provided we consider only queries with small cardinality. Meanwhile, we can clearly conclude that the effectiveness of embedding-based retrieval systems is limited by \textbf{learnability} (the way we build the specific retrieval system) and debunk the claim from the \textbf{approximability} that the theoretical limitation lies in the fundamental property of the vector space that prevents the subset membership structure from being approximated.
+
+Future work should include more discussion of advanced embedding spaces, such as hyperbolic and Wasserstein spaces; a more sophisticated structure for queries and their answers, including situations where the cardinality of answer sets follows a power-law distribution; and a more realistic setting of fixed-point float numbers, such as float point 32, or even float point 4.

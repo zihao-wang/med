@@ -1,0 +1,62 @@
+%% packages
+\usepackage{paralist}
+\usepackage{booktabs}
+\usepackage{tcolorbox}
+\usepackage{subcaption}     % modern package for subfigures
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\definecolor{lightgray}{rgb}{0.9,0.9,0.9}
+\usepackage{multirow}
+\usepackage{listings}
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    breaklines=true,
+    frame=single
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS (From ICML 2025)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{question}{Question} 
+
+
+%% maths
+
+\newcommand{\real}{\mathbb{R}}
+\newcommand{\posint}{\mathbb{N}_+}
+\newcommand{\sphere}{\mathcal{S}}
+\newcommand{\vS}{\vec{S}}
+\newcommand{\collection}{\mathcal{C}}
+\newcommand{\metricspace}{\mathcal{X}}
+\newcommand{\med}{\textsc{MED}}
+\newcommand{\medc}{\textsc{MED-C}}
+\newcommand{\vcd}{\textsc{VCD}}
+\newcommand{\functionals}{\mathcal{F}}
+\newcommand{\fln}{\functionals_{\rm linear}}
+\newcommand{\fcos}{\functionals_{\cos}}
+\newcommand{\flp}{\functionals_{\ell_p}}
+\newcommand{\fl}[1]{\functionals_{\ell_{#1}}}
+\newcommand{\agree}{{\rm agree}}
+
+%% texts
+\newcommand{\notsure}[1]{{\color{gray} #1}}
+\newcommand{\draft}[1]{{\color{blue} #1}}
+\newcommand{\hh}[1]{{\color{red} [HH: #1]}}
+\newcommand{\yhc}[1]{{\color{green} [yh: #1]}}
+\newcommand{\update}[1]{{\color{blue} #1}}
