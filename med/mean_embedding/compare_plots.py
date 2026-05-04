@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Generate compare_plot1.pdf and compare_plot2.pdf for the ICML 2026 paper.
 
 Reproduces the comparison figures between centroid embedding results and the
@@ -8,8 +7,8 @@ Plot 1: critical number of points m*(d) vs dimension d.
 Plot 2: critical dimension d*(m) vs number of points m (log-scale x).
 
 Usage:
-    python scripts/generate_compare_plots.py --mode run    # run experiments then plot
-    python scripts/generate_compare_plots.py --mode plot   # plot from saved results
+    python -m med.mean_embedding.compare_plots --mode run   # run experiments then plot
+    python -m med.mean_embedding.compare_plots --mode plot  # plot from saved results
 """
 
 from __future__ import annotations
@@ -17,16 +16,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 from pathlib import Path
 from typing import Dict, Optional
 
 import numpy as np
 import torch
 
-# Ensure repo root is on sys.path for package imports when run as a script.
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(_REPO_ROOT))
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 from med.mean_embedding.train_gd import Trainer
 from med.plotting import wbnl_critical_m, invert_wbnl_curve

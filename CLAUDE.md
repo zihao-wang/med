@@ -46,6 +46,8 @@ med/
 ├── scoring.py             # shared scoring functions (inner_product, L2, cosine, L1)
 ├── plotting.py            # WBNL fitted curve reference and plot styling
 ├── mean_embedding/
+│   ├── cli.py             # package CLI for custom sweeps
+│   ├── compare_plots.py   # reproduce paper's compare_plot{1,2}.pdf
 │   ├── train_gd.py        # full-batch GD trainer with early stopping
 │   ├── trainer_sgd.py     # stochastic trainer using random k-subsets
 │   └── experiment.py      # binary search for minimal d, grid search over (k, n)
@@ -54,11 +56,12 @@ med/
 │   └── verification.py     # LP feasibility check for face separability
 └── unlimit/               # LiMIT retrieval library (RP+OMP)
     ├── datasets/limit.py   #   LiMIT/LiMIT-small JSONL loader from DeepMind GitHub
+    ├── limit_figure.py     #   reproduce paper's limit_retrieval.pdf
     ├── tokenizers/         #   HandmadeTokenizer (vocab.txt) + QwenSubwordTokenizer
     └── retrieval/          #   RP+OMP scoring (NumPy/PyTorch backends) + metrics
 scripts/
-├── generate_compare_plots.py  # reproduce paper's compare_plot{1,2}.pdf
-├── generate_limit_figure.py   # reproduce paper's limit_retrieval.pdf
+├── generate_compare_plots.sh  # launch med.mean_embedding.compare_plots
+├── generate_limit_figure.sh   # launch med.unlimit.limit_figure
 ├── run_all_experiments.sh     # master runner for all experiments
 ├── run_joint_dependency.sh    # joint (k, n) grid sweep
 ├── run_k_dependency.sh        # MED vs k at fixed n
@@ -69,14 +72,14 @@ scripts/
 
 **Compare plots (centroid embedding vs WBNL):**
 ```bash
-python scripts/generate_compare_plots.py --mode run
+bash scripts/generate_compare_plots.sh --mode run
 ```
 Generates `paper/compare_plot1.pdf` (critical m* vs d) and `paper/compare_plot2.pdf` (critical d* vs m, log-scale) by running GD centroid embedding experiments with k=2 and comparing against the WBNL fitted curve.
 
 **LiMIT retrieval figure (training-free RP+OMP on real data):**
 ```bash
-python scripts/generate_limit_figure.py --mode run        # LiMIT-small (~1 min)
-python scripts/generate_limit_figure.py --mode run --full  # + LiMIT-full (~30 min)
+bash scripts/generate_limit_figure.sh --mode run        # LiMIT-small (~1 min)
+bash scripts/generate_limit_figure.sh --mode run --full  # + LiMIT-full (~30 min)
 ```
 Generates `paper/limit_retrieval.pdf`: two panels showing top-2 exact match and mean rank vs embedding dimension on LiMIT-small (and optionally LiMIT-full). Demonstrates that sufficient dimension yields perfect retrieval without training.
 

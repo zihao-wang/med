@@ -28,7 +28,7 @@ The paper contains one figure (Figure 1) with two panels, both comparing centroi
 **1. Generate both plots from scratch (runs the full experiment):**
 
 ```bash
-uv run python scripts/generate_compare_plots.py --mode run
+bash scripts/generate_compare_plots.sh --mode run
 ```
 
 This runs centroid embedding experiments with $k=2$ and inner product scoring. It searches for feasible embeddings across a grid of $n$ (number of points) and $d$ (dimension) values, then saves the results to `compare_plot_results.json` and writes the two PDFs to `paper/`.
@@ -38,7 +38,7 @@ Expected runtime: ~10–30 minutes on a modern GPU; longer on CPU. Progress is p
 **2. Regenerate plots from saved results (no re-computation):**
 
 ```bash
-uv run python scripts/generate_compare_plots.py --mode plot
+bash scripts/generate_compare_plots.sh --mode plot
 ```
 
 Reads `compare_plot_results.json` and redraws the PDFs. Useful for tweaking plot styling without rerunning the experiment.
@@ -46,8 +46,8 @@ Reads `compare_plot_results.json` and redraws the PDFs. Useful for tweaking plot
 **3. Reproduce with other scoring functions:**
 
 ```bash
-uv run python scripts/generate_compare_plots.py --mode run --scoring l2
-uv run python scripts/generate_compare_plots.py --mode run --scoring cosine
+bash scripts/generate_compare_plots.sh --mode run --scoring l2
+bash scripts/generate_compare_plots.sh --mode run --scoring cosine
 ```
 
 Supported scoring functions: `inner_product` (default), `l2`, `cosine`, `l1`.
@@ -66,7 +66,7 @@ The results are plotted against the WBNL fitted curve $m(d) = -10.53 + 4.03d + 0
 To get a quick sense of the results with fewer $(n, d)$ points:
 
 ```bash
-uv run python scripts/generate_compare_plots.py --mode run \
+bash scripts/generate_compare_plots.sh --mode run \
     --n-values 8 16 32 64 \
     --d-values 1 2 3 4 5 6 7 8 9 10
 ```
@@ -74,7 +74,7 @@ uv run python scripts/generate_compare_plots.py --mode run \
 Reduce training epochs for a rougher but faster sweep:
 
 ```bash
-uv run python scripts/generate_compare_plots.py --mode run \
+bash scripts/generate_compare_plots.sh --mode run \
     --num-epochs 500 --patience 50
 ```
 
@@ -90,7 +90,7 @@ The paper also includes a figure (Figure 2) showing **training-free** retrieval 
 **1. Generate the figure (LiMIT-small, ~1 minute):**
 
 ```bash
-uv run python scripts/generate_limit_figure.py --mode run
+bash scripts/generate_limit_figure.sh --mode run
 ```
 
 Loads the LiMIT-small dataset (46 docs, 1000 queries), runs RP+OMP retrieval across embedding dimensions $d \in \{8, 16, \ldots, 1024\}$ and OMP step counts, then saves `paper/limit_retrieval.pdf`.
@@ -98,13 +98,13 @@ Loads the LiMIT-small dataset (46 docs, 1000 queries), runs RP+OMP retrieval acr
 **2. Include LiMIT-full (~50k docs, slower):**
 
 ```bash
-uv run python scripts/generate_limit_figure.py --mode run --full
+bash scripts/generate_limit_figure.sh --mode run --full
 ```
 
 **3. Regenerate from cached results:**
 
 ```bash
-uv run python scripts/generate_limit_figure.py --mode plot
+bash scripts/generate_limit_figure.sh --mode plot
 ```
 
 ### What the LiMIT experiment shows
@@ -124,6 +124,8 @@ LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each que
 │   ├── scoring.py          #   shared scoring functions (inner product, L2, cosine, L1)
 │   ├── plotting.py         #   WBNL curve reference and plot styling
 │   ├── mean_embedding/     #   centroid embedding experiments
+│   │   ├── cli.py          #     package CLI for custom sweeps
+│   │   ├── compare_plots.py #     paper compare-plot runner
 │   │   ├── train_gd.py     #     full-batch GD trainer
 │   │   ├── trainer_sgd.py  #     stochastic trainer (random k-subsets)
 │   │   └── experiment.py   #     experiment orchestration (binary search, grid search)
@@ -132,11 +134,12 @@ LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each que
 │   │   └── verification.py #     LP-based face check
 │   └── unlimit/            #   LiMIT retrieval library (RP+OMP)
 │       ├── datasets/       #     LiMIT/LiMIT-small JSONL loader
+│       ├── limit_figure.py #     paper LiMIT figure runner
 │       ├── tokenizers/     #     handmade phrase + Qwen subword tokenizers
 │       └── retrieval/      #     RP+OMP scoring (NumPy/PyTorch) + metrics
-├── scripts/                # Experiment scripts and plot generation
-│   ├── generate_compare_plots.py  # reproduce paper's compare_plot{1,2}.pdf
-│   ├── generate_limit_figure.py   # reproduce paper's limit_retrieval.pdf
+├── scripts/                # Bash launchers only
+│   ├── generate_compare_plots.sh  # launch med.mean_embedding.compare_plots
+│   ├── generate_limit_figure.sh   # launch med.unlimit.limit_figure
 │   ├── run_all_experiments.sh     # master: joint grid for GD + SGD
 │   ├── run_joint_dependency.sh    # joint (k, n) grid sweep
 │   ├── run_k_dependency.sh        # MED vs k at fixed n

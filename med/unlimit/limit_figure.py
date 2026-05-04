@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Generate limit_retrieval.pdf for the ICML 2026 paper.
 
 Reproduces the LiMIT retrieval figure comparing training-free RP+OMP retrieval
@@ -8,9 +7,9 @@ retrieval even without any training — supporting the paper's thesis that
 limitations stem from learnability, not geometric capacity.
 
 Usage:
-    python scripts/generate_limit_figure.py --mode run          # run + plot (small)
-    python scripts/generate_limit_figure.py --mode run --full   # include LiMIT-full
-    python scripts/generate_limit_figure.py --mode plot         # plot from cached JSON
+    python -m med.unlimit.limit_figure --mode run         # run + plot (small)
+    python -m med.unlimit.limit_figure --mode run --full  # include LiMIT-full
+    python -m med.unlimit.limit_figure --mode plot        # plot from cached JSON
 """
 
 from __future__ import annotations
@@ -18,14 +17,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(_REPO_ROOT))
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 from med.unlimit.datasets import load_limit
 from med.unlimit.tokenizers.handmade import (
