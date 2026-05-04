@@ -1,4 +1,0 @@
-minimal dimension @ k=2&n=4 is 5
-minimal dimension @ k=2&n=4 is 3
-minimal dimension @ k=2&n=4 is 5
-minimal dimension @ k=2&n=4 is 6

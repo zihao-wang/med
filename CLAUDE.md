@@ -39,6 +39,43 @@ cd paper && pdflatex icml2026.tex && bibtex icml2026 && pdflatex icml2026.tex &&
 | `\draft{text}` | Blue draft annotation |
 | `\hh{text}` / `\yhc{text}` | Red/green author comments |
 
-## Code (future)
+## Code structure
 
-The `code/` directory will be added for numerical simulations (MED bound verification, centroid embedding experiments). Python listing style is already configured in `custom_command.tex`.
+```
+src/
+├── scoring.py             # shared scoring functions (inner_product, L2, cosine, L1)
+├── plotting.py            # WBNL fitted curve reference and plot styling
+├── mean_embedding/
+│   ├── train_gd.py        # full-batch GD trainer with early stopping
+│   ├── trainer_sgd.py     # stochastic trainer using random k-subsets
+│   └── experiment.py      # binary search for minimal d, grid search over (k, n)
+└── cyclic_polytope/
+    ├── generator.py        # moment curve point set generation
+    └── verification.py     # LP feasibility check for face separability
+scripts/
+├── generate_compare_plots.py  # reproduce paper's compare_plot{1,2}.pdf
+├── run_all_experiments.sh     # master runner for all experiments
+├── run_joint_dependency.sh    # joint (k, n) grid sweep
+├── run_k_dependency.sh        # MED vs k at fixed n
+└── run_m_dependency.sh        # MED vs n at fixed k
+main.py                    # CLI for single-k and grid experiments
+verify_cyclic_polytope.py  # CLI for cyclic polytope verification
+```
+
+## Reproduce paper plots
+
+```bash
+python scripts/generate_compare_plots.py --mode run
+```
+
+Generates `paper/compare_plot1.pdf` (critical m* vs d) and `paper/compare_plot2.pdf` (critical d* vs m, log-scale) by running GD centroid embedding experiments with k=2 and comparing against the WBNL fitted curve.
+
+To regenerate only plots from saved results: `python scripts/generate_compare_plots.py --mode plot`.
+
+## Run experiments
+
+Single k: `python main.py --k 2 --n_values 8 16 32 64 128 --scoring_function inner_product`
+Grid sweep: `python main.py --k_values 2 3 4 5 --n_values 8 16 32 64 128 256`
+With SGD: `python main.py --trainer sgd --k 2 --n_values 8 16 32 64 128 256`
+
+Python listing style for the paper appendix is configured in `custom_command.tex`.

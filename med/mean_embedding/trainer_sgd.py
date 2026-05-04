@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from torch import optim
 from tqdm import trange
 
-from src.scoring import ScoringFn, compute_scores
+from med.scoring import ScoringFn, compute_scores
 
 
 class RandomSubsetDataset(Dataset):
@@ -58,7 +58,11 @@ class SGDTrainer:
         self.n = n
         self.k = k
         self.scoring_function = scoring_function
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = (
+            "cuda" if torch.cuda.is_available()
+            else "mps" if torch.backends.mps.is_available()
+            else "cpu"
+        )
         print(f"[SGD] Using device: {self.device}")
 
         self.config = config or SGDConfig()

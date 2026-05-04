@@ -7,7 +7,7 @@ import numpy as np
 
 from .train_gd import Trainer
 from .trainer_sgd import SGDTrainer, SGDConfig
-from src.scoring import ScoringFn
+from med.scoring import ScoringFn
 
 
 @dataclass
@@ -26,9 +26,9 @@ class Experiment:
         k: int,
         n_values: List[int],
         left0: int = 0,
-        num_epochs: int = 100,
-        learning_rate: float = 0.1,
-        patience: int = 10,
+        num_epochs: int = 1000,
+        learning_rate: float = 1,
+        patience: int = 1000,
     ) -> Dict[int, int]:
         last_minimal = left0
         for n in n_values:
@@ -43,7 +43,7 @@ class Experiment:
                 raise ValueError(f"Unknown trainer_type: {self.trainer_type}")
 
             self.search_paths[n] = []
-            left, right = last_minimal + 1, last_minimal + 6
+            left, right = last_minimal + 1, last_minimal + 40
             minimal_d = n + 1
 
             while left <= right:
@@ -91,9 +91,9 @@ class Experiment:
         k_values: List[int],
         n_values: List[int],
         left0: int = 0,
-        num_epochs: int = 100,
-        learning_rate: float = 0.1,
-        patience: int = 10,
+        num_epochs: int = 1000,
+        learning_rate: float = 1,
+        patience: int = 1000,
     ) -> Dict[int, Dict[int, int]]:
         """
         Run minimal dimension search across a grid of k and n values.

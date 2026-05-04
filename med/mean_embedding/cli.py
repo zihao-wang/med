@@ -7,13 +7,13 @@ import platform
 import sys
 import time
 
-from src.mean_embedding.experiment import Experiment
-from src.mean_embedding.trainer_sgd import SGDConfig
+from .experiment import Experiment
+from .trainer_sgd import SGDConfig
 
 try:
     import torch  # type: ignore
 except Exception:  # pragma: no cover - optional logging only
-    torch = None  # allows environment logging even if torch import fails
+    torch = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
         "--n_values",
         type=int,
         nargs="*",
-        default=[5 * (2 ** i) for i in [0, 1, 2, 3, 4, 5, 6, 7]],
+        default=[5 * (2**i) for i in [0, 1, 2, 3, 4, 5, 6, 7]],
         help="List of n values",
     )
     parser.add_argument(
@@ -40,7 +40,6 @@ def parse_args() -> argparse.Namespace:
         choices=["inner_product", "l2", "cosine", "l1"],
     )
 
-    # Trainer selection
     parser.add_argument(
         "--trainer",
         type=str,
@@ -49,12 +48,20 @@ def parse_args() -> argparse.Namespace:
         help="Training algorithm: full-batch GD or SGD",
     )
 
-    # Common hyperparameters
-    parser.add_argument("--num_epochs", type=int, default=10000)
-    parser.add_argument("--patience", type=int, default=1000, help="GD patience; SGD uses config.patience")
-    parser.add_argument("--learning_rate", type=float, default=1e-2, help="GD learning rate; SGD uses config.learning_rate")
+    parser.add_argument("--num_epochs", type=int, default=1000)
+    parser.add_argument(
+        "--patience",
+        type=int,
+        default=1000,
+        help="GD patience; SGD uses config.patience",
+    )
+    parser.add_argument(
+        "--learning_rate",
+        type=float,
+        default=1,
+        help="GD learning rate; SGD uses config.learning_rate",
+    )
 
-    # SGD-specific options
     parser.add_argument("--sgd_batch_size", type=int, default=256)
     parser.add_argument("--sgd_num_samples", type=int, default=50_000)
     parser.add_argument("--sgd_workers", type=int, default=0)
@@ -70,7 +77,6 @@ def main() -> None:
     args = parse_args()
     print("[MAIN] Starting experiment with early stopping...")
 
-    # Environment metadata
     env_info = {
         "python": sys.version.split()[0],
         "platform": platform.platform(),
@@ -109,7 +115,6 @@ def main() -> None:
         sgd_config=sgd_config,
     )
 
-    # Serialize basic run configuration for reproducibility
     run_config = {
         "trainer": args.trainer,
         "scoring_function": args.scoring_function,
@@ -137,7 +142,6 @@ def main() -> None:
     except Exception as e:  # pragma: no cover
         print(f"[WARN] Failed to write config.json: {e}")
 
-    # Dispatch: grid mode if k_values provided, else single-k mode
     t0 = time.perf_counter()
     if args.k_values is not None and len(args.k_values) > 0:
         print(
@@ -153,7 +157,6 @@ def main() -> None:
         elapsed = time.perf_counter() - t0
         print(f"\n[GRID] Minimal dimensions found: {grid}")
         print(f"[GRID] Total elapsed: {elapsed:.2f}s")
-        # Persist results in current working directory
         try:
             with open("grid_results.json", "w") as f:
                 json.dump(grid, f, indent=2)
@@ -163,9 +166,7 @@ def main() -> None:
             print(f"[WARN] Failed to write grid result files: {e}")
     else:
         k_value = args.k if args.k is not None else 2
-        print(
-            f"[RUN] Running single-k search: k={k_value}, n_values={args.n_values}"
-        )
+        print(f"[RUN] Running single-k search: k={k_value}, n_values={args.n_values}")
         minimal_dims = experiment.find_minimal_dimension(
             k_value,
             args.n_values,
@@ -177,7 +178,6 @@ def main() -> None:
         elapsed = time.perf_counter() - t0
         print("\n[RUN] Minimal dimensions found:", minimal_dims)
         print(f"[RUN] Total elapsed: {elapsed:.2f}s")
-        # Persist results
         try:
             with open("results.json", "w") as f:
                 json.dump(minimal_dims, f, indent=2)

@@ -3,6 +3,12 @@ set -euo pipefail
 
 # m_dependency: med growth vs number of points (n)
 # Usage: run_m_dependency.sh [gd|sgd]
+# Execute from the repository root.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+RESULTS_DIR="${PROJECT_ROOT}/results"
+export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}"
 
 TRAINER="${1:-${TRAINER:-gd}}"
 if [[ "${TRAINER}" != "gd" && "${TRAINER}" != "sgd" ]]; then
@@ -13,7 +19,6 @@ fi
 METRICS=(inner_product l2 cosine)
 K="${K:-2}"
 
-# Default n-lists differ by trainer
 if [[ "${TRAINER}" == "gd" ]]; then
   DEFAULT_N_LIST=(8 16 32 64 128 256)
   NUM_EPOCHS=${NUM_EPOCHS:-2000}
@@ -26,15 +31,12 @@ else
   LEARNING_RATE=${LEARNING_RATE:-1e-2}
 fi
 
-# Allow override via env var N_LIST
 if [[ -n "${N_LIST:-}" ]]; then
-  # shellcheck disable=SC2206
   N_LIST_ARR=(${N_LIST})
 else
   N_LIST_ARR=(${DEFAULT_N_LIST[@]})
 fi
 
-# SGD knobs (no-op for GD but accepted by entry script)
 SGD_BATCH_SIZE=${SGD_BATCH_SIZE:-256}
 SGD_NUM_SAMPLES=${SGD_NUM_SAMPLES:-50000}
 SGD_WORKERS=${SGD_WORKERS:-0}
@@ -44,10 +46,9 @@ SGD_MAX_STEPS=${SGD_MAX_STEPS:-}
 SGD_NEGATIVE_SAMPLING=${SGD_NEGATIVE_SAMPLING:-}
 
 RUN_ID="$(date +%Y%m%d_%H%M%S)"
-export PYTHONPATH="/workspace:${PYTHONPATH:-}"
 
 for metric in "${METRICS[@]}"; do
-  OUT_DIR="/workspace/results/${TRAINER}/${metric}/m_dependency/k_${K}/${RUN_ID}"
+  OUT_DIR="${RESULTS_DIR}/${TRAINER}/${metric}/m_dependency/k_${K}/${RUN_ID}"
   mkdir -p "${OUT_DIR}"
   pushd "${OUT_DIR}" >/dev/null
 
@@ -57,9 +58,7 @@ for metric in "${METRICS[@]}"; do
   echo "k=${K}" | tee -a run.log
   echo "n_values=${N_LIST_ARR[*]}" | tee -a run.log
   echo "timestamp=${RUN_ID}" | tee -a run.log
-  echo "git_commit=$(git rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
-  echo "hostname=$(hostname)" | tee -a run.log
-  echo "python=$(python -V 2>&1)" | tee -a run.log
+  echo "git_commit=$(git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
 
   ARGS=(
     --trainer "${TRAINER}"
@@ -78,10 +77,9 @@ for metric in "${METRICS[@]}"; do
   if [[ -n "${SGD_MAX_STEPS}" ]]; then ARGS+=(--sgd_max_steps "${SGD_MAX_STEPS}"); fi
   if [[ -n "${SGD_NEGATIVE_SAMPLING}" ]]; then ARGS+=(--sgd_negative_sampling "${SGD_NEGATIVE_SAMPLING}"); fi
 
-  echo "[CMD] python -u /workspace/main.py ${ARGS[*]}" | tee -a run.log
+  echo "[CMD] python -u main.py ${ARGS[*]}" | tee -a run.log
   /usr/bin/env time -f "[TIME] elapsed=%E user=%U sys=%S maxrss=%MKB" \
-    python -u /workspace/main.py "${ARGS[@]}" |& tee -a run.log
+    python -u "${PROJECT_ROOT}/main.py" "${ARGS[@]}" 2>&1 | tee -a run.log
   echo "[DONE] m_dependency ${TRAINER} ${metric} saved to ${OUT_DIR}" | tee -a run.log
   popd >/dev/null
-
 done

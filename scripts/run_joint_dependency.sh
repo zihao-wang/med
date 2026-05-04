@@ -3,6 +3,12 @@ set -euo pipefail
 
 # Joint dependency grid search over k and n using Experiment.find_minimal_dimension_grid
 # Usage: run_joint_dependency.sh [gd|sgd]
+# Execute from the repository root.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+RESULTS_DIR="${PROJECT_ROOT}/results"
+export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}"
 
 TRAINER="${1:-${TRAINER:-gd}}"
 if [[ "${TRAINER}" != "gd" && "${TRAINER}" != "sgd" ]]; then
@@ -31,7 +37,7 @@ fi
 if [[ -n "${K_VALUES:-}" ]]; then K_VALUES_ARR=(${K_VALUES}); else K_VALUES_ARR=(${DEFAULT_K_VALUES[@]}); fi
 if [[ -n "${N_VALUES:-}" ]]; then N_VALUES_ARR=(${N_VALUES}); else N_VALUES_ARR=(${DEFAULT_N_VALUES[@]}); fi
 
-# SGD knobs (accepted by entry script)
+# SGD knobs
 SGD_BATCH_SIZE=${SGD_BATCH_SIZE:-256}
 SGD_NUM_SAMPLES=${SGD_NUM_SAMPLES:-50000}
 SGD_WORKERS=${SGD_WORKERS:-0}
@@ -41,10 +47,9 @@ SGD_MAX_STEPS=${SGD_MAX_STEPS:-}
 SGD_NEGATIVE_SAMPLING=${SGD_NEGATIVE_SAMPLING:-}
 
 RUN_ID="$(date +%Y%m%d_%H%M%S)"
-export PYTHONPATH="/workspace:${PYTHONPATH:-}"
 
 for metric in "${METRICS[@]}"; do
-  OUT_DIR="/workspace/results/${TRAINER}/${metric}/joint_grid/${RUN_ID}"
+  OUT_DIR="${RESULTS_DIR}/${TRAINER}/${metric}/joint_grid/${RUN_ID}"
   mkdir -p "${OUT_DIR}"
   pushd "${OUT_DIR}" >/dev/null
 
@@ -54,7 +59,7 @@ for metric in "${METRICS[@]}"; do
   echo "k_values=${K_VALUES_ARR[*]}" | tee -a run.log
   echo "n_values=${N_VALUES_ARR[*]}" | tee -a run.log
   echo "timestamp=${RUN_ID}" | tee -a run.log
-  echo "git_commit=$(git rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
+  echo "git_commit=$(git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
   echo "hostname=$(hostname)" | tee -a run.log
   echo "python=$(python -V 2>&1)" | tee -a run.log
 
@@ -75,16 +80,10 @@ for metric in "${METRICS[@]}"; do
   if [[ -n "${SGD_MAX_STEPS}" ]]; then ARGS+=(--sgd_max_steps "${SGD_MAX_STEPS}"); fi
   if [[ -n "${SGD_NEGATIVE_SAMPLING}" ]]; then ARGS+=(--sgd_negative_sampling "${SGD_NEGATIVE_SAMPLING}"); fi
 
-  echo "[CMD] python -u /workspace/main.py ${ARGS[*]}" | tee -a run.log
+  echo "[CMD] python -u main.py ${ARGS[*]}" | tee -a run.log
   /usr/bin/env time -f "[TIME] elapsed=%E user=%U sys=%S maxrss=%MKB" \
-    python -u /workspace/main.py "${ARGS[@]}" |& tee -a run.log
-
-  # Copy the log where minimal_dem_log.txt is generated to keep context
-  if [[ -f /workspace/minimal_dem_log.txt ]]; then
-    cp /workspace/minimal_dem_log.txt ./minimal_dem_log.copy.txt
-  fi
+    python -u "${PROJECT_ROOT}/main.py" "${ARGS[@]}" 2>&1 | tee -a run.log
 
   echo "[DONE] joint grid ${TRAINER} ${metric} saved to ${OUT_DIR}" | tee -a run.log
   popd >/dev/null
-
 done

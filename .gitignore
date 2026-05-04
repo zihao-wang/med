@@ -218,5 +218,14 @@ __marimo__/
 *.synctex.gz
 *.pdf
 
+# Runtime artifacts
+minimal_dem_log.txt
+results/
+config.json
+results.json
+search_paths.json
+grid_results.json
+grid_search_paths.json
+
 # macOS
 .DS_Store
