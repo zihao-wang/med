@@ -78,6 +78,39 @@ uv run python scripts/generate_compare_plots.py --mode run \
     --num-epochs 500 --patience 50
 ```
 
+### LiMIT retrieval figure
+
+The paper also includes a figure (Figure 2) showing **training-free** retrieval quality on the real-world LiMIT benchmark (RP+OMP with random Gaussian token vectors). This demonstrates that sufficient embedding dimension enables perfect retrieval even without any training — directly supporting the paper's thesis that limitations stem from **learnability**, not geometric capacity.
+
+| Panel | File | Content |
+|-------|------|---------|
+| Fig 2a | `paper/limit_retrieval.pdf` (left) | Top-2 exact match vs embedding dimension $d$ |
+| Fig 2b | `paper/limit_retrieval.pdf` (right) | Mean rank vs embedding dimension $d$ (log-log) |
+
+**1. Generate the figure (LiMIT-small, ~1 minute):**
+
+```bash
+uv run python scripts/generate_limit_figure.py --mode run
+```
+
+Loads the LiMIT-small dataset (46 docs, 1000 queries), runs RP+OMP retrieval across embedding dimensions $d \in \{8, 16, \ldots, 1024\}$ and OMP step counts, then saves `paper/limit_retrieval.pdf`.
+
+**2. Include LiMIT-full (~50k docs, slower):**
+
+```bash
+uv run python scripts/generate_limit_figure.py --mode run --full
+```
+
+**3. Regenerate from cached results:**
+
+```bash
+uv run python scripts/generate_limit_figure.py --mode plot
+```
+
+### What the LiMIT experiment shows
+
+LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each query asks "Who likes X?" and the corpus contains person profiles with comma-separated likes. Every query has exactly 2 relevant documents. RP+OMP (Random Projection + Orthogonal Matching Pursuit) is a **training-free** method: token vectors are random Gaussian, document/query embeddings are sums of token vectors, and scoring uses document-local OMP residuals. As dimension $d$ increases, retrieval quality (top-2 exact match) climbs from near-zero at $d=16$ to perfect at $d \ge 64$ (with sufficient OMP steps).
+
 ## Project structure
 
 ```
@@ -87,24 +120,27 @@ uv run python scripts/generate_compare_plots.py --mode run \
 │   ├── appendix.tex        #   supplementary proofs + experiment code listing
 │   ├── custom_command.tex  #   custom math macros
 │   └── preprint.bib        #   bibliography
-├── src/                    # Python library code
+├── med/                    # Python package code
 │   ├── scoring.py          #   shared scoring functions (inner product, L2, cosine, L1)
 │   ├── plotting.py         #   WBNL curve reference and plot styling
 │   ├── mean_embedding/     #   centroid embedding experiments
 │   │   ├── train_gd.py     #     full-batch GD trainer
 │   │   ├── trainer_sgd.py  #     stochastic trainer (random k-subsets)
 │   │   └── experiment.py   #     experiment orchestration (binary search, grid search)
-│   └── cyclic_polytope/    #   cyclic polytope face verification
-│       ├── generator.py    #     moment curve point generation
-│       └── verification.py #     LP-based face check
+│   ├── cyclic_polytope/    #   cyclic polytope face verification
+│   │   ├── generator.py    #     moment curve point generation
+│   │   └── verification.py #     LP-based face check
+│   └── unlimit/            #   LiMIT retrieval library (RP+OMP)
+│       ├── datasets/       #     LiMIT/LiMIT-small JSONL loader
+│       ├── tokenizers/     #     handmade phrase + Qwen subword tokenizers
+│       └── retrieval/      #     RP+OMP scoring (NumPy/PyTorch) + metrics
 ├── scripts/                # Experiment scripts and plot generation
 │   ├── generate_compare_plots.py  # reproduce paper's compare_plot{1,2}.pdf
+│   ├── generate_limit_figure.py   # reproduce paper's limit_retrieval.pdf
 │   ├── run_all_experiments.sh     # master: joint grid for GD + SGD
 │   ├── run_joint_dependency.sh    # joint (k, n) grid sweep
 │   ├── run_k_dependency.sh        # MED vs k at fixed n
 │   └── run_m_dependency.sh        # MED vs n at fixed k
-├── main.py                 # CLI entry point for single-k and grid experiments
-├── verify_cyclic_polytope.py  # CLI for cyclic polytope face checks
 └── requirements.txt
 ```
 
@@ -113,19 +149,19 @@ uv run python scripts/generate_compare_plots.py --mode run \
 Single $k$, single scoring function:
 
 ```bash
-uv run python main.py --k 2 --n_values 8 16 32 64 128 --scoring_function inner_product
+uv run python -m med.mean_embedding.cli --k 2 --n_values 8 16 32 64 128 --scoring_function inner_product
 ```
 
 Grid sweep over $k$ and $n$:
 
 ```bash
-uv run python main.py --k_values 2 3 4 5 --n_values 8 16 32 64 128 256
+uv run python -m med.mean_embedding.cli --k_values 2 3 4 5 --n_values 8 16 32 64 128 256
 ```
 
 Using SGD instead of GD:
 
 ```bash
-uv run python main.py --trainer sgd --k 2 --n_values 8 16 32 64 128 256
+uv run python -m med.mean_embedding.cli --trainer sgd --k 2 --n_values 8 16 32 64 128 256
 ```
 
 Results are saved as JSON in the current working directory.
@@ -136,13 +172,6 @@ Run a full sweep from shell scripts (saves to `results/`):
 bash scripts/run_joint_dependency.sh gd
 bash scripts/run_k_dependency.sh gd
 bash scripts/run_m_dependency.sh gd
-```
-
-## Cyclic polytope verification
-
-```bash
-uv run python verify_cyclic_polytope.py --m 64 --n 5
-uv run python verify_cyclic_polytope.py --m 64 --n 5 --pairs_only
 ```
 
 ## Build the paper

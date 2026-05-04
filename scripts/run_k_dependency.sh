@@ -85,9 +85,9 @@ for metric in "${METRICS[@]}"; do
     if [[ -n "${SGD_MAX_STEPS}" ]]; then ARGS+=(--sgd_max_steps "${SGD_MAX_STEPS}"); fi
     if [[ -n "${SGD_NEGATIVE_SAMPLING}" ]]; then ARGS+=(--sgd_negative_sampling "${SGD_NEGATIVE_SAMPLING}"); fi
 
-    echo "[CMD] python -u main.py ${ARGS[*]}" | tee -a "k_${k}.log"
+    echo "[CMD] python -u -m med.mean_embedding.cli ${ARGS[*]}" | tee -a "k_${k}.log"
     /usr/bin/env time -f "[TIME] elapsed=%E user=%U sys=%S maxrss=%MKB" \
-      python -u "${PROJECT_ROOT}/main.py" "${ARGS[@]}" 2>&1 | tee -a "k_${k}.log"
+      python -u -m med.mean_embedding.cli "${ARGS[@]}" 2>&1 | tee -a "k_${k}.log"
   done
 
   echo "[DONE] k_dependency ${TRAINER} ${metric} saved to ${OUT_DIR}" | tee -a run.log

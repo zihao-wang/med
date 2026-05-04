@@ -10,7 +10,18 @@ dependencies = [
     "matplotlib",
     "tqdm",
     "cvxpy",
+    "requests",
 ]
 
 [dependency-groups]
 dev = []
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["med*"]
+
+[tool.setuptools.package-data]
+med = ["vocab.txt"]

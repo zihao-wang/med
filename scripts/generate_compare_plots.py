@@ -19,28 +19,38 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import numpy as np
+import torch
 
-# Ensure repo root is on sys.path for src imports
+# Ensure repo root is on sys.path for package imports when run as a script.
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
 
-from src.mean_embedding.train_gd import Trainer
-from src.plotting import wbnl_critical_m, invert_wbnl_curve
+from med.mean_embedding.train_gd import Trainer
+from med.plotting import wbnl_critical_m, invert_wbnl_curve
+
+
+_DEVICE = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps"
+    if torch.backends.mps.is_available()
+    else "cpu"
+)
 
 
 # ---------------------------------------------------------------------------
 # Experiment parameters
 # ---------------------------------------------------------------------------
-DEFAULT_N_VALUES = [8, 16, 32, 64, 128, 256]
+DEFAULT_N_VALUES = [5, 10, 20, 40, 80, 160]
 DEFAULT_D_VALUES = list(range(1, 31))
 DEFAULT_K = 2
 DEFAULT_SCORING = "inner_product"
-DEFAULT_NUM_EPOCHS = 2000
-DEFAULT_PATIENCE = 200
-DEFAULT_LR = 1e-2
+DEFAULT_NUM_EPOCHS = 1000
+DEFAULT_PATIENCE = 1000
+DEFAULT_LR = 1
 RESULTS_FILE = "compare_plot_results.json"
 
 
@@ -157,7 +167,13 @@ def generate_plots(results: dict, output_dir: str) -> None:
 
     # WBNL curve
     d_range = np.linspace(1, max(int(k) for k in m_star_data.keys()), 200)
-    ax1.plot(d_range, wbnl_critical_m(d_range), "k--", linewidth=2, label="WBNL (2025) fitted")
+    ax1.plot(
+        d_range,
+        wbnl_critical_m(d_range),
+        "k--",
+        linewidth=2,
+        label="WBNL (2025) fitted",
+    )
 
     # Our centroid results: m*(d)
     d_vals = sorted(int(k) for k in m_star_data.keys() if m_star_data[k] is not None)
@@ -182,12 +198,20 @@ def generate_plots(results: dict, output_dir: str) -> None:
     m_range = np.logspace(
         np.log10(5), np.log10(max(int(k) for k in d_star_data.keys()) * 1.5), 200
     )
-    ax2.plot(m_range, invert_wbnl_curve(m_range), "k--", linewidth=2, label="WBNL (2025) fitted")
+    ax2.plot(
+        m_range,
+        invert_wbnl_curve(m_range),
+        "k--",
+        linewidth=2,
+        label="WBNL (2025) fitted",
+    )
 
     # Our centroid results: d*(m)
     n_vals = sorted(int(k) for k in d_star_data.keys() if d_star_data[k] is not None)
     d_min_vals = [d_star_data[str(n)] for n in n_vals]
-    ax2.plot(n_vals, d_min_vals, "bo-", linewidth=2, markersize=7, label="Centroid (ours)")
+    ax2.plot(
+        n_vals, d_min_vals, "bo-", linewidth=2, markersize=7, label="Centroid (ours)"
+    )
 
     ax2.set_xlabel("Number of points $m$")
     ax2.set_ylabel("Critical dimension $d^*$")
@@ -212,23 +236,44 @@ def parse_args() -> argparse.Namespace:
         description="Generate compare plots for MED paper (centroid vs WBNL)"
     )
     p.add_argument(
-        "--mode", choices=["run", "plot"], default="run",
-        help="'run' = run experiments + plot; 'plot' = plot from saved JSON"
+        "--mode",
+        choices=["run", "plot"],
+        default="run",
+        help="'run' = run experiments + plot; 'plot' = plot from saved JSON",
     )
-    p.add_argument("--scoring", default=DEFAULT_SCORING,
-                   choices=["inner_product", "l2", "cosine", "l1"])
+    p.add_argument(
+        "--scoring",
+        default=DEFAULT_SCORING,
+        choices=["inner_product", "l2", "cosine", "l1"],
+    )
     p.add_argument("--k", type=int, default=DEFAULT_K)
-    p.add_argument("--n-values", type=int, nargs="*", default=DEFAULT_N_VALUES,
-                   help="n values for d*(n) search")
-    p.add_argument("--d-values", type=int, nargs="*", default=DEFAULT_D_VALUES,
-                   help="d values for m*(d) search")
+    p.add_argument(
+        "--n-values",
+        type=int,
+        nargs="*",
+        default=DEFAULT_N_VALUES,
+        help="n values for d*(n) search",
+    )
+    p.add_argument(
+        "--d-values",
+        type=int,
+        nargs="*",
+        default=DEFAULT_D_VALUES,
+        help="d values for m*(d) search",
+    )
     p.add_argument("--num-epochs", type=int, default=DEFAULT_NUM_EPOCHS)
     p.add_argument("--patience", type=int, default=DEFAULT_PATIENCE)
     p.add_argument("--lr", type=float, default=DEFAULT_LR)
-    p.add_argument("--output-dir", default=str(_REPO_ROOT / "paper"),
-                   help="Directory for output PDFs")
-    p.add_argument("--results-file", default=str(_REPO_ROOT / RESULTS_FILE),
-                   help="Path to save/load experiment results JSON")
+    p.add_argument(
+        "--output-dir",
+        default=str(_REPO_ROOT / "paper"),
+        help="Directory for output PDFs",
+    )
+    p.add_argument(
+        "--results-file",
+        default=str(_REPO_ROOT / RESULTS_FILE),
+        help="Path to save/load experiment results JSON",
+    )
     return p.parse_args()
 
 
@@ -237,15 +282,20 @@ def main() -> None:
 
     if args.mode == "run":
         print("=== Running centroid embedding experiments (k=2) ===")
-        print(f"Scoring: {args.scoring}, epochs: {args.num_epochs}, patience: {args.patience}")
+        print(
+            f"Device: {_DEVICE}, scoring: {args.scoring}, epochs: {args.num_epochs}, patience: {args.patience}"
+        )
 
         # Search d*(n) for each n
         print("\n--- Phase 1: d*(n) — minimal dimension for each n ---")
         d_star: Dict[str, Optional[int]] = {}
         for n in args.n_values:
             d = find_minimal_d(
-                n=n, k=args.k, scoring=args.scoring,
-                num_epochs=args.num_epochs, patience=args.patience,
+                n=n,
+                k=args.k,
+                scoring=args.scoring,
+                num_epochs=args.num_epochs,
+                patience=args.patience,
                 learning_rate=args.lr,
             )
             d_star[str(n)] = d
@@ -256,14 +306,22 @@ def main() -> None:
         m_star: Dict[str, Optional[int]] = {}
         for d in args.d_values:
             n = find_maximal_n(
-                d=d, k=args.k, scoring=args.scoring,
-                num_epochs=args.num_epochs, patience=args.patience,
+                d=d,
+                k=args.k,
+                scoring=args.scoring,
+                num_epochs=args.num_epochs,
+                patience=args.patience,
                 learning_rate=args.lr,
             )
             m_star[str(d)] = n
             print(f"  m*({d}) = {n}")
 
-        results = {"d_star": d_star, "m_star": m_star, "k": args.k, "scoring": args.scoring}
+        results = {
+            "d_star": d_star,
+            "m_star": m_star,
+            "k": args.k,
+            "scoring": args.scoring,
+        }
         os.makedirs(os.path.dirname(args.results_file) or ".", exist_ok=True)
         with open(args.results_file, "w") as f:
             json.dump(results, f, indent=2)

@@ -226,6 +226,11 @@ results.json
 search_paths.json
 grid_results.json
 grid_search_paths.json
+compare_plot_results.json
+limit_results.json
+
+# HuggingFace cache (LiMIT dataset)
+.hf_cache/
 
 # macOS
 .DS_Store
