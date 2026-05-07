@@ -53,42 +53,139 @@ med/
 │   └── experiment.py      # binary search for minimal d, grid search over (k, n)
 ├── cyclic_polytope/
 │   ├── generator.py        # moment curve point set generation
-│   └── verification.py     # LP feasibility check for face separability
+│   ├── construct.py        # polynomial construction of separating queries
+│   └── med_search.py       # binary search for MED via constructive verification
 └── unlimit/               # LiMIT retrieval library (RP+OMP)
     ├── datasets/limit.py   #   LiMIT/LiMIT-small JSONL loader from DeepMind GitHub
     ├── limit_figure.py     #   reproduce paper's limit_retrieval.pdf
     ├── tokenizers/         #   HandmadeTokenizer (vocab.txt) + QwenSubwordTokenizer
     └── retrieval/          #   RP+OMP scoring (NumPy/PyTorch backends) + metrics
 scripts/
-├── generate_compare_plots.sh  # launch med.mean_embedding.compare_plots
-├── generate_limit_figure.sh   # launch med.unlimit.limit_figure
-├── run_all_experiments.sh     # master runner for all experiments
-├── run_joint_dependency.sh    # joint (k, n) grid sweep
-├── run_k_dependency.sh        # MED vs k at fixed n
-└── run_m_dependency.sh        # MED vs n at fixed k
+├── run_med.sh          # MED via cyclic polytope LP (moment-curve point sets)
+├── run_medc_gd.sh      # MED-C via centroid embedding with full-batch GD
+└── run_medc_sgd.sh     # MED-C via centroid embedding with stochastic SGD
 ```
-
-## Reproduce paper plots
-
-**Compare plots (centroid embedding vs WBNL):**
-```bash
-bash scripts/generate_compare_plots.sh --mode run
-```
-Generates `paper/compare_plot1.pdf` (critical m* vs d) and `paper/compare_plot2.pdf` (critical d* vs m, log-scale) by running GD centroid embedding experiments with k=2 and comparing against the WBNL fitted curve.
-
-**LiMIT retrieval figure (training-free RP+OMP on real data):**
-```bash
-bash scripts/generate_limit_figure.sh --mode run        # LiMIT-small (~1 min)
-bash scripts/generate_limit_figure.sh --mode run --full  # + LiMIT-full (~30 min)
-```
-Generates `paper/limit_retrieval.pdf`: two panels showing top-2 exact match and mean rank vs embedding dimension on LiMIT-small (and optionally LiMIT-full). Demonstrates that sufficient dimension yields perfect retrieval without training.
-
-To regenerate only plots from saved results: `--mode plot` for either script.
 
 ## Run experiments
 
-Single k: `python -m med.mean_embedding.cli --k 2 --n_values 8 16 32 64 128 --scoring_function inner_product`
-Grid sweep: `python -m med.mean_embedding.cli --k_values 2 3 4 5 --n_values 8 16 32 64 128 256`
-With SGD: `python -m med.mean_embedding.cli --trainer sgd --k 2 --n_values 8 16 32 64 128 256`
+All scripts scan m (number of total objects) from 8 to 1024 in powers of 2 by default.
+Override with e.g. `N_LIST="8 16 32"` or `M_LIST="8 16 32"` depending on the script.
+
+**Centroid embedding (GD):**
+```bash
+bash scripts/run_medc_gd.sh                          # k=2, inner_product
+METRIC=l2 K=3 bash scripts/run_medc_gd.sh             # k=3, Euclidean
+```
+
+**Centroid embedding (SGD):**
+```bash
+bash scripts/run_medc_sgd.sh                          # k=2, inner_product
+TRAINER=sgd bash scripts/run_medc_sgd.sh               # explicit SGD
+```
+
+**Cyclic polytope (LP-based):**
+```bash
+bash scripts/run_med.sh                                # M_LIST defaults to 8..1024, k=2
+M=16 K=3 bash scripts/run_med.sh                       # single (m=16, k=3)
+M_LIST="8 16 32" K=2 bash scripts/run_med.sh           # custom m sweep
+```
+
+**Direct CLI (for custom sweeps):**
+```bash
+python -m med.mean_embedding.cli --k 2 --n_values 8 16 32 64 128 --scoring_function inner_product
+python -m med.mean_embedding.cli --k_values 2 3 4 5 --n_values 8 16 32 64 128 256
+python -m med.mean_embedding.cli --trainer sgd --k 2 --n_values 8 16 32 64 128 256
+```
+
+## Result protocol
+
+### Directory hierarchy
+
+```
+results/
+  gd/{metric}/m_dependency/k_{k}/{timestamp}/     # run_medc_gd.sh (single k)
+  gd/{metric}/k_{k}/{timestamp}/                  # run_medc_gd.sh (single k, newer)
+  sgd/{metric}/m_dependency/k_{k}/{timestamp}/    # run_medc_sgd.sh (single k)
+  sgd/{metric}/k_{k}/{timestamp}/                 # run_medc_sgd.sh (single k, newer)
+  sgd/{metric}/grid/{timestamp}/                  # run_medc_sgd.sh (grid mode, K_LIST set)
+  cyclic_polytope/{label}/{timestamp}/            # run_med.sh
+```
+
+Timestamps are `YYYYMMDD_HHMMSS`. The `{label}` for cyclic polytope runs is `m{M}_k{K}` (e.g. `m5_k2`), `m_list_k{K}`, or `k_list`.
+
+### Unified `results.json` format
+
+Both MED-C (centroid embedding) and MED (cyclic polytope) experiments write a single
+`results.json` with the same top-level schema:
+
+```json
+{
+  "experiment": "medc",
+  "k": 2,
+  "scoring_function": "inner_product",
+  "trainer": "gd",
+  "results": [
+    {"m": 8, "med": 6, "search_path": [...], "time": 1.2},
+    {"m": 16, "med": 7, "search_path": [...], "time": 2.3}
+  ]
+}
+```
+
+Top-level fields:
+
+| Field | MED-C | MED | Description |
+|-------|-------|-----|-------------|
+| `experiment` | `"medc"` | `"med"` | Experiment type |
+| `k` | ✓ | ✓ (if uniform) | Subset size (omitted in grid mode) |
+| `scoring_function` | ✓ | — | `inner_product`, `l2`, `cosine`, or `l1` |
+| `trainer` | ✓ | — | `gd` or `sgd` |
+| `results` | ✓ | ✓ | Array or nested object (see below) |
+
+**Single-k `results`** — array of per-m objects:
+```json
+{"m": 8, "med": 6, "search_path": [...], "time": 1.2}
+```
+
+**Grid mode `results`** (MED-C only) — nested `{k: [per-m array]}`:
+```json
+{"2": [{"m": 8, "med": 6, ...}, ...], "3": [{"m": 8, "med": 8, ...}, ...]}
+```
+
+Per-result fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `m` | int | Number of objects |
+| `med` | int or null | Minimal embedding dimension (`-1` or `null` if infeasible) |
+| `search_path` | array | Binary search trace (entries differ by experiment type) |
+| `time` | float | Wall-clock seconds for this `m` |
+
+**MED-C search_path entries:** `{"dimension": d, "violations": v}` — dimension tested and number of constraint violations found by the trainer.
+
+**MED search_path entries:** `{"dimension": n, "feasible": bool, "checks": int, "time": float}` — dimension tested, construction-based verification result (squared-polynomial query), number of subset checks, and timing.
+
+### Other output files
+
+| File | Created by | Content |
+|------|-----------|---------|
+| `config.json` | `cli.py` | Full run config + env info (Python version, torch, CUDA) |
+| `minimal_dem_log.txt` | `experiment.py` | Lines: `[RESULT] minimal dimension @ k=X & n=Y is Z` |
+| `run.log` | shell scripts | Full stdout/stderr via `tee` |
+
+### Comparison / figure outputs
+
+**`med/mean_embedding/compare_plots.py`** writes `compare_plot_results.json` (default: repo root):
+```json
+{"d_star": {"8": 6, "16": 7, ...}, "m_star": {"6": 8, "7": 16, ...}, "k": 2, "scoring": "inner_product"}
+```
+Generates `paper/compare_plot1.pdf` (m* vs d) and `paper/compare_plot2.pdf` (d* vs m).
+
+**`med/unlimit/limit_figure.py`** writes `limit_results.json` (default: repo root) as a JSON array of per-(split, dim) metrics:
+```json
+[{"split": "small", "dim": 8, "omp_steps": 0, "top2_exact_match": 0.12, "recall_at_1": 0.45, "mean_rank": 3.5, ...}, ...]
+```
+Generates `paper/limit_retrieval.pdf`. A sentinel row with `"dim": -1` records the membership baseline.
+
+Both support `--mode run` (run + save) and `--mode plot` (load saved JSON, replot).
 
 Python listing style for the paper appendix is configured in `custom_command.tex`.

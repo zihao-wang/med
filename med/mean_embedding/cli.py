@@ -157,13 +157,30 @@ def main() -> None:
         elapsed = time.perf_counter() - t0
         print(f"\n[GRID] Minimal dimensions found: {grid}")
         print(f"[GRID] Total elapsed: {elapsed:.2f}s")
+
+        grid_results: dict = {}
+        for kval in args.k_values:
+            sk = str(kval)
+            grid_results[sk] = []
+            for n in args.n_values:
+                grid_results[sk].append({
+                    "m": n,
+                    "med": experiment.grid_minimal_dimensions.get(kval, {}).get(n, -1),
+                    "search_path": experiment.grid_search_paths.get(kval, {}).get(n, []),
+                    "time": experiment.grid_timings.get(kval, {}).get(n, -1),
+                })
+
+        unified: dict = {
+            "experiment": "medc",
+            "scoring_function": args.scoring_function,
+            "trainer": args.trainer,
+            "results": grid_results,
+        }
         try:
-            with open("grid_results.json", "w") as f:
-                json.dump(grid, f, indent=2)
-            with open("grid_search_paths.json", "w") as f:
-                json.dump(experiment.grid_search_paths, f, indent=2)
+            with open("results.json", "w") as f:
+                json.dump(unified, f, indent=2)
         except Exception as e:  # pragma: no cover
-            print(f"[WARN] Failed to write grid result files: {e}")
+            print(f"[WARN] Failed to write results.json: {e}")
     else:
         k_value = args.k if args.k is not None else 2
         print(f"[RUN] Running single-k search: k={k_value}, n_values={args.n_values}")
@@ -178,13 +195,28 @@ def main() -> None:
         elapsed = time.perf_counter() - t0
         print("\n[RUN] Minimal dimensions found:", minimal_dims)
         print(f"[RUN] Total elapsed: {elapsed:.2f}s")
+
+        results_list = []
+        for n in args.n_values:
+            results_list.append({
+                "m": n,
+                "med": minimal_dims.get(n, -1),
+                "search_path": experiment.search_paths.get(n, []),
+                "time": experiment.timings.get(n, -1),
+            })
+
+        unified = {
+            "experiment": "medc",
+            "k": k_value,
+            "scoring_function": args.scoring_function,
+            "trainer": args.trainer,
+            "results": results_list,
+        }
         try:
             with open("results.json", "w") as f:
-                json.dump(minimal_dims, f, indent=2)
-            with open("search_paths.json", "w") as f:
-                json.dump(experiment.search_paths, f, indent=2)
+                json.dump(unified, f, indent=2)
         except Exception as e:  # pragma: no cover
-            print(f"[WARN] Failed to write result files: {e}")
+            print(f"[WARN] Failed to write results.json: {e}")
 
 
 if __name__ == "__main__":

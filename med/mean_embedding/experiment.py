@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Dict, List, Literal, Optional
 
@@ -17,9 +18,11 @@ class Experiment:
     sgd_config: Optional[SGDConfig] = None
     search_paths: Dict[int, List[dict]] = field(default_factory=dict)
     minimal_dimensions: Dict[int, int] = field(default_factory=dict)
+    timings: Dict[int, float] = field(default_factory=dict)
     # Grid results when sweeping over both k and n
     grid_minimal_dimensions: Dict[int, Dict[int, int]] = field(default_factory=dict)
     grid_search_paths: Dict[int, Dict[int, List[dict]]] = field(default_factory=dict)
+    grid_timings: Dict[int, Dict[int, float]] = field(default_factory=dict)
 
     def find_minimal_dimension(
         self,
@@ -32,6 +35,7 @@ class Experiment:
     ) -> Dict[int, int]:
         last_minimal = left0
         for n in n_values:
+            t0 = time.perf_counter()
             print("#" * 10 + " new task " + "#" * 10)
             print(f"[EXP] Finding minimal dimension for n={n}, k={k}")
             print("#" * 30)
@@ -77,6 +81,7 @@ class Experiment:
 
             self.minimal_dimensions[n] = minimal_d if minimal_d <= n else -1
             last_minimal = minimal_d
+            self.timings[n] = round(time.perf_counter() - t0, 1)
 
             with open("minimal_dem_log.txt", "at") as f:
                 f.write(f"[RESULT] minimal dimension @ k={k} & n={n} is {minimal_d}\n")
@@ -106,6 +111,7 @@ class Experiment:
         """
         self.grid_minimal_dimensions = {}
         self.grid_search_paths = {}
+        self.grid_timings = {}
 
         warm_start = left0
         for k in k_values:
@@ -113,6 +119,7 @@ class Experiment:
             # Reset per-k accumulators so search paths and results are isolated
             self.search_paths = {}
             self.minimal_dimensions = {}
+            self.timings = {}
             minimal_for_k = self.find_minimal_dimension(
                 k=k,
                 n_values=n_values,
@@ -122,9 +129,10 @@ class Experiment:
                 patience=patience,
             )
 
-            # Persist per-k results and search paths
+            # Persist per-k results, search paths, and timings
             self.grid_minimal_dimensions[k] = dict(minimal_for_k)
             self.grid_search_paths[k] = dict(self.search_paths)
+            self.grid_timings[k] = dict(self.timings)
 
             # Update warm-start for next k using smallest feasible d found
             feasible_ds = [d for d in minimal_for_k.values() if d != -1]

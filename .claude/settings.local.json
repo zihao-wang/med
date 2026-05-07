@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dpkg -l)",
+      "Bash(apt list *)",
+      "Bash(pdflatex --version)",
+      "Bash(latexmk --version)",
+      "Bash(latexmk -pdf icml2026.tex)",
+      "Bash(pdflatex -interaction=nonstopmode icml2026.tex)",
+      "Bash(bibtex icml2026 *)",
+      "Bash(chmod +x *)",
+      "Bash(bash *)",
+      "Bash(python *)",
+      "Bash(pip install *)"
+    ]
+  }
+}
