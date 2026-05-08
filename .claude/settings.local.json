@@ -11,7 +11,13 @@
       "Bash(chmod +x *)",
       "Bash(bash *)",
       "Bash(python *)",
-      "Bash(pip install *)"
+      "Bash(pip install *)",
+      "Read(//Users/zihao/.local/share/nvim/lazy/**)",
+      "Read(//Users/zihao/.local/share/nvim/**)",
+      "Read(//Users/zihao/.config/nvim/lua/**)",
+      "Bash(uv add *)",
+      "Bash(uv run *)",
+      "Bash(nvim --version)"
     ]
   }
 }
