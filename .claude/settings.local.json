@@ -17,7 +17,8 @@
       "Read(//Users/zihao/.config/nvim/lua/**)",
       "Bash(uv add *)",
       "Bash(uv run *)",
-      "Bash(nvim --version)"
+      "Bash(nvim --version)",
+      "Bash(git commit *)"
     ]
   }
 }
