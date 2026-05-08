@@ -9,7 +9,6 @@ dependencies = [
     "numpy",
     "matplotlib",
     "tqdm",
-    "cvxpy",
     "requests",
 ]
 
@@ -26,5 +25,4 @@ build-backend = "setuptools.build_meta"
 include = ["med*", "unlimit*"]
 
 [tool.setuptools.package-data]
-med = ["vocab.txt"]
 unlimit = ["vocab.txt"]
