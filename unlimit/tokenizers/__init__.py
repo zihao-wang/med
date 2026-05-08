@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from med.unlimit.tokenizers.handmade import HandmadeTokenizer
-from med.unlimit.tokenizers.qwen import QwenSubwordTokenizer
-from med.unlimit.tokenizers.types import (
+from unlimit.tokenizers.handmade import HandmadeTokenizer
+from unlimit.tokenizers.qwen import QwenSubwordTokenizer
+from unlimit.tokenizers.types import (
     LimitTokenizer,
     TokenizedCorpusRecord,
     TokenizedQueryRecord,

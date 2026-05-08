@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
         "--n_values",
         type=int,
         nargs="*",
-        default=[5 * (2**i) for i in [0, 1, 2, 3, 4, 5, 6, 7]],
+        default=[8, 16, 32, 64, 128, 256, 512, 1024],
         help="List of n values",
     )
     parser.add_argument(

@@ -10,8 +10,8 @@ from concurrent.futures import ThreadPoolExecutor
 import torch
 from tqdm import tqdm
 
-from med.unlimit.dtype import DEFAULT_FLOAT_DTYPE
-from med.unlimit.retrieval.metrics import metrics_tqdm_postfix
+from unlimit.dtype import DEFAULT_FLOAT_DTYPE
+from unlimit.retrieval.metrics import metrics_tqdm_postfix
 
 
 def build_token_matrix(

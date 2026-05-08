@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from med.unlimit.tokenizers.types import TokenizedCorpusRecord, TokenizedQueryRecord
+from unlimit.tokenizers.types import TokenizedCorpusRecord, TokenizedQueryRecord
 
-_VOCAB_PATH = Path(__file__).resolve().parents[2] / "vocab.txt"
+_VOCAB_PATH = Path(__file__).resolve().parents[1] / "vocab.txt"
 
 
 def _load_vocab_lines(path: Path | None = None) -> list[str]:

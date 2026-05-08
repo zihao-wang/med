@@ -14,22 +14,22 @@ from typing import Literal
 import numpy as np
 import torch
 
-from med.unlimit.device import resolve_torch_device
-from med.unlimit.dtype import DEFAULT_FLOAT_DTYPE
-from med.unlimit.datasets.limit import load_limit
-from med.unlimit.retrieval.defaults import RP_OMP_EMBED_DIM, RP_OMP_STEPS
-from med.unlimit.retrieval.metrics import (
+from unlimit.device import resolve_torch_device
+from unlimit.dtype import DEFAULT_FLOAT_DTYPE
+from unlimit.datasets.limit import load_limit
+from unlimit.retrieval.defaults import RP_OMP_EMBED_DIM, RP_OMP_STEPS
+from unlimit.retrieval.metrics import (
     build_qrels_tensor,
     retrieval_metrics_from_logits,
 )
-from med.unlimit.retrieval.rp_omp_torch import (
+from unlimit.retrieval.rp_omp_torch import (
     build_token_matrix,
     omp_pair_doclocal,
     row_normalize,
     scores_query_local_omp,
     sum_token_rows,
 )
-from med.unlimit.tokenizers.types import LimitTokenizer
+from unlimit.tokenizers.types import LimitTokenizer
 
 
 def _resolve_rp_backend(
@@ -148,7 +148,7 @@ def run_rp_omp_eval(
     build_pretrained = getattr(tokenizer, "rp_omp_token_matrix", None)
 
     if impl == "numpy":
-        from med.unlimit.retrieval import rp_omp_numpy as rpn
+        from unlimit.retrieval import rp_omp_numpy as rpn
 
         if callable(build_pretrained):
             if verbose:

@@ -48,13 +48,15 @@ med/
 ├── mean_embedding/
 │   ├── cli.py             # package CLI for custom sweeps
 │   ├── compare_plots.py   # reproduce paper's compare_plot{1,2}.pdf
-│   ├── trainer_gd.py      # full-batch GD trainer with early stopping
+│   ├── trainer_gd.py      # full-batch GD trainer with early stopping (O(C(n,k)) memory)
 │   ├── trainer_sgd.py     # stochastic trainer using random k-subsets
 │   └── experiment.py      # binary search for minimal d, grid search over (k, n)
 ├── cyclic_polytope/
 │   ├── generator.py        # moment curve point set generation
 │   ├── construct.py        # polynomial construction of separating queries
-│   └── med_search.py       # binary search for MED via constructive verification
+│   ├── checker.py          # CyclicPolytopeChecker (FeasibilityChecker impl)
+│   ├── experiment.py       # factory wrapping shared Experiment
+│   └── cli.py              # package CLI for custom sweeps
 └── unlimit/               # LiMIT retrieval library (RP+OMP)
     ├── datasets/limit.py   #   LiMIT/LiMIT-small JSONL loader from DeepMind GitHub
     ├── limit_figure.py     #   reproduce paper's limit_retrieval.pdf

@@ -27,7 +27,9 @@ def compute_scores(
     if scoring_function == "l2":
         return torch.norm(subset_sums.unsqueeze(1) - vectors, p=2, dim=-1)
     if scoring_function == "cosine":
-        return torch.cosine_similarity(subset_sums.unsqueeze(1), vectors)
+        return torch.cosine_similarity(
+            subset_sums.unsqueeze(1), vectors.unsqueeze(0), dim=-1
+        )
     if scoring_function == "l1":
         return torch.norm(subset_sums.unsqueeze(1) - vectors, p=1, dim=-1)
     raise NotImplementedError(f"Unknown scoring_function: {scoring_function}")

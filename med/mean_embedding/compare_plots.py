@@ -20,27 +20,22 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import numpy as np
-import torch
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
-from med.mean_embedding.trainer_gd import Trainer
-from med.plotting import wbnl_critical_m, invert_wbnl_curve
-
-
-_DEVICE = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
+from med._device import resolve_device
+from med.mean_embedding.checker import MeanEmbeddingChecker
+from med.plotting import (
+    invert_wbnl_curve,
+    set_paper_style,
+    wbnl_critical_m,
 )
 
 
 # ---------------------------------------------------------------------------
 # Experiment parameters
 # ---------------------------------------------------------------------------
-DEFAULT_N_VALUES = [5, 10, 20, 40, 80, 160]
+DEFAULT_N_VALUES = [8, 16, 32, 64, 128, 256, 512, 1024]
 DEFAULT_D_VALUES = list(range(1, 31))
 DEFAULT_K = 2
 DEFAULT_SCORING = "inner_product"
@@ -68,19 +63,22 @@ def find_minimal_d(
     """Binary search for minimal dimension d where a feasible embedding exists."""
     left, right = d_min, d_max
     best_d: Optional[int] = None
+    checker = MeanEmbeddingChecker(
+        m=n,
+        k=k,
+        scoring_function=scoring,
+        trainer_type="gd",
+        num_epochs=num_epochs,
+        learning_rate=learning_rate,
+        patience=patience,
+    )
 
     while left <= right:
         mid = (left + right) // 2
-        trainer = Trainer(n, k, scoring)
-        violations = trainer.train(
-            d=mid,
-            num_epochs=num_epochs,
-            learning_rate=learning_rate / np.log2(max(n, 2)),
-            patience=patience,
-        )
-        print(f"  [d*(n)] n={n}, d={mid} -> violations={violations}")
+        result = checker.check(mid)
+        print(f"  [d*(n)] n={n}, d={mid} -> feasible={result.feasible}, violations={result.details.get('violations', -1)}")
 
-        if violations == 0:
+        if result.feasible:
             best_d = mid
             right = mid - 1
         else:
@@ -105,16 +103,19 @@ def find_maximal_n(
 
     while left <= right:
         mid = (left + right) // 2
-        trainer = Trainer(mid, k, scoring)
-        violations = trainer.train(
-            d=d,
+        checker = MeanEmbeddingChecker(
+            m=mid,
+            k=k,
+            scoring_function=scoring,
+            trainer_type="gd",
             num_epochs=num_epochs,
-            learning_rate=learning_rate / np.log2(max(mid, 2)),
+            learning_rate=learning_rate,
             patience=patience,
         )
-        print(f"  [m*(d)] d={d}, n={mid} -> violations={violations}")
+        result = checker.check(d)
+        print(f"  [m*(d)] d={d}, n={mid} -> feasible={result.feasible}, violations={result.details.get('violations', -1)}")
 
-        if violations == 0:
+        if result.feasible:
             best_n = mid
             left = mid + 1
         else:
@@ -128,32 +129,14 @@ def find_maximal_n(
 # ---------------------------------------------------------------------------
 
 
-def _set_style():
+def generate_plots(results: dict, output_dir: str) -> None:
+    """Generate compare_plot1.pdf and compare_plot2.pdf from experiment results."""
     import matplotlib
 
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    plt.rcParams.update(
-        {
-            "font.size": 13,
-            "axes.labelsize": 14,
-            "axes.titlesize": 14,
-            "legend.fontsize": 11,
-            "xtick.labelsize": 11,
-            "ytick.labelsize": 11,
-            "figure.dpi": 150,
-            "savefig.dpi": 300,
-            "savefig.bbox": "tight",
-            "savefig.pad_inches": 0.02,
-        }
-    )
-    return plt
-
-
-def generate_plots(results: dict, output_dir: str) -> None:
-    """Generate compare_plot1.pdf and compare_plot2.pdf from experiment results."""
-    plt = _set_style()
+    set_paper_style()
 
     d_star_data = results["d_star"]  # {n: d} pairs
     m_star_data = results["m_star"]  # {d: n} pairs
@@ -277,9 +260,10 @@ def main() -> None:
     args = parse_args()
 
     if args.mode == "run":
+        dev = resolve_device()
         print("=== Running centroid embedding experiments (k=2) ===")
         print(
-            f"Device: {_DEVICE}, scoring: {args.scoring}, epochs: {args.num_epochs}, patience: {args.patience}"
+            f"Device: {dev}, scoring: {args.scoring}, epochs: {args.num_epochs}, patience: {args.patience}"
         )
 
         # Search d*(n) for each n

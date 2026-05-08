@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from med.unlimit.retrieval.metrics import build_qrels_tensor, retrieval_metrics_from_logits
-from med.unlimit.retrieval.rp_omp import (
+from unlimit.retrieval.metrics import build_qrels_tensor, retrieval_metrics_from_logits
+from unlimit.retrieval.rp_omp import (
     build_token_matrix,
     omp_pair_doclocal,
     run_rp_omp_eval,

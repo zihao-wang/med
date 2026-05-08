@@ -13,7 +13,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-from med.unlimit.retrieval.metrics import metrics_tqdm_postfix
+from unlimit.retrieval.metrics import metrics_tqdm_postfix
 
 
 def _precompute_corpus_doc_np(

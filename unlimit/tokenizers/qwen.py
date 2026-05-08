@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 import torch
 
-from med.unlimit.dtype import DEFAULT_FLOAT_DTYPE
-from med.unlimit.tokenizers.types import TokenizedCorpusRecord, TokenizedQueryRecord
+from unlimit.dtype import DEFAULT_FLOAT_DTYPE
+from unlimit.tokenizers.types import TokenizedCorpusRecord, TokenizedQueryRecord
 
 if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase

@@ -5,6 +5,7 @@ import torch
 from torch import optim
 from tqdm import trange
 
+from med._device import resolve_device
 from med.scoring import ScoringFn, compute_scores
 
 
@@ -13,13 +14,7 @@ class Trainer:
         self.n = n
         self.k = k
         self.scoring_function = scoring_function
-        self.device = (
-            "cuda"
-            if torch.cuda.is_available()
-            else "mps"
-            if torch.backends.mps.is_available()
-            else "cpu"
-        )
+        self.device = resolve_device()
         print(f"[GD] Using device: {self.device}")
 
         self.all_combinations = list(itertools.combinations(range(self.n), self.k))
@@ -72,7 +67,7 @@ class Trainer:
             optimizer=optimizer,
             max_lr=learning_rate,
             total_steps=num_epochs,
-            pct_start=0.0,
+            pct_start=0.3,
         )
 
         min_violations = self.total_violations

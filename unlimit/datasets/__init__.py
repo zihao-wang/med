@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from med.unlimit.datasets.limit import (
+from unlimit.datasets.limit import (
     LIMIT_FULL_URLS,
     LIMIT_SMALL_URLS,
     LIMIT_URLS_BY_SPLIT,

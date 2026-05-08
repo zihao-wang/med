@@ -24,19 +24,19 @@ import numpy as np
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
-from med.unlimit.datasets import load_limit
-from med.unlimit.tokenizers.handmade import (
+from unlimit.datasets import load_limit
+from unlimit.tokenizers.handmade import (
     UNK_TOKEN_ID,
     tokenize_corpus_records,
     tokenize_query_records,
 )
-from med.unlimit.retrieval.rp_omp_numpy import (
+from unlimit.retrieval.rp_omp_numpy import (
     build_token_matrix_np,
     omp_pair_doclocal_np,
     row_normalize_np,
     sum_token_rows_np,
 )
-from med.unlimit.retrieval.metrics import build_qrels_tensor, retrieval_metrics_from_logits
+from unlimit.retrieval.metrics import build_qrels_tensor, retrieval_metrics_from_logits
 
 import torch
 

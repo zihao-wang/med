@@ -28,7 +28,7 @@ The paper contains one figure (Figure 1) with two panels, both comparing centroi
 **1. Generate both plots from scratch (runs the full experiment):**
 
 ```bash
-bash scripts/generate_compare_plots.sh --mode run
+python -m med.mean_embedding.compare_plots --mode run
 ```
 
 This runs centroid embedding experiments with $k=2$ and inner product scoring. It searches for feasible embeddings across a grid of $n$ (number of points) and $d$ (dimension) values, then saves the results to `compare_plot_results.json` and writes the two PDFs to `paper/`.
@@ -38,7 +38,7 @@ Expected runtime: ~10–30 minutes on a modern GPU; longer on CPU. Progress is p
 **2. Regenerate plots from saved results (no re-computation):**
 
 ```bash
-bash scripts/generate_compare_plots.sh --mode plot
+python -m med.mean_embedding.compare_plots --mode plot
 ```
 
 Reads `compare_plot_results.json` and redraws the PDFs. Useful for tweaking plot styling without rerunning the experiment.
@@ -46,8 +46,8 @@ Reads `compare_plot_results.json` and redraws the PDFs. Useful for tweaking plot
 **3. Reproduce with other scoring functions:**
 
 ```bash
-bash scripts/generate_compare_plots.sh --mode run --scoring l2
-bash scripts/generate_compare_plots.sh --mode run --scoring cosine
+python -m med.mean_embedding.compare_plots --mode run --scoring l2
+python -m med.mean_embedding.compare_plots --mode run --scoring cosine
 ```
 
 Supported scoring functions: `inner_product` (default), `l2`, `cosine`, `l1`.
@@ -66,7 +66,7 @@ The results are plotted against the WBNL fitted curve $m(d) = -10.53 + 4.03d + 0
 To get a quick sense of the results with fewer $(n, d)$ points:
 
 ```bash
-bash scripts/generate_compare_plots.sh --mode run \
+python -m med.mean_embedding.compare_plots --mode run \
     --n-values 8 16 32 64 \
     --d-values 1 2 3 4 5 6 7 8 9 10
 ```
@@ -74,7 +74,7 @@ bash scripts/generate_compare_plots.sh --mode run \
 Reduce training epochs for a rougher but faster sweep:
 
 ```bash
-bash scripts/generate_compare_plots.sh --mode run \
+python -m med.mean_embedding.compare_plots --mode run \
     --num-epochs 500 --patience 50
 ```
 
@@ -90,7 +90,7 @@ The paper also includes a figure (Figure 2) showing **training-free** retrieval 
 **1. Generate the figure (LiMIT-small, ~1 minute):**
 
 ```bash
-bash scripts/generate_limit_figure.sh --mode run
+python -m med.unlimit.limit_figure --mode run
 ```
 
 Loads the LiMIT-small dataset (46 docs, 1000 queries), runs RP+OMP retrieval across embedding dimensions $d \in \{8, 16, \ldots, 1024\}$ and OMP step counts, then saves `paper/limit_retrieval.pdf`.
@@ -98,13 +98,13 @@ Loads the LiMIT-small dataset (46 docs, 1000 queries), runs RP+OMP retrieval acr
 **2. Include LiMIT-full (~50k docs, slower):**
 
 ```bash
-bash scripts/generate_limit_figure.sh --mode run --full
+python -m med.unlimit.limit_figure --mode run --full
 ```
 
 **3. Regenerate from cached results:**
 
 ```bash
-bash scripts/generate_limit_figure.sh --mode plot
+python -m med.unlimit.limit_figure --mode plot
 ```
 
 ### What the LiMIT experiment shows
@@ -123,27 +123,31 @@ LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each que
 ├── med/                    # Python package code
 │   ├── scoring.py          #   shared scoring functions (inner product, L2, cosine, L1)
 │   ├── plotting.py         #   WBNL curve reference and plot styling
+│   ├── checker.py          #   FeasibilityChecker ABC + CheckResult
+│   ├── experiment.py       #   shared experiment orchestration (binary search, grid)
+│   ├── search.py           #   shared binary search over dimensions
 │   ├── mean_embedding/     #   centroid embedding experiments
 │   │   ├── cli.py          #     package CLI for custom sweeps
-│   │   ├── compare_plots.py #     paper compare-plot runner
+│   │   ├── compare_plots.py #    paper compare-plot runner
 │   │   ├── trainer_gd.py   #     full-batch GD trainer
 │   │   ├── trainer_sgd.py  #     stochastic trainer (random k-subsets)
-│   │   └── experiment.py   #     experiment orchestration (binary search, grid search)
+│   │   ├── checker.py      #     MeanEmbeddingChecker (FeasibilityChecker impl)
+│   │   └── experiment.py   #     factory wrapping shared Experiment
 │   ├── cyclic_polytope/    #   cyclic polytope face verification
 │   │   ├── generator.py    #     moment curve point generation
-│   │   └── verification.py #     LP-based face check
+│   │   ├── construct.py    #     squared-polynomial query construction
+│   │   ├── checker.py      #     CyclicPolytopeChecker (FeasibilityChecker impl)
+│   │   ├── cli.py          #     package CLI for custom sweeps
+│   │   └── experiment.py   #     factory wrapping shared Experiment
 │   └── unlimit/            #   LiMIT retrieval library (RP+OMP)
 │       ├── datasets/       #     LiMIT/LiMIT-small JSONL loader
 │       ├── limit_figure.py #     paper LiMIT figure runner
 │       ├── tokenizers/     #     handmade phrase + Qwen subword tokenizers
 │       └── retrieval/      #     RP+OMP scoring (NumPy/PyTorch) + metrics
-├── scripts/                # Bash launchers only
-│   ├── generate_compare_plots.sh  # launch med.mean_embedding.compare_plots
-│   ├── generate_limit_figure.sh   # launch med.unlimit.limit_figure
-│   ├── run_all_experiments.sh     # master: joint grid for GD + SGD
-│   ├── run_joint_dependency.sh    # joint (k, n) grid sweep
-│   ├── run_k_dependency.sh        # MED vs k at fixed n
-│   └── run_m_dependency.sh        # MED vs n at fixed k
+├── scripts/                # Bash launchers for result-directory runs
+│   ├── run_med.sh          #   cyclic polytope MED sweep
+│   ├── run_medc_gd.sh      #   centroid embedding GD sweep
+│   └── run_medc_sgd.sh     #   centroid embedding SGD sweep
 └── requirements.txt
 ```
 
@@ -169,12 +173,13 @@ uv run python -m med.mean_embedding.cli --trainer sgd --k 2 --n_values 8 16 32 6
 
 Results are saved as JSON in the current working directory.
 
-Run a full sweep from shell scripts (saves to `results/`):
+Run a full sweep from shell scripts (saves to `results/` with timestamps and logs):
 
 ```bash
-bash scripts/run_joint_dependency.sh gd
-bash scripts/run_k_dependency.sh gd
-bash scripts/run_m_dependency.sh gd
+bash scripts/run_medc_gd.sh
+METRIC=l2 K=3 bash scripts/run_medc_gd.sh
+bash scripts/run_medc_sgd.sh
+bash scripts/run_med.sh
 ```
 
 ## Build the paper
