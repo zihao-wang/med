@@ -21,7 +21,8 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["med*"]
+include = ["med*", "unlimit*"]
 
 [tool.setuptools.package-data]
 med = ["vocab.txt"]
+unlimit = ["vocab.txt"]

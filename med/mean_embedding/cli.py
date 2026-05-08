@@ -113,6 +113,9 @@ def main() -> None:
         scoring_function=args.scoring_function,
         trainer_type=args.trainer,
         sgd_config=sgd_config,
+        num_epochs=args.num_epochs,
+        learning_rate=args.learning_rate,
+        patience=args.patience,
     )
 
     run_config = {
@@ -149,10 +152,7 @@ def main() -> None:
         )
         grid = experiment.find_minimal_dimension_grid(
             k_values=args.k_values,
-            n_values=args.n_values,
-            learning_rate=args.learning_rate,
-            num_epochs=args.num_epochs,
-            patience=args.patience,
+            m_values=args.n_values,
         )
         elapsed = time.perf_counter() - t0
         print(f"\n[GRID] Minimal dimensions found: {grid}")
@@ -185,11 +185,8 @@ def main() -> None:
         k_value = args.k if args.k is not None else 2
         print(f"[RUN] Running single-k search: k={k_value}, n_values={args.n_values}")
         minimal_dims = experiment.find_minimal_dimension(
-            k_value,
-            args.n_values,
-            learning_rate=args.learning_rate,
-            num_epochs=args.num_epochs,
-            patience=args.patience,
+            k=k_value,
+            m_values=args.n_values,
         )
 
         elapsed = time.perf_counter() - t0

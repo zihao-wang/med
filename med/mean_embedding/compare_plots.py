@@ -24,7 +24,7 @@ import torch
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
-from med.mean_embedding.train_gd import Trainer
+from med.mean_embedding.trainer_gd import Trainer
 from med.plotting import wbnl_critical_m, invert_wbnl_curve
 
 

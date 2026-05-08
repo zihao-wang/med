@@ -126,7 +126,7 @@ LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each que
 │   ├── mean_embedding/     #   centroid embedding experiments
 │   │   ├── cli.py          #     package CLI for custom sweeps
 │   │   ├── compare_plots.py #     paper compare-plot runner
-│   │   ├── train_gd.py     #     full-batch GD trainer
+│   │   ├── trainer_gd.py   #     full-batch GD trainer
 │   │   ├── trainer_sgd.py  #     stochastic trainer (random k-subsets)
 │   │   └── experiment.py   #     experiment orchestration (binary search, grid search)
 │   ├── cyclic_polytope/    #   cyclic polytope face verification

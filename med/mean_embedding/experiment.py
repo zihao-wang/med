@@ -1,142 +1,54 @@
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass, field
-from typing import Dict, List, Literal, Optional
+from typing import Callable, Optional
 
-import numpy as np
-
-from .train_gd import Trainer
-from .trainer_sgd import SGDTrainer, SGDConfig
-from med.scoring import ScoringFn
+from ..checker import FeasibilityChecker
+from ..experiment import Experiment as _SharedExperiment
+from ..scoring import ScoringFn
+from .checker import MeanEmbeddingChecker
+from .trainer_sgd import SGDConfig
 
 
-@dataclass
-class Experiment:
-    scoring_function: ScoringFn
-    trainer_type: Literal["gd", "sgd"] = "gd"
-    sgd_config: Optional[SGDConfig] = None
-    search_paths: Dict[int, List[dict]] = field(default_factory=dict)
-    minimal_dimensions: Dict[int, int] = field(default_factory=dict)
-    timings: Dict[int, float] = field(default_factory=dict)
-    # Grid results when sweeping over both k and n
-    grid_minimal_dimensions: Dict[int, Dict[int, int]] = field(default_factory=dict)
-    grid_search_paths: Dict[int, Dict[int, List[dict]]] = field(default_factory=dict)
-    grid_timings: Dict[int, Dict[int, float]] = field(default_factory=dict)
+def _make_checker_factory(
+    scoring_function: ScoringFn,
+    trainer_type: str,
+    sgd_config: Optional[SGDConfig],
+    num_epochs: int,
+    learning_rate: float,
+    patience: int,
+) -> Callable[[int, int], FeasibilityChecker]:
+    def factory(m: int, k: int) -> FeasibilityChecker:
+        return MeanEmbeddingChecker(
+            m=m, k=k,
+            scoring_function=scoring_function,
+            trainer_type=trainer_type,
+            sgd_config=sgd_config,
+            num_epochs=num_epochs,
+            learning_rate=learning_rate,
+            patience=patience,
+        )
+    return factory
 
-    def find_minimal_dimension(
+
+class Experiment(_SharedExperiment):
+    """Orchestrates MED binary search for centroid embedding."""
+
+    def __init__(
         self,
-        k: int,
-        n_values: List[int],
-        left0: int = 0,
+        scoring_function: ScoringFn,
+        trainer_type: str = "gd",
+        sgd_config: Optional[SGDConfig] = None,
         num_epochs: int = 1000,
         learning_rate: float = 1,
         patience: int = 1000,
-    ) -> Dict[int, int]:
-        last_minimal = left0
-        for n in n_values:
-            t0 = time.perf_counter()
-            print("#" * 10 + " new task " + "#" * 10)
-            print(f"[EXP] Finding minimal dimension for n={n}, k={k}")
-            print("#" * 30)
-            if self.trainer_type == "gd":
-                trainer = Trainer(n, k, self.scoring_function)
-            elif self.trainer_type == "sgd":
-                trainer = SGDTrainer(n, k, self.scoring_function, config=self.sgd_config or SGDConfig())
-            else:
-                raise ValueError(f"Unknown trainer_type: {self.trainer_type}")
-
-            self.search_paths[n] = []
-            left, right = last_minimal + 1, last_minimal + 40
-            minimal_d = n + 1
-
-            while left <= right:
-                mid = (left + right) // 2
-                if mid == 0:
-                    mid = 1
-                print(f"\t[EXP] Testing dimension d={mid}")
-
-                if self.trainer_type == "gd":
-                    violations = trainer.train(
-                        d=mid,
-                        num_epochs=num_epochs,
-                        learning_rate=learning_rate / np.log2(n),
-                        patience=patience,
-                    )
-                else:
-                    # SGD trainer uses its own config for lr/patience/steps
-                    violations = trainer.train(
-                        d=mid,
-                        num_epochs=num_epochs,
-                    )
-
-                print(f"\t[EXP] Violations for d={mid}: {violations}")
-                self.search_paths[n].append({"dimension": mid, "violations": violations})
-
-                if violations == 0:
-                    minimal_d = mid
-                    right = mid - 1
-                else:
-                    left = mid + 1
-
-            self.minimal_dimensions[n] = minimal_d if minimal_d <= n else -1
-            last_minimal = minimal_d
-            self.timings[n] = round(time.perf_counter() - t0, 1)
-
-            with open("minimal_dem_log.txt", "at") as f:
-                f.write(f"[RESULT] minimal dimension @ k={k} & n={n} is {minimal_d}\n")
-            print("#" * 10 + " Task Finished " + "#" * 10)
-            print(f"[RESULT] minimal dimension @ k={k} & n={n} is {minimal_d}\n")
-            print("#" * 30)
-
-        return self.minimal_dimensions
-
-    def find_minimal_dimension_grid(
-        self,
-        k_values: List[int],
-        n_values: List[int],
-        left0: int = 0,
-        num_epochs: int = 1000,
-        learning_rate: float = 1,
-        patience: int = 1000,
-    ) -> Dict[int, Dict[int, int]]:
-        """
-        Run minimal dimension search across a grid of k and n values.
-
-        For each k in k_values, this method leverages the existing
-        find_minimal_dimension routine to sweep over n_values while
-        reusing a warm-start lower bound for the searched dimension.
-
-        Returns a nested mapping {k: {n: minimal_d}}.
-        """
-        self.grid_minimal_dimensions = {}
-        self.grid_search_paths = {}
-        self.grid_timings = {}
-
-        warm_start = left0
-        for k in k_values:
-            print("#" * 10 + f" Starting k={k} grid row " + "#" * 10)
-            # Reset per-k accumulators so search paths and results are isolated
-            self.search_paths = {}
-            self.minimal_dimensions = {}
-            self.timings = {}
-            minimal_for_k = self.find_minimal_dimension(
-                k=k,
-                n_values=n_values,
-                left0=warm_start,
+    ):
+        super().__init__(
+            checker_factory=_make_checker_factory(
+                scoring_function=scoring_function,
+                trainer_type=trainer_type,
+                sgd_config=sgd_config,
                 num_epochs=num_epochs,
                 learning_rate=learning_rate,
                 patience=patience,
-            )
-
-            # Persist per-k results, search paths, and timings
-            self.grid_minimal_dimensions[k] = dict(minimal_for_k)
-            self.grid_search_paths[k] = dict(self.search_paths)
-            self.grid_timings[k] = dict(self.timings)
-
-            # Update warm-start for next k using smallest feasible d found
-            feasible_ds = [d for d in minimal_for_k.values() if d != -1]
-            if feasible_ds:
-                warm_start = min(feasible_ds)
-
-        return self.grid_minimal_dimensions
+            ),
+        )
