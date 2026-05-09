@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from math import comb
 from typing import Optional
 
 import numpy as np
@@ -26,4 +27,13 @@ class CyclicPolytopeChecker(FeasibilityChecker):
             self.m, self.k, d,
             t=self.t,
         )
-        return CheckResult(feasible=ok, details={"checks": checked})
+        total_queries = comb(self.m, self.k)
+        checked_fraction = checked / total_queries if total_queries else 0.0
+        return CheckResult(
+            feasible=ok,
+            details={
+                "checks": checked,
+                "total_queries": total_queries,
+                "checked_fraction": checked_fraction,
+            },
+        )

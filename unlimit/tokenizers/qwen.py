@@ -1,12 +1,9 @@
-"""Qwen3 (Hugging Face) subword tokenizer for raw LiMIT text."""
+"""Qwen subword tokenizer for random-token LiMIT baselines."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import torch
-
-from unlimit.dtype import DEFAULT_FLOAT_DTYPE
 from unlimit.tokenizers.types import TokenizedCorpusRecord, TokenizedQueryRecord
 
 if TYPE_CHECKING:
@@ -15,14 +12,12 @@ if TYPE_CHECKING:
 
 class QwenSubwordTokenizer:
     """
-    Wraps ``transformers.AutoTokenizer`` + **pretrained token embeddings** from the
-    matching causal LM (default ``Qwen/Qwen3-0.6B``).
+    Tokenize raw LiMIT text with a Qwen tokenizer.
 
-    Corpus and query records are encoded from the **raw** ``text`` field (full
-    document / question string), not phrase-parsed like :class:`HandmadeTokenizer`.
-
-    RP+OMP uses rows of the LM's input embedding matrix (not random Gaussians).
-    :attr:`pretrained_embedding_dim` is the LM hidden size (token vector width).
+    The retrieval experiment still uses random token embeddings. By default this
+    tokenizer compacts the raw Qwen ids observed in the evaluated split to a
+    local contiguous id space, avoiding a large random matrix for unused Qwen
+    vocabulary rows.
     """
 
     name = "qwen"
@@ -30,100 +25,77 @@ class QwenSubwordTokenizer:
     def __init__(
         self,
         model_name: str = "Qwen/Qwen3-0.6B",
-        trust_remote_code: bool = True,
         *,
-        load_pretrained_embeddings: bool = True,
+        trust_remote_code: bool = True,
+        local_files_only: bool = False,
+        compact_token_ids: bool = True,
     ) -> None:
-        from transformers import AutoModelForCausalLM, AutoTokenizer
+        try:
+            from transformers import AutoTokenizer
+        except ImportError as exc:
+            raise ImportError(
+                "QwenSubwordTokenizer requires transformers. Install the qwen "
+                "extra or add transformers to the environment before using "
+                "--tokenizers qwen."
+            ) from exc
 
         self._model_name = model_name
         self._tok: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(
             model_name,
             trust_remote_code=trust_remote_code,
+            local_files_only=local_files_only,
         )
-        if self._tok.pad_token_id is None and self._tok.eos_token_id is not None:
-            self._tok.pad_token = self._tok.eos_token
-        _pad = int(self._tok.pad_token_id)
+        self._compact_token_ids = compact_token_ids
+        self._raw_to_compact: dict[int, int] = {}
+
+        pad_id = self._tok.pad_token_id
+        eos_id = self._tok.eos_token_id
         unk_id = self._tok.unk_token_id
-        _unk = int(unk_id) if unk_id is not None else _pad
-        # Row count for RP+OMP matrix (covers all ids that may appear, incl. specials).
-        self._rp_matrix_rows = max(
+        max_special = max(
+            [value for value in (pad_id, eos_id, unk_id) if value is not None],
+            default=-1,
+        )
+        self._full_num_token_types = max(
             len(self._tok),
-            int(self._tok.vocab_size),
-            _pad + 1,
-            _unk + 1,
+            int(getattr(self._tok, "vocab_size", 0)),
+            int(max_special) + 1,
         )
 
-        self._token_embed_weight: torch.Tensor | None = None
-        if load_pretrained_embeddings:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                trust_remote_code=trust_remote_code,
-                torch_dtype=torch.float32,
-                low_cpu_mem_usage=True,
-            )
-            w = model.get_input_embeddings().weight.detach().float().cpu().clone()
-            del model
-            self._token_embed_weight = w
-            self.pretrained_embedding_dim = int(w.shape[1])
-        else:
-            from transformers import AutoConfig
+    @property
+    def model_name(self) -> str:
+        return self._model_name
 
-            cfg = AutoConfig.from_pretrained(
-                model_name,
-                trust_remote_code=trust_remote_code,
-            )
-            self.pretrained_embedding_dim = int(cfg.hidden_size)
+    def num_token_types(self) -> int:
+        if self._compact_token_ids:
+            return max(1, len(self._raw_to_compact))
+        return self._full_num_token_types
 
-    def rp_omp_num_token_types(self) -> int:
-        return self._rp_matrix_rows
-
-    def rp_omp_token_matrix(
-        self,
-        *,
-        device: torch.device,
-        dtype: torch.dtype = DEFAULT_FLOAT_DTYPE,
-    ) -> torch.Tensor:
-        """
-        Token vectors for RP+OMP: frozen **pretrained** embedding rows ``(V, d)``.
-        """
-        if self._token_embed_weight is None:
-            raise RuntimeError(
-                "rp_omp_token_matrix requires load_pretrained_embeddings=True "
-                "(full LM load) for QwenSubwordTokenizer."
-            )
-        W = self._token_embed_weight
-        n_types = self._rp_matrix_rows
-        n_vocab, _d = W.shape
-        if n_types > n_vocab:
-            pad = torch.zeros(
-                n_types - n_vocab,
-                W.shape[1],
-                dtype=torch.float32,
-                device="cpu",
-            )
-            W = torch.cat([W, pad], dim=0)
-        elif n_types < n_vocab:
-            W = W[:n_types]
-        return W.to(device=device, dtype=dtype)
+    def _map_id(self, raw_id: int) -> int:
+        if not self._compact_token_ids:
+            return raw_id
+        mapped = self._raw_to_compact.get(raw_id)
+        if mapped is None:
+            mapped = len(self._raw_to_compact)
+            self._raw_to_compact[raw_id] = mapped
+        return mapped
 
     def _encode(self, text: str) -> tuple[list[int], list[str]]:
         ids = self._tok.encode(text, add_special_tokens=False)
-        return ids, []
+        return [self._map_id(int(token_id)) for token_id in ids], []
 
     def tokenize_corpus_records(
         self, records: list[dict]
     ) -> list[TokenizedCorpusRecord]:
         out: list[TokenizedCorpusRecord] = []
-        for r in records:
-            ids, unk = self._encode(r["text"])
+        for record in records:
+            ids, unknown = self._encode(record["text"])
             out.append(
                 {
-                    "_id": r["_id"],
-                    "title": r.get("title", ""),
-                    "text": r["text"],
+                    "_id": record["_id"],
+                    "title": record.get("title", ""),
+                    "text": record["text"],
                     "token_ids": ids,
-                    "unknown_phrases": unk,
+                    "unknown_phrases": unknown,
                 }
             )
         return out
@@ -132,14 +104,14 @@ class QwenSubwordTokenizer:
         self, records: list[dict]
     ) -> list[TokenizedQueryRecord]:
         out: list[TokenizedQueryRecord] = []
-        for r in records:
-            ids, unk = self._encode(r["text"])
+        for record in records:
+            ids, unknown = self._encode(record["text"])
             out.append(
                 {
-                    "_id": r["_id"],
-                    "text": r["text"],
+                    "_id": record["_id"],
+                    "text": record["text"],
                     "token_ids": ids,
-                    "unknown_phrases": unk,
+                    "unknown_phrases": unknown,
                 }
             )
         return out

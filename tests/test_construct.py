@@ -1,4 +1,4 @@
-"""Tests for construct.py — squared-polynomial query construction."""
+"""Tests for construct.py — moment-curve points and query construction."""
 
 import numpy as np
 import pytest
@@ -6,9 +6,44 @@ import pytest
 from med.cyclic_polytope.construct import (
     check_subset_retrieval,
     construct_query_for_subset,
+    generate_cyclic_polytope_configuration,
     verify_construction,
 )
-from med.cyclic_polytope.generator import generate_cyclic_polytope_configuration
+
+
+def test_generate_default_t_gives_shape():
+    points = generate_cyclic_polytope_configuration(5, 3)
+    assert points.shape == (5, 3)
+
+
+def test_generate_default_t_uses_arange():
+    points = generate_cyclic_polytope_configuration(4, 2)
+    np.testing.assert_allclose(points[:, 0], np.arange(4, dtype=float))
+
+
+def test_generate_custom_t():
+    t = np.array([0.0, 0.5, 1.0])
+    points = generate_cyclic_polytope_configuration(3, 2, t)
+    np.testing.assert_allclose(points[:, 0], t)
+    np.testing.assert_allclose(points[:, 1], t**2)
+
+
+def test_generate_t_must_be_strictly_increasing():
+    t = np.array([0.0, 1.0, 0.5])
+    with pytest.raises(AssertionError, match="strictly increasing"):
+        generate_cyclic_polytope_configuration(3, 2, t)
+
+
+def test_generate_t_shape_mismatch():
+    t = np.array([0.0, 1.0])
+    with pytest.raises(AssertionError, match="shape"):
+        generate_cyclic_polytope_configuration(3, 2, t)
+
+
+def test_generate_higher_dimensions():
+    points = generate_cyclic_polytope_configuration(3, 4)
+    assert points.shape == (3, 4)
+    np.testing.assert_allclose(points[2, 3], 2**4)
 
 
 def test_construct_query_shape():

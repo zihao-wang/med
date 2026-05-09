@@ -9,7 +9,7 @@ dependencies = [
     "numpy",
     "matplotlib",
     "tqdm",
-    "requests",
+    "transformers",
 ]
 
 [dependency-groups]
@@ -25,4 +25,8 @@ build-backend = "setuptools.build_meta"
 include = ["med*", "unlimit*"]
 
 [tool.setuptools.package-data]
-unlimit = ["vocab.txt"]
+unlimit = [
+    "vocab.txt",
+    "assets/limit-small/*.jsonl",
+    "assets/limit/*.jsonl",
+]

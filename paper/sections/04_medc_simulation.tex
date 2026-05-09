@@ -42,27 +42,27 @@ This result yields a pessimistic implication: the largest number of objects we c
     \centering
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{compare_plot1.pdf}  % or your first page/image
+        \includegraphics[width=\textwidth]{figure/compare_plot1.pdf}  % or your first page/image
         \caption{}  % empty caption here (required technically, but suppressed)
         \label{fig:first}
     \end{subfigure}
     \hfill  % maximizes separation between the two
     \begin{subfigure}[t]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{compare_plot2.pdf}  % or your second page/image
+        \includegraphics[width=\textwidth]{figure/compare_plot2.pdf}  % or your second page/image
         \caption{}  % empty caption here
         \label{fig:second}
     \end{subfigure}
 
     % Single shared caption for both subfigures
-    \caption{(a) The comparison of the growth of the critical number of points in our simulation and the curve fitted in Equation~\ref{eq:baseline}.; (b)  The comparison of the growth of the critical dimensions in our simulation and the curve fitted in Equation~\ref{eq:baseline}, and the $x$ axis is plotted in a log scale.}
+    \caption{(a) The comparison of the growth of the observed supported number of points from cyclic-polytope and centroid GD upper-bound witnesses against the curve fitted in Equation~\ref{eq:baseline}.; (b) The comparison of the witness dimensions from the same grid scan against the curve fitted in Equation~\ref{eq:baseline}, with the $x$ axis plotted in a log scale.}
     \label{fig:two-pages-together}
 \end{figure*}
 
 It is a crucial question: how can the critical points identified by simulation in the centroid setting be compared with those found in the free embedding optimization setting~\citep{weller2025theoretical}.
 The goal of \textbf{numerical simulation} is to estimate the minimum dimension such that $m$ elements can be $k$-shattered in some sense (or the maximum number of elements can be located in a given dimension). Therefore, all critical points found by any numerical simulations only suggest an upper bound of the minimal dimension (or lower bound of the maximum number of elements). The goal of \textbf{this paper} is to show that the MED (or the lower bound) grows slowly enough so that the fundamental property of the geometric space does not bottleneck the embedding-based retrieval. Therefore, results from simulations, whether computed from a centroid setting or a free embedding optimization setting, can serve as empirical evidence of the MED upper bound.
 
-To compare with their empirical results, we also ran the experiments with $k=2$ on the centroid setting. We plot the results in Figure~\ref{fig:first} and Figure~\ref{fig:second}. Figure~\ref{fig:first} suggests that the number of critical points found in our centroid setting surpasses the curve fitted by~\citet{weller2025theoretical} easily. From Fig~\ref{fig:second}, we can see from the results that our theory of MED-C agrees well with the empirical log-linear fitting, which is of a lower complexity family than the fitted result in~\citet{weller2025theoretical}.
+To compare with their empirical results, we ran the experiments with $k=2$ using both the cyclic-polytope construction and the centroid setting. We plot the results in Figure~\ref{fig:first} and Figure~\ref{fig:second}. Figure~\ref{fig:first} suggests that the number of supported points found by these upper-bound witnesses surpasses the curve fitted by~\citet{weller2025theoretical} easily. From Fig~\ref{fig:second}, we can see from the results that our theory of MED-C agrees well with the empirical log-linear fitting, which is of a lower complexity family than the fitted result in~\citet{weller2025theoretical}.
 
 
 

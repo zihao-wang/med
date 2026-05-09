@@ -71,41 +71,40 @@ class Trainer:
         )
 
         min_violations = self.total_violations
-        epochs_no_improve = 0
+        step_no_improve = 0
 
         with trange(
             num_epochs,
-        ) as epoch_iterator:
-            for _ in epoch_iterator:
+            desc=f"d={d}, m={self.n}, k={self.k}",
+            dynamic_ncols=True,
+            unit="step",
+        ) as step_iterator:
+            for _ in step_iterator:
                 optimizer.zero_grad()
                 loss, violations = self.calculate_loss()
                 loss.backward()
                 optimizer.step()
                 scheduler.step()
 
-                epoch_iterator.set_postfix(
-                    {
-                        "n": self.n,
-                        "k": self.k,
-                        "loss": loss.item(),
-                        "#vio rate": violations / self.total_violations,
-                        "min #vio": min_violations,
-                        "epochs_no_improve": epochs_no_improve,
-                    }
-                )
-
                 if violations < min_violations:
                     min_violations = violations
-                    epochs_no_improve = 0
+                    step_no_improve = 0
                 else:
-                    epochs_no_improve += 1
+                    step_no_improve += 1
+
+                step_iterator.set_postfix(
+                    {
+                        "#vio": violations,
+                        "step_no_improve": step_no_improve,
+                    }
+                )
 
                 if violations == 0:
                     print("[GD] Early stopping: No violations found.")
                     break
-                if epochs_no_improve >= patience:
+                if step_no_improve >= patience:
                     print(
-                        f"[GD] Early stopping: No improvement in violations for {patience} epochs."
+                        f"[GD] Early stopping: No improvement in violations for {patience} steps."
                     )
                     break
 

@@ -131,7 +131,7 @@ class HandmadeTokenizer:
 
     name = "handmade"
 
-    def rp_omp_num_token_types(self) -> int:
+    def num_token_types(self) -> int:
         return UNK_TOKEN_ID + 1
 
     def tokenize_corpus_records(

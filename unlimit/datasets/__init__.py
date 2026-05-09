@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 from unlimit.datasets.limit import (
-    LIMIT_FULL_URLS,
-    LIMIT_SMALL_URLS,
-    LIMIT_URLS_BY_SPLIT,
+    LIMIT_ASSET_DIR_BY_SPLIT,
     CorpusRecord,
     QrelRecord,
     QueryRecord,
-    load_jsonl_from_url,
+    load_jsonl_from_asset,
     load_limit,
     load_limit_full,
     load_limit_small,
@@ -19,13 +17,11 @@ from unlimit.datasets.limit import (
 )
 
 __all__ = [
-    "LIMIT_FULL_URLS",
-    "LIMIT_SMALL_URLS",
-    "LIMIT_URLS_BY_SPLIT",
+    "LIMIT_ASSET_DIR_BY_SPLIT",
     "CorpusRecord",
     "QrelRecord",
     "QueryRecord",
-    "load_jsonl_from_url",
+    "load_jsonl_from_asset",
     "load_limit",
     "load_limit_full",
     "load_limit_small",

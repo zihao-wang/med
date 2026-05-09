@@ -43,60 +43,53 @@ cd paper && pdflatex icml2026.tex && bibtex icml2026 && pdflatex icml2026.tex &&
 
 ```
 med/
-├── scoring.py             # shared scoring functions (inner_product, L2, cosine, L1)
-├── plotting.py            # WBNL fitted curve reference and plot styling
+├── scoring.py              # shared scoring functions (inner_product, L2, cosine, L1)
+├── plotting.py             # WBNL fitted curve reference and plot styling
 ├── mean_embedding/
-│   ├── cli.py             # package CLI for custom sweeps
-│   ├── compare_plots.py   # reproduce paper's compare_plot{1,2}.pdf
-│   ├── trainer_gd.py      # full-batch GD trainer with early stopping (O(C(n,k)) memory)
-│   ├── trainer_sgd.py     # stochastic trainer using random k-subsets
-│   └── experiment.py      # binary search for minimal d, grid search over (k, n)
-├── cyclic_polytope/
-│   ├── generator.py        # moment curve point set generation
-│   ├── construct.py        # polynomial construction of separating queries
-│   ├── checker.py          # CyclicPolytopeChecker (FeasibilityChecker impl)
-│   ├── experiment.py       # factory wrapping shared Experiment
-│   └── cli.py              # package CLI for custom sweeps
-└── unlimit/               # LiMIT retrieval library (RP+OMP)
-    ├── datasets/limit.py   #   LiMIT/LiMIT-small JSONL loader from DeepMind GitHub
-    ├── limit_figure.py     #   reproduce paper's limit_retrieval.pdf
-    ├── tokenizers/         #   HandmadeTokenizer (vocab.txt) + QwenSubwordTokenizer
-    └── retrieval/          #   RP+OMP scoring (NumPy/PyTorch backends) + metrics
+│   ├── cli.py              # package CLI for custom sweeps
+│   ├── compare_plots.py    # reproduce paper's compare_plot{1,2}.pdf
+│   ├── trainer_gd.py       # full-batch GD trainer with early stopping (O(C(n,k)) memory)
+│   └── experiment.py       # binary search for minimal d, grid search over (k, n)
+└── cyclic_polytope/
+    ├── construct.py        # moment curve points + polynomial construction of separating queries
+    ├── checker.py          # CyclicPolytopeChecker (FeasibilityChecker impl)
+    ├── experiment.py       # factory wrapping shared Experiment
+    └── cli.py              # package CLI for custom sweeps
+unlimit/
+├── datasets/limit.py       # packaged LiMIT/LiMIT-small JSONL loader
+├── limit_figure.py         # reproduce paper's limit_retrieval.pdf
+├── random_embedding_sweep.py # run random-token embedding sweeps
+├── tokenizers/             # HandmadeTokenizer (vocab.txt)
+└── retrieval/              # random-token scoring + metrics
 scripts/
-├── run_med.sh          # MED via cyclic polytope LP (moment-curve point sets)
-├── run_medc_gd.sh      # MED-C via centroid embedding with full-batch GD
-└── run_medc_sgd.sh     # MED-C via centroid embedding with stochastic SGD
+├── run_paper_upper_bounds.sh  # combined paper pipeline: run, table, figures
+└── run_unlimit.sh             # LiMIT random-token embedding sweep
 ```
 
 ## Run experiments
 
-All scripts scan m (number of total objects) from 8 to 1024 in powers of 2 by default.
-Override with e.g. `N_LIST="8 16 32"` or `M_LIST="8 16 32"` depending on the script.
+The MED paper pipeline scans m (number of total objects) over `10 20 40 80 160 320 640` by default.
+Override with `--m_values 10 20 40`.
 
-**Centroid embedding (GD):**
+**Paper upper-bound witness pipeline:**
 ```bash
-bash scripts/run_medc_gd.sh                          # k=2, inner_product
-METRIC=l2 K=3 bash scripts/run_medc_gd.sh             # k=3, Euclidean
+bash scripts/run_paper_upper_bounds.sh
 ```
+Runs k=2, m in `10 20 40 80 160 320 640` for both cyclic polytope and centroid GD, writes a combined
+`results.json`, `upper_bound_witness_table.{csv,tex}`, and writes final
+paper artifacts into `paper/table/` and `paper/figure/`.
 
-**Centroid embedding (SGD):**
+**LiMIT random-token retrieval sweep:**
 ```bash
-bash scripts/run_medc_sgd.sh                          # k=2, inner_product
-TRAINER=sgd bash scripts/run_medc_sgd.sh               # explicit SGD
-```
-
-**Cyclic polytope (LP-based):**
-```bash
-bash scripts/run_med.sh                                # M_LIST defaults to 8..1024, k=2
-M=16 K=3 bash scripts/run_med.sh                       # single (m=16, k=3)
-M_LIST="8 16 32" K=2 bash scripts/run_med.sh           # custom m sweep
+bash scripts/run_unlimit.sh
+DIMS="32 64 128" SPLITS="limit-small" bash scripts/run_unlimit.sh
+python -m unlimit.limit_figure --mode run
 ```
 
 **Direct CLI (for custom sweeps):**
 ```bash
-python -m med.mean_embedding.cli --k 2 --n_values 8 16 32 64 128 --scoring_function inner_product
-python -m med.mean_embedding.cli --k_values 2 3 4 5 --n_values 8 16 32 64 128 256
-python -m med.mean_embedding.cli --trainer sgd --k 2 --n_values 8 16 32 64 128 256
+python -m med.mean_embedding.cli --k_values 2 --n_values 10 20 40 80 160 --scoring_function inner_product
+python -m med.mean_embedding.cli --k_values 2 3 4 5 --n_values 10 20 40 80 160 320
 ```
 
 ## Result protocol
@@ -105,15 +98,11 @@ python -m med.mean_embedding.cli --trainer sgd --k 2 --n_values 8 16 32 64 128 2
 
 ```
 results/
-  gd/{metric}/m_dependency/k_{k}/{timestamp}/     # run_medc_gd.sh (single k)
-  gd/{metric}/k_{k}/{timestamp}/                  # run_medc_gd.sh (single k, newer)
-  sgd/{metric}/m_dependency/k_{k}/{timestamp}/    # run_medc_sgd.sh (single k)
-  sgd/{metric}/k_{k}/{timestamp}/                 # run_medc_sgd.sh (single k, newer)
-  sgd/{metric}/grid/{timestamp}/                  # run_medc_sgd.sh (grid mode, K_LIST set)
-  cyclic_polytope/{label}/{timestamp}/            # run_med.sh
+  upper_bound_witness/                            # run_paper_upper_bounds.sh
+  unlimit/random_embeddings/                      # run_unlimit.sh
 ```
 
-Timestamps are `YYYYMMDD_HHMMSS`. The `{label}` for cyclic polytope runs is `m{M}_k{K}` (e.g. `m5_k2`), `m_list_k{K}`, or `k_list`.
+Shell scripts write deterministic output directories and overwrite derived JSON/CSV/TeX/PDF files on rerun.
 
 ### Unified `results.json` format
 
@@ -140,7 +129,7 @@ Top-level fields:
 | `experiment` | `"medc"` | `"med"` | Experiment type |
 | `k` | ✓ | ✓ (if uniform) | Subset size (omitted in grid mode) |
 | `scoring_function` | ✓ | — | `inner_product`, `l2`, `cosine`, or `l1` |
-| `trainer` | ✓ | — | `gd` or `sgd` |
+| `trainer` | ✓ | — | Always `gd` |
 | `results` | ✓ | ✓ | Array or nested object (see below) |
 
 **Single-k `results`** — array of per-m objects:
@@ -164,7 +153,7 @@ Per-result fields:
 
 **MED-C search_path entries:** `{"dimension": d, "violations": v}` — dimension tested and number of constraint violations found by the trainer.
 
-**MED search_path entries:** `{"dimension": n, "feasible": bool, "checks": int, "time": float}` — dimension tested, construction-based verification result (squared-polynomial query), number of subset checks, and timing.
+**MED search_path entries:** `{"dimension": n, "feasible": bool, "checks": int, "total_queries": int, "checked_fraction": float, "time": float}` — dimension tested, construction-based verification result (squared-polynomial query), number of checked top-$k$ queries, total possible top-$k$ queries $\binom{m}{k}$, checked fraction, and timing.
 
 ### Other output files
 
@@ -176,17 +165,17 @@ Per-result fields:
 
 ### Comparison / figure outputs
 
-**`med/mean_embedding/compare_plots.py`** writes `compare_plot_results.json` (default: repo root):
+**`med/mean_embedding/compare_plots.py`** writes `results/mean_embedding/compare_plots/results.json` by default:
 ```json
 {"d_star": {"8": 6, "16": 7, ...}, "m_star": {"6": 8, "7": 16, ...}, "k": 2, "scoring": "inner_product"}
 ```
-Generates `paper/compare_plot1.pdf` (m* vs d) and `paper/compare_plot2.pdf` (d* vs m).
+The paper pipeline writes final figures to `paper/figure/compare_plot1.pdf` (m* vs d) and `paper/figure/compare_plot2.pdf` (d* vs m), and the final LaTeX table to `paper/table/upper_bound_witness_table.tex`.
 
-**`med/unlimit/limit_figure.py`** writes `limit_results.json` (default: repo root) as a JSON array of per-(split, dim) metrics:
+**`unlimit/limit_figure.py`** writes `results/unlimit/limit_figure/results.json` by default as a JSON array of per-(split, dim) metrics:
 ```json
-[{"split": "small", "dim": 8, "omp_steps": 0, "top2_exact_match": 0.12, "recall_at_1": 0.45, "mean_rank": 3.5, ...}, ...]
+[{"split": "small", "dim": 8, "seed": 50, "top2_exact_match": 0.12, "recall_at_1": 0.45, "recall_at_2": 0.50, "mean_rank": 3.5, ...}, ...]
 ```
-Generates `paper/limit_retrieval.pdf`. A sentinel row with `"dim": -1` records the membership baseline.
+`scripts/run_unlimit.sh` writes final artifacts to `paper/figure/limit_retrieval.pdf` and `paper/table/limit_retrieval_table.tex`.
 
 Both support `--mode run` (run + save) and `--mode plot` (load saved JSON, replot).
 

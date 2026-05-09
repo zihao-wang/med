@@ -24,6 +24,7 @@ import numpy as np
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 from med._device import resolve_device
+from med.defaults import DEFAULT_M_VALUES
 from med.mean_embedding.checker import MeanEmbeddingChecker
 from med.plotting import (
     invert_wbnl_curve,
@@ -35,14 +36,15 @@ from med.plotting import (
 # ---------------------------------------------------------------------------
 # Experiment parameters
 # ---------------------------------------------------------------------------
-DEFAULT_N_VALUES = [8, 16, 32, 64, 128, 256, 512, 1024]
+DEFAULT_N_VALUES = DEFAULT_M_VALUES
 DEFAULT_D_VALUES = list(range(1, 31))
 DEFAULT_K = 2
 DEFAULT_SCORING = "inner_product"
 DEFAULT_NUM_EPOCHS = 1000
 DEFAULT_PATIENCE = 1000
 DEFAULT_LR = 1
-RESULTS_FILE = "compare_plot_results.json"
+RESULTS_FILE = _REPO_ROOT / "results" / "mean_embedding" / "compare_plots" / "results.json"
+DEFAULT_OUTPUT_DIR = _REPO_ROOT / "paper" / "figure"
 
 
 # ---------------------------------------------------------------------------
@@ -67,7 +69,6 @@ def find_minimal_d(
         m=n,
         k=k,
         scoring_function=scoring,
-        trainer_type="gd",
         num_epochs=num_epochs,
         learning_rate=learning_rate,
         patience=patience,
@@ -107,7 +108,6 @@ def find_maximal_n(
             m=mid,
             k=k,
             scoring_function=scoring,
-            trainer_type="gd",
             num_epochs=num_epochs,
             learning_rate=learning_rate,
             patience=patience,
@@ -245,12 +245,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--lr", type=float, default=DEFAULT_LR)
     p.add_argument(
         "--output-dir",
-        default=str(_REPO_ROOT / "paper"),
+        default=str(DEFAULT_OUTPUT_DIR),
         help="Directory for output PDFs",
     )
     p.add_argument(
         "--results-file",
-        default=str(_REPO_ROOT / RESULTS_FILE),
+        default=str(RESULTS_FILE),
         help="Path to save/load experiment results JSON",
     )
     return p.parse_args()

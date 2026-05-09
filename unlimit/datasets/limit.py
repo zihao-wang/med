@@ -1,33 +1,16 @@
-"""Load LiMIT JSONL splits from the official DeepMind GitHub URLs."""
+"""Load packaged LiMIT JSONL splits."""
 
 from __future__ import annotations
 
-import io
 import json
 import random
 from collections import Counter, defaultdict
+from importlib import resources
 from typing import Any, Literal, TypedDict
 
-import requests
-
-_REPO_BASE = "https://github.com/google-deepmind/limit/raw/refs/heads/main/data"
-
-LIMIT_SMALL_URLS = {
-    "corpus": f"{_REPO_BASE}/limit-small/corpus.jsonl",
-    "queries": f"{_REPO_BASE}/limit-small/queries.jsonl",
-    "qrels": f"{_REPO_BASE}/limit-small/qrels.jsonl",
-}
-
-# Full LIMIT (~50k corpus docs; corpus.jsonl is tens of MB — use a long HTTP timeout)
-LIMIT_FULL_URLS = {
-    "corpus": f"{_REPO_BASE}/limit/corpus.jsonl",
-    "queries": f"{_REPO_BASE}/limit/queries.jsonl",
-    "qrels": f"{_REPO_BASE}/limit/qrels.jsonl",
-}
-
-LIMIT_URLS_BY_SPLIT: dict[Literal["small", "full"], dict[str, str]] = {
-    "small": LIMIT_SMALL_URLS,
-    "full": LIMIT_FULL_URLS,
+LIMIT_ASSET_DIR_BY_SPLIT: dict[Literal["small", "full"], str] = {
+    "small": "limit-small",
+    "full": "limit",
 }
 
 
@@ -50,12 +33,18 @@ class QrelRecord(TypedDict):
     score: int
 
 
-def load_jsonl_from_url(url: str, timeout: float = 120.0) -> list[dict[str, Any]]:
-    """Load JSONL content from a URL into a list of dicts (one object per line)."""
-    response = requests.get(url, timeout=timeout)
-    response.raise_for_status()
-    lines = io.StringIO(response.text)
-    return [json.loads(line) for line in lines if line.strip()]
+def load_jsonl_from_asset(
+    split: Literal["small", "full"],
+    name: Literal["corpus", "queries", "qrels"],
+) -> list[dict[str, Any]]:
+    """Load one packaged LiMIT JSONL asset."""
+    path = resources.files("unlimit").joinpath(
+        "assets",
+        LIMIT_ASSET_DIR_BY_SPLIT[split],
+        f"{name}.jsonl",
+    )
+    with path.open("r", encoding="utf-8") as handle:
+        return [json.loads(line) for line in handle if line.strip()]
 
 
 def _normalize_qrel_row(row: dict[str, Any]) -> QrelRecord:
@@ -107,7 +96,6 @@ def load_limit_train_test(
     split: Literal["small", "full"] = "small",
     train_fraction: float = 0.8,
     split_seed: int = 42,
-    urls: dict[str, str] | None = None,
 ) -> tuple[
     list[CorpusRecord],
     list[QueryRecord],
@@ -116,11 +104,11 @@ def load_limit_train_test(
     list[QrelRecord],
 ]:
     """
-    Load LiMIT from GitHub, then partition **queries** (and qrels) into train / test.
+    Load LiMIT, then partition **queries** (and qrels) into train / test.
 
     The **corpus** is unchanged (full retrieval pool for both splits).
     """
-    corpus, queries, qrels = load_limit(split, urls=urls)
+    corpus, queries, qrels = load_limit(split)
     all_ids = [q["_id"] for q in queries]
     train_ids, test_ids = split_train_test_query_ids(all_ids, train_fraction, split_seed)
     tr_set, te_set = set(train_ids), set(test_ids)
@@ -133,15 +121,13 @@ def load_limit_train_test(
 
 def load_limit(
     split: Literal["small", "full"] = "small",
-    urls: dict[str, str] | None = None,
 ) -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelRecord]]:
     """
-    Fetch corpus, queries, and qrels from the DeepMind LiMIT repository.
+    Load corpus, queries, and qrels from packaged LiMIT JSONL assets.
 
     Args:
         split: ``\"small\"`` — 46 docs / 1000 queries / 2000 qrels (quick demos).
                ``\"full\"`` — ~50k corpus docs, same query/qrel schema as the paper.
-        urls: Optional override mapping with keys ``corpus``, ``queries``, ``qrels``.
 
     Returns:
         corpus: documents with ``_id`` (person name) and ``text`` (comma-separated likes).
@@ -154,14 +140,9 @@ def load_limit(
         ``train.jsonl`` / ``test.jsonl``). For train/test experiments, use
         :func:`load_limit_train_test`.
     """
-    u = urls or LIMIT_URLS_BY_SPLIT[split]
-    # Full corpus is large; allow slow downloads
-    corpus_timeout = 900.0 if split == "full" else 120.0
-    other_timeout = 300.0 if split == "full" else 120.0
-
-    corpus_raw = load_jsonl_from_url(u["corpus"], timeout=corpus_timeout)
-    queries_raw = load_jsonl_from_url(u["queries"], timeout=other_timeout)
-    qrels_raw = load_jsonl_from_url(u["qrels"], timeout=other_timeout)
+    corpus_raw = load_jsonl_from_asset(split, "corpus")
+    queries_raw = load_jsonl_from_asset(split, "queries")
+    qrels_raw = load_jsonl_from_asset(split, "qrels")
 
     corpus: list[CorpusRecord] = [r for r in corpus_raw]  # type: ignore[assignment]
     queries: list[QueryRecord] = [r for r in queries_raw]  # type: ignore[assignment]
@@ -170,24 +151,20 @@ def load_limit(
     return corpus, queries, qrels
 
 
-def load_limit_small(
-    urls: dict[str, str] | None = None,
-) -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelRecord]]:
-    """Same as ``load_limit(\"small\", urls=urls)``."""
-    return load_limit("small", urls=urls)
+def load_limit_small() -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelRecord]]:
+    """Same as ``load_limit(\"small\")``."""
+    return load_limit("small")
 
 
-def load_limit_full(
-    urls: dict[str, str] | None = None,
-) -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelRecord]]:
-    """Same as ``load_limit(\"full\", urls=urls)``."""
-    return load_limit("full", urls=urls)
+def load_limit_full() -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelRecord]]:
+    """Same as ``load_limit(\"full\")``."""
+    return load_limit("full")
 
 
 if __name__ == "__main__":
     import argparse
 
-    ap = argparse.ArgumentParser(description="Load LiMIT JSONL from GitHub")
+    ap = argparse.ArgumentParser(description="Load packaged LiMIT JSONL assets")
     ap.add_argument(
         "split",
         nargs="?",

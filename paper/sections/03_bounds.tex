@@ -10,11 +10,39 @@ To begin with, let's consider the cyclic polytope~\citep{ziegler2012lectures}.
 \end{example}
 One of the most well-known results of cyclic polytopes is that a cyclic polytope in $\real^d$ is an $\lfloor \frac{d}{2} \rfloor$-neighborly polytope, in which every $k$ vertices form a face when $k\leq \lfloor \frac{d}{2} \rfloor$~\citep{ziegler2012lectures}. By forming a $k$-face, it means that the $k$ vertices in this face can be linearly separated from the rest of the vertices of the polytope.
 
+The following lemma gives an explicit construction of the separating hyperplane---and hence the query vector---for any $k$-subset of points on the moment curve.
+
+\begin{lemma}[Squared-polynomial query construction]\label{lem:poly-construction}
+Let $t_1 < t_2 < \dots < t_m$ be distinct real numbers. Embed each element $i$ as $\vv_i = (t_i, t_i^2, \dots, t_i^n) \in \real^n$. For any subset $S \subseteq \{1,\dots,m\}$ with $|S| \le k$, define the monic polynomial
+\[
+P_S(t) = \prod_{i \in S} (t - t_i) = \sum_{j=0}^{|S|} a_j t^j \qquad (a_{|S|} = 1),
+\]
+and expand its square via coefficient convolution as $P_S^2(t) = \sum_{j=0}^{2|S|} c_j t^j$. Construct the query vector
+\[
+\vq_S = (-c_1, -c_2, \dots, -c_n) \in \real^n,
+\]
+where $c_j = 0$ for $j > 2|S|$. Then, whenever $n \ge 2k$,
+\[
+\langle \vv_i, \vq_S \rangle = c_0 \quad \forall i \in S,
+\qquad
+\langle \vv_j, \vq_S \rangle < c_0 \quad \forall j \notin S.
+\]
+\end{lemma}
+\begin{proof}
+For any $t \in \real$, $\langle (t, t^2, \dots, t^n), \vq_S \rangle = -\sum_{j=1}^{n} c_j t^j$. Since $n \ge 2k \ge 2|S|$, all non-zero coefficients of $P_S^2$ are captured, hence
+\[
+\langle (t, \dots, t^n), \vq_S \rangle = -(P_S^2(t) - c_0) = c_0 - P_S^2(t).
+\]
+For $i \in S$, $t_i$ is a root of $P_S$, so $P_S^2(t_i) = 0$ and the score equals $c_0$. For $j \notin S$, $P_S(t_j) \neq 0$, thus $P_S^2(t_j) > 0$ and the score is strictly less than $c_0$. Choosing $b_S$ between $\max_{j \notin S} (c_0 - P_S^2(t_j))$ and $c_0$ yields the strict separation required by $k$-shattering.
+\end{proof}
+
+Intuitively, the squared polynomial $P_S^2(t)$ vanishes exactly on $S$ and is positive elsewhere; the query $\vq_S$ extracts its coefficients so that the inner product $\langle \vv_i, \vq_S \rangle = c_0 - P_S^2(t_i)$ achieves the maximum $c_0$ precisely on $S$. The construction requires one dimension per coefficient from $t^1$ through $t^{2k}$, yielding the $2k$ upper bound.
+
 \begin{theorem}\label{thm:linear-lower-upper}
     $$k-1\leq \med(m, k; \fln) \leq 2k.$$
 \end{theorem}
 \begin{proof}
-Noticing the VC dimension of $\fln$ in $\real^n$ is $n+1$~\citep{mohri2018foundations}, the lower bound is derived as a direct result of Proposition~\ref{prop:vc-bounds}. The upper bound is by the cyclic polytope construct in Example~\ref{eg:cyclic-polytope}.
+The lower bound follows from the VC dimension of $\fln$ in $\real^n$ being $n+1$~\citep{mohri2018foundations} together with Proposition~\ref{prop:vc-bounds}, giving $\med(m,k;\fln) \ge k-1$. For the upper bound, take $n = 2k$ and embed $m$ points on the moment curve with distinct parameters. Lemma~\ref{lem:poly-construction} provides, for every $S\subseteq X$ with $|S|\le k$, a query vector $\vq_S$ that strictly separates $S$ from $X\setminus S$ by inner product. Hence $m$ points in $\real^{2k}$ are $k$-shattered by $\fln$, and $\med(m,k;\fln) \le 2k$.
 \end{proof}
 
 We see that $\med(m, k, \fln)$ only depends on $k$. Ignoring the coefficient, $\med(m, k; \fln) = \Theta(k)$ also holds. Then, we show that the $\fcos$ and $\fl{2}$ share the similar bounds as $\fln$.

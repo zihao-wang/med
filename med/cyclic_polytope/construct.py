@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 from typing import Optional
 
 import numpy as np
@@ -78,23 +79,32 @@ def verify_construction(
     k: int,
     n: int,
     t: Optional[np.ndarray] = None,
+    max_checks: Optional[int] = None,
+    progress: bool = False,
 ) -> tuple[bool, int, int]:
     """Check whether the polynomial construction works for *all* k-subsets.
 
     Generates m moment-curve points in Rⁿ, enumerates every k-subset,
     constructs the squared-polynomial query, and verifies exact top-k retrieval.
+    If max_checks is set, verifies only the first max_checks subsets.
 
     Returns (all_passed, num_checked, num_failed).
     """
-    import itertools
-
     points = generate_cyclic_polytope_configuration(m, n, t)
     t_values = t if t is not None else np.arange(m, dtype=float)
 
     checked = 0
-    for subset in itertools.combinations(range(m), k):
+    subsets = itertools.combinations(range(m), k)
+    if max_checks is not None:
+        if max_checks < 0:
+            raise ValueError("max_checks must be non-negative")
+        subsets = itertools.islice(subsets, max_checks)
+
+    for subset in subsets:
         query = construct_query_for_subset(t_values, list(subset), n)
         if not check_subset_retrieval(points, list(subset), query):
             return False, checked + 1, 1
         checked += 1
+        if progress and checked % 1000 == 0:
+            print(f"[VERIFY] checked {checked} subsets")
     return True, checked, 0

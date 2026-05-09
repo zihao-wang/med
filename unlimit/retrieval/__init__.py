@@ -1,22 +1,20 @@
-"""Retrieval models and metrics (PyTorch)."""
+"""Retrieval models and metrics."""
 
 from __future__ import annotations
 
 from unlimit.retrieval.metrics import build_qrels_tensor, retrieval_metrics_from_logits
-from unlimit.retrieval.rp_omp import (
-    build_token_matrix,
-    omp_pair_doclocal,
-    run_rp_omp_eval,
-    scores_query_local_omp,
+from unlimit.retrieval.random_embeddings import (
+    build_random_token_matrix,
+    run_random_embedding_eval,
+    score_random_embeddings,
     sum_token_rows,
 )
 
 __all__ = [
     "build_qrels_tensor",
-    "build_token_matrix",
-    "omp_pair_doclocal",
+    "build_random_token_matrix",
     "retrieval_metrics_from_logits",
-    "run_rp_omp_eval",
-    "scores_query_local_omp",
+    "run_random_embedding_eval",
+    "score_random_embeddings",
     "sum_token_rows",
 ]

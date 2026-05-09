@@ -46,7 +46,14 @@ def binary_search_med(
 
         if verbose:
             status = "OK" if cr.feasible else "FAIL"
-            print(f"  d={mid}: {status}  ({elapsed:.1f}s)")
+            coverage = ""
+            if "checks" in entry and "total_queries" in entry:
+                pct = 100 * entry.get("checked_fraction", 0.0)
+                coverage = (
+                    f"  queries={entry['checks']}/{entry['total_queries']}"
+                    f" ({pct:.2f}%)"
+                )
+            print(f"  d={mid}: {status}  ({elapsed:.1f}s){coverage}")
 
         if cr.feasible:
             minimal_d = mid

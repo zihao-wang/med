@@ -9,6 +9,8 @@ import time
 
 import torch
 
+from med.defaults import DEFAULT_M_VALUES
+
 from .experiment import Experiment
 
 
@@ -27,7 +29,7 @@ def parse_args() -> argparse.Namespace:
         "--m_values",
         type=int,
         nargs="*",
-        default=[8, 16, 32, 64, 128, 256, 512, 1024],
+        default=DEFAULT_M_VALUES,
         help="List of m values (number of points)",
     )
     return parser.parse_args()

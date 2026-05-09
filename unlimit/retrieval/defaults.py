@@ -1,7 +1,5 @@
-"""Shared defaults for retrieval experiments (RP+OMP)."""
+"""Shared defaults for random-token embedding retrieval experiments."""
 
 from __future__ import annotations
 
-# Random-projection (Gaussian) token matrix + document-local OMP — handmade tokenizer
-RP_OMP_EMBED_DIM = 32
-RP_OMP_STEPS = 8
+RANDOM_EMBED_DIM = 32

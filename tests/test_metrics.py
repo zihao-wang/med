@@ -52,6 +52,7 @@ def test_retrieval_metrics_perfect():
     # q0: top-1 is idx 0 (score 10), positive → hit
     # q1: top-1 is idx 1 (score 10), positive → hit
     assert m["recall_at_1"] == 1.0
+    assert m["recall_at_2"] == 1.0
     assert m["top2_exact_match"] == 1.0  # q0 has exactly 2 pos, both in top 2
 
 
@@ -64,6 +65,7 @@ def test_retrieval_metrics_worst():
     # Pos ranks: {2, 3, 4}, min = 2
     assert m["mean_rank"] == 2.0
     assert m["recall_at_1"] == 0.0  # top-1 is idx 1, not positive
+    assert m["recall_at_2"] == pytest.approx(1.0 / 3.0)
     assert m["top2_exact_match"] == 0.0  # >2 pos, skipped
 
 
@@ -73,6 +75,7 @@ def test_retrieval_metrics_empty_positives():
     m = retrieval_metrics_from_logits(scores, y)
     assert m["num_queries_eval"] == 0.0
     assert m["mean_rank"] == 0.0
+    assert m["recall_at_2"] == 0.0
 
 
 def test_retrieval_metrics_single_positive():
@@ -81,5 +84,6 @@ def test_retrieval_metrics_single_positive():
     m = retrieval_metrics_from_logits(scores, y)
     assert m["mean_rank"] == 1.0
     assert m["recall_at_1"] == 1.0
+    assert m["recall_at_2"] == 1.0
     # top2_exact_match skipped (not exactly 2 pos)
     assert m["num_queries_top2_eval"] == 0.0

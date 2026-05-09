@@ -20,8 +20,8 @@ The paper contains one figure (Figure 1) with two panels, both comparing centroi
 
 | Panel | File | Content |
 |-------|------|---------|
-| Fig 1a | `paper/compare_plot1.pdf` | Critical number of points $m^*(d)$ vs dimension $d$ |
-| Fig 1b | `paper/compare_plot2.pdf` | Critical dimension $d^*(m)$ vs number of points $m$ (log-scale x) |
+| Fig 1a | `paper/figure/compare_plot1.pdf` | Critical number of points $m^*(d)$ vs dimension $d$ |
+| Fig 1b | `paper/figure/compare_plot2.pdf` | Critical dimension $d^*(m)$ vs number of points $m$ (log-scale x) |
 
 ### Step-by-step
 
@@ -31,7 +31,7 @@ The paper contains one figure (Figure 1) with two panels, both comparing centroi
 python -m med.mean_embedding.compare_plots --mode run
 ```
 
-This runs centroid embedding experiments with $k=2$ and inner product scoring. It searches for feasible embeddings across a grid of $n$ (number of points) and $d$ (dimension) values, then saves the results to `compare_plot_results.json` and writes the two PDFs to `paper/`.
+This runs centroid embedding experiments with $k=2$ and inner product scoring. It searches for feasible embeddings across a grid of $n$ (number of points) and $d$ (dimension) values, then saves the results to `results/mean_embedding/compare_plots/results.json` and writes the two PDFs to `paper/figure/`.
 
 Expected runtime: ~10–30 minutes on a modern GPU; longer on CPU. Progress is printed to stdout.
 
@@ -41,7 +41,7 @@ Expected runtime: ~10–30 minutes on a modern GPU; longer on CPU. Progress is p
 python -m med.mean_embedding.compare_plots --mode plot
 ```
 
-Reads `compare_plot_results.json` and redraws the PDFs. Useful for tweaking plot styling without rerunning the experiment.
+Reads `results/mean_embedding/compare_plots/results.json` and redraws the PDFs. Useful for tweaking plot styling without rerunning the experiment.
 
 **3. Reproduce with other scoring functions:**
 
@@ -80,36 +80,36 @@ python -m med.mean_embedding.compare_plots --mode run \
 
 ### LiMIT retrieval figure
 
-The paper also includes a figure (Figure 2) showing **training-free** retrieval quality on the real-world LiMIT benchmark (RP+OMP with random Gaussian token vectors). This demonstrates that sufficient embedding dimension enables perfect retrieval even without any training — directly supporting the paper's thesis that limitations stem from **learnability**, not geometric capacity.
+The paper also includes a figure (Figure 2) showing **training-free** retrieval quality on the real-world LiMIT benchmark with random Gaussian token vectors. This demonstrates that sufficient embedding dimension enables strong retrieval even without any training — directly supporting the paper's thesis that limitations stem from **learnability**, not geometric capacity.
 
 | Panel | File | Content |
 |-------|------|---------|
-| Fig 2a | `paper/limit_retrieval.pdf` (left) | Top-2 exact match vs embedding dimension $d$ |
-| Fig 2b | `paper/limit_retrieval.pdf` (right) | Mean rank vs embedding dimension $d$ (log-log) |
+| Fig 2a | `paper/figure/limit_retrieval.pdf` (left) | Top-2 exact match vs embedding dimension $d$ |
+| Fig 2b | `paper/figure/limit_retrieval.pdf` (right) | Mean rank vs embedding dimension $d$ (log-log) |
 
 **1. Generate the figure (LiMIT-small, ~1 minute):**
 
 ```bash
-python -m med.unlimit.limit_figure --mode run
+python -m unlimit.limit_figure --mode run
 ```
 
-Loads the LiMIT-small dataset (46 docs, 1000 queries), runs RP+OMP retrieval across embedding dimensions $d \in \{8, 16, \ldots, 1024\}$ and OMP step counts, then saves `paper/limit_retrieval.pdf`.
+Loads the packaged LiMIT-small dataset (46 docs, 1000 queries), runs random-token retrieval across embedding dimensions $d \in \{8, 16, \ldots, 1024\}$, then saves `paper/figure/limit_retrieval.pdf`.
 
 **2. Include LiMIT-full (~50k docs, slower):**
 
 ```bash
-python -m med.unlimit.limit_figure --mode run --full
+python -m unlimit.limit_figure --mode run --full
 ```
 
 **3. Regenerate from cached results:**
 
 ```bash
-python -m med.unlimit.limit_figure --mode plot
+python -m unlimit.limit_figure --mode plot
 ```
 
 ### What the LiMIT experiment shows
 
-LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each query asks "Who likes X?" and the corpus contains person profiles with comma-separated likes. Every query has exactly 2 relevant documents. RP+OMP (Random Projection + Orthogonal Matching Pursuit) is a **training-free** method: token vectors are random Gaussian, document/query embeddings are sums of token vectors, and scoring uses document-local OMP residuals. As dimension $d$ increases, retrieval quality (top-2 exact match) climbs from near-zero at $d=16$ to perfect at $d \ge 64$ (with sufficient OMP steps).
+LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each query asks "Who likes X?" and the corpus contains person profiles with comma-separated likes. Every query has exactly 2 relevant documents. The included training-free baseline assigns each vocabulary item a random Gaussian vector, embeds documents and queries by summing token vectors, and scores with inner product. As dimension $d$ increases, retrieval quality improves without learned parameters.
 
 ## Project structure
 
@@ -130,24 +130,21 @@ LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each que
 │   │   ├── cli.py          #     package CLI for custom sweeps
 │   │   ├── compare_plots.py #    paper compare-plot runner
 │   │   ├── trainer_gd.py   #     full-batch GD trainer
-│   │   ├── trainer_sgd.py  #     stochastic trainer (random k-subsets)
 │   │   ├── checker.py      #     MeanEmbeddingChecker (FeasibilityChecker impl)
 │   │   └── experiment.py   #     factory wrapping shared Experiment
 │   ├── cyclic_polytope/    #   cyclic polytope face verification
-│   │   ├── generator.py    #     moment curve point generation
-│   │   ├── construct.py    #     squared-polynomial query construction
+│   │   ├── construct.py    #     moment curve points + squared-polynomial query construction
 │   │   ├── checker.py      #     CyclicPolytopeChecker (FeasibilityChecker impl)
 │   │   ├── cli.py          #     package CLI for custom sweeps
 │   │   └── experiment.py   #     factory wrapping shared Experiment
-│   └── unlimit/            #   LiMIT retrieval library (RP+OMP)
-│       ├── datasets/       #     LiMIT/LiMIT-small JSONL loader
-│       ├── limit_figure.py #     paper LiMIT figure runner
-│       ├── tokenizers/     #     handmade phrase + Qwen subword tokenizers
-│       └── retrieval/      #     RP+OMP scoring (NumPy/PyTorch) + metrics
+├── unlimit/                # LiMIT retrieval library
+│   ├── datasets/           #   packaged LiMIT/LiMIT-small JSONL loader
+│   ├── limit_figure.py     #   paper LiMIT figure runner
+│   ├── tokenizers/         #   handmade phrase tokenizer
+│   └── retrieval/          #   random-token scoring + metrics
 ├── scripts/                # Bash launchers for result-directory runs
-│   ├── run_med.sh          #   cyclic polytope MED sweep
-│   ├── run_medc_gd.sh      #   centroid embedding GD sweep
-│   └── run_medc_sgd.sh     #   centroid embedding SGD sweep
+│   ├── run_paper_upper_bounds.sh # paper upper-bound witness pipeline
+│   └── run_unlimit.sh      #   LiMIT random-token embedding sweep
 └── requirements.txt
 ```
 
@@ -156,31 +153,28 @@ LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each que
 Single $k$, single scoring function:
 
 ```bash
-uv run python -m med.mean_embedding.cli --k 2 --n_values 8 16 32 64 128 --scoring_function inner_product
+uv run python -m med.mean_embedding.cli --k_values 2 --n_values 10 20 40 80 160 --scoring_function inner_product
 ```
 
 Grid sweep over $k$ and $n$:
 
 ```bash
-uv run python -m med.mean_embedding.cli --k_values 2 3 4 5 --n_values 8 16 32 64 128 256
-```
-
-Using SGD instead of GD:
-
-```bash
-uv run python -m med.mean_embedding.cli --trainer sgd --k 2 --n_values 8 16 32 64 128 256
+uv run python -m med.mean_embedding.cli --k_values 2 3 4 5 --n_values 10 20 40 80 160 320
 ```
 
 Results are saved as JSON in the current working directory.
 
-Run a full sweep from shell scripts (saves to `results/` with timestamps and logs):
+Run a full sweep from shell scripts (saves to deterministic `results/` locations with logs):
 
 ```bash
-bash scripts/run_medc_gd.sh
-METRIC=l2 K=3 bash scripts/run_medc_gd.sh
-bash scripts/run_medc_sgd.sh
-bash scripts/run_med.sh
+bash scripts/run_paper_upper_bounds.sh
+bash scripts/run_unlimit.sh
 ```
+
+The paper pipeline runs the default $k=2$, $m \in \{10,20,40,80,160,320,640\}$ inner-product
+upper-bound witness grid for both cyclic polytope and centroid GD, writes a combined
+JSON/CSV/LaTeX table under `results/upper_bound_witness/`, and writes final paper
+tables to `paper/table/` and figures to `paper/figure/`.
 
 ## Build the paper
 

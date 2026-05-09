@@ -22,7 +22,7 @@ class TokenizedQueryRecord(TypedDict):
 
 @runtime_checkable
 class LimitTokenizer(Protocol):
-    """Maps raw LiMIT corpus / query dicts to token id sequences (RP+OMP and metrics)."""
+    """Maps raw LiMIT corpus / query dicts to token id sequences."""
 
     name: str
 
@@ -34,16 +34,8 @@ class LimitTokenizer(Protocol):
         self, records: list[dict]
     ) -> list[TokenizedQueryRecord]: ...
 
-    def rp_omp_num_token_types(self) -> int:
-        """
-        Number of token-id rows in the RP+OMP token matrix.
-
-        For phrase vocab this is ``unk_token_id + 1`` (ids ``0..unk`` inclusive).
-        For subword tokenizers it is typically the tokenizer table size.
-
-        Optional: implement ``rp_omp_token_matrix(device=..., dtype=...) -> Tensor``
-        to supply **frozen** rows (e.g. pretrained LM embeddings) instead of Gaussians.
-        """
+    def num_token_types(self) -> int:
+        """Number of token-id rows needed in the random token matrix."""
 
 
 __all__ = [

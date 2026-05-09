@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import torch
 
 
@@ -43,6 +41,7 @@ def retrieval_metrics_from_logits(
     num_queries = logits.shape[0]
     ranks: list[int] = []
     hits1 = 0
+    recall2_sum = 0.0
     top2_hits = 0
     n_top2_eval = 0
     for qi in range(num_queries):
@@ -60,35 +59,30 @@ def retrieval_metrics_from_logits(
         top = int(scores.argmax().item())
         if bool(y_full[qi, top].item()):
             hits1 += 1
+        k2 = min(2, scores.numel())
+        if k2 > 0:
+            top2_idx = torch.topk(scores, k=k2, largest=True).indices
+            recall2_sum += float(y_full[qi, top2_idx].sum().item()) / float(pos.numel())
         if pos.numel() == 2:
             n_top2_eval += 1
-            top2_idx = torch.topk(scores, k=2, largest=True).indices
+            top2_idx = torch.topk(scores, k=k2, largest=True).indices
             if set(top2_idx.tolist()) == set(pos.tolist()):
                 top2_hits += 1
     mean_rank = sum(ranks) / len(ranks) if ranks else 0.0
     recall1 = hits1 / len(ranks) if ranks else 0.0
+    recall2 = recall2_sum / len(ranks) if ranks else 0.0
     top2_exact_match = top2_hits / n_top2_eval if n_top2_eval else 0.0
     return {
         "mean_rank": mean_rank,
         "recall_at_1": recall1,
+        "recall_at_2": recall2,
         "top2_exact_match": top2_exact_match,
         "num_queries_eval": float(len(ranks)),
         "num_queries_top2_eval": float(n_top2_eval),
     }
 
 
-@torch.no_grad()
-def metrics_tqdm_postfix(logits: torch.Tensor, y: torch.Tensor) -> dict[str, str]:
-    """Compact metric strings for :mod:`tqdm` ``set_postfix`` (partial logits slice)."""
-    m = retrieval_metrics_from_logits(logits, y)
-    return {
-        "R@1": f"{m['recall_at_1']:.3f}",
-        "top2EM": f"{m['top2_exact_match']:.3f}",
-    }
-
-
 __all__ = [
     "build_qrels_tensor",
-    "metrics_tqdm_postfix",
     "retrieval_metrics_from_logits",
 ]
