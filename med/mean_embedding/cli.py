@@ -12,7 +12,6 @@ import torch
 from med.defaults import DEFAULT_M_VALUES
 
 from .experiment import Experiment
-from .lr_scaling import LR_SCALING_CHOICES
 
 
 def parse_args() -> argparse.Namespace:
@@ -50,15 +49,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--learning_rate",
         type=float,
-        default=1,
-        help="Base GD learning rate; --lr_scaling controls any m-dependent scaling",
-    )
-    parser.add_argument(
-        "--lr_scaling",
-        type=str,
-        default="constant",
-        choices=LR_SCALING_CHOICES,
-        help="How to scale --learning_rate as m grows",
+        default=2.0,
+        help="GD learning rate",
     )
 
     return parser.parse_args()
@@ -84,7 +76,6 @@ def main() -> None:
         scoring_function=args.scoring_function,
         num_epochs=args.num_epochs,
         learning_rate=args.learning_rate,
-        lr_scaling=args.lr_scaling,
         patience=args.patience,
     )
 
@@ -94,7 +85,6 @@ def main() -> None:
         "num_epochs": args.num_epochs,
         "patience": args.patience,
         "learning_rate": args.learning_rate,
-        "lr_scaling": args.lr_scaling,
         "n_values": args.n_values,
         "k_values": args.k_values,
         "env": env_info,

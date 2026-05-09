@@ -6,14 +6,12 @@ from ..checker import FeasibilityChecker
 from ..experiment import Experiment as _SharedExperiment
 from ..scoring import ScoringFn
 from .checker import MeanEmbeddingChecker
-from .lr_scaling import LRScaling
 
 
 def _make_checker_factory(
     scoring_function: ScoringFn,
     num_epochs: int,
     learning_rate: float,
-    lr_scaling: LRScaling,
     patience: int,
 ) -> Callable[[int, int], FeasibilityChecker]:
     def factory(m: int, k: int) -> FeasibilityChecker:
@@ -22,7 +20,6 @@ def _make_checker_factory(
             scoring_function=scoring_function,
             num_epochs=num_epochs,
             learning_rate=learning_rate,
-            lr_scaling=lr_scaling,
             patience=patience,
         )
     return factory
@@ -35,8 +32,7 @@ class Experiment(_SharedExperiment):
         self,
         scoring_function: ScoringFn,
         num_epochs: int = 1000,
-        learning_rate: float = 1,
-        lr_scaling: LRScaling = "constant",
+        learning_rate: float = 2.0,
         patience: int = 1000,
     ):
         super().__init__(
@@ -44,7 +40,6 @@ class Experiment(_SharedExperiment):
                 scoring_function=scoring_function,
                 num_epochs=num_epochs,
                 learning_rate=learning_rate,
-                lr_scaling=lr_scaling,
                 patience=patience,
             ),
         )

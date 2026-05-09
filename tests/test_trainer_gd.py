@@ -1,7 +1,6 @@
 import torch
 
 from med.mean_embedding.checker import MeanEmbeddingChecker
-from med.mean_embedding.lr_scaling import scaled_learning_rate
 from med.mean_embedding.trainer_gd import Trainer
 
 
@@ -19,10 +18,10 @@ def test_current_train_smoke():
 
     assert 0 <= violations <= trainer.total_violations
     assert trainer.last_train_stats["steps_run"] > 0
-    assert trainer.last_train_stats["max_lr"] == 0.1
+    assert trainer.last_train_stats["max_lr"] == 0.05
 
 
-def test_checker_uses_constant_lr_by_default():
+def test_checker_uses_raw_learning_rate():
     checker = MeanEmbeddingChecker(
         m=16,
         k=2,
@@ -30,17 +29,15 @@ def test_checker_uses_constant_lr_by_default():
         learning_rate=1.0,
     )
 
-    assert checker.lr_scaling == "constant"
-    assert (
-        scaled_learning_rate(checker.learning_rate, checker.m, checker.lr_scaling)
-        == 1.0
+    assert checker.learning_rate == 1.0
+    assert checker.m == 16
+
+
+def test_checker_default_learning_rate_absorbs_best_scale():
+    checker = MeanEmbeddingChecker(
+        m=16,
+        k=2,
+        scoring_function="inner_product",
     )
 
-
-def test_lr_scaling_schemes():
-    assert scaled_learning_rate(1.0, 16, "log2") == 0.25
-    assert scaled_learning_rate(1.0, 16, "sqrt_log2") == 0.5
-    assert scaled_learning_rate(1.0, 16, "constant") == 1.0
-    assert scaled_learning_rate(1.0, 16, "fourth_root_m") == 0.5
-    assert scaled_learning_rate(1.0, 16, "sqrt_m") == 0.25
-    assert scaled_learning_rate(1.0, 16, "linear_m") == 0.0625
+    assert checker.learning_rate == 2.0

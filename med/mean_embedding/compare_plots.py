@@ -42,7 +42,7 @@ DEFAULT_K = 2
 DEFAULT_SCORING = "inner_product"
 DEFAULT_NUM_EPOCHS = 1000
 DEFAULT_PATIENCE = 1000
-DEFAULT_LR = 1
+DEFAULT_LR = 2.0
 RESULTS_FILE = _REPO_ROOT / "results" / "mean_embedding" / "compare_plots" / "results.json"
 DEFAULT_OUTPUT_DIR = _REPO_ROOT / "paper" / "figure"
 
@@ -301,6 +301,7 @@ def main() -> None:
             "m_star": m_star,
             "k": args.k,
             "scoring": args.scoring,
+            "learning_rate": args.lr,
         }
         os.makedirs(os.path.dirname(args.results_file) or ".", exist_ok=True)
         with open(args.results_file, "w") as f:

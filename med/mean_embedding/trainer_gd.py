@@ -16,12 +16,10 @@ class Trainer:
         n: int,
         k: int,
         scoring_function: ScoringFn,
-        lr_multiplier: float = 2.0,
     ):
         self.n = n
         self.k = k
         self.scoring_function = scoring_function
-        self.lr_multiplier = lr_multiplier
         self.device = resolve_device()
         print(f"[GD] Using device: {self.device}")
 
@@ -64,7 +62,7 @@ class Trainer:
         self,
         d: int,
         num_epochs: int,
-        learning_rate: float = 1,
+        learning_rate: float = 2.0,
         patience: int = 1000,
         show_progress: bool = True,
     ) -> int:
@@ -72,7 +70,7 @@ class Trainer:
             self.n, d, device=self.device, requires_grad=True
         )
 
-        max_lr = learning_rate * self.lr_multiplier
+        max_lr = learning_rate
         optimizer = optim.Adam([self.vector_embeddings], lr=max_lr)
         scheduler = optim.lr_scheduler.OneCycleLR(
             optimizer=optimizer,
