@@ -7,24 +7,20 @@ import platform
 import sys
 import time
 
+import torch
+
 from .experiment import Experiment
 from .trainer_sgd import SGDConfig
-
-try:
-    import torch  # type: ignore
-except Exception:  # pragma: no cover - optional logging only
-    torch = None
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run minimal-dimension experiments")
-    parser.add_argument("--k", type=int, default=None, help="Subset size k (single)")
     parser.add_argument(
         "--k_values",
         type=int,
         nargs="*",
-        default=None,
-        help="List of k values (grid mode)",
+        default=[2],
+        help="List of k values (default: [2])",
     )
     parser.add_argument(
         "--n_values",
@@ -80,21 +76,13 @@ def main() -> None:
     env_info = {
         "python": sys.version.split()[0],
         "platform": platform.platform(),
+        "torch": torch.__version__,
+        "cuda_available": torch.cuda.is_available(),
+        "cuda_device_count": torch.cuda.device_count(),
+        "cuda_device_name": torch.cuda.get_device_name(0)
+        if torch.cuda.is_available()
+        else None,
     }
-    if torch is not None:
-        try:
-            env_info.update(
-                {
-                    "torch": getattr(torch, "__version__", "unknown"),
-                    "cuda_available": bool(torch.cuda.is_available()),
-                    "cuda_device_count": int(torch.cuda.device_count()),
-                    "cuda_device_name": torch.cuda.get_device_name(0)
-                    if torch.cuda.is_available()
-                    else None,
-                }
-            )
-        except Exception:
-            pass
     print(f"[ENV] {env_info}")
 
     sgd_config = None
@@ -125,7 +113,6 @@ def main() -> None:
         "patience": args.patience,
         "learning_rate": args.learning_rate,
         "n_values": args.n_values,
-        "k": args.k,
         "k_values": args.k_values,
         "sgd": {
             "batch_size": args.sgd_batch_size,
@@ -142,78 +129,44 @@ def main() -> None:
     try:
         with open("config.json", "w") as f:
             json.dump(run_config, f, indent=2)
-    except Exception as e:  # pragma: no cover
+    except Exception as e:
         print(f"[WARN] Failed to write config.json: {e}")
 
     t0 = time.perf_counter()
-    if args.k_values is not None and len(args.k_values) > 0:
-        print(
-            f"[GRID] Running grid over k_values={args.k_values} and n_values={args.n_values}"
-        )
-        grid = experiment.find_minimal_dimension_grid(
-            k_values=args.k_values,
-            m_values=args.n_values,
-        )
-        elapsed = time.perf_counter() - t0
-        print(f"\n[GRID] Minimal dimensions found: {grid}")
-        print(f"[GRID] Total elapsed: {elapsed:.2f}s")
+    print(
+        f"[RUN] Running over k_values={args.k_values} and n_values={args.n_values}"
+    )
+    grid = experiment.find_minimal_dimension(
+        k_values=args.k_values,
+        m_values=args.n_values,
+    )
+    elapsed = time.perf_counter() - t0
+    print(f"\n[RUN] Minimal dimensions found: {grid}")
+    print(f"[RUN] Total elapsed: {elapsed:.2f}s")
 
-        grid_results: dict = {}
-        for kval in args.k_values:
-            sk = str(kval)
-            grid_results[sk] = []
-            for n in args.n_values:
-                grid_results[sk].append({
-                    "m": n,
-                    "med": experiment.grid_minimal_dimensions.get(kval, {}).get(n, -1),
-                    "search_path": experiment.grid_search_paths.get(kval, {}).get(n, []),
-                    "time": experiment.grid_timings.get(kval, {}).get(n, -1),
-                })
-
-        unified: dict = {
-            "experiment": "medc",
-            "scoring_function": args.scoring_function,
-            "trainer": args.trainer,
-            "results": grid_results,
-        }
-        try:
-            with open("results.json", "w") as f:
-                json.dump(unified, f, indent=2)
-        except Exception as e:  # pragma: no cover
-            print(f"[WARN] Failed to write results.json: {e}")
-    else:
-        k_value = args.k if args.k is not None else 2
-        print(f"[RUN] Running single-k search: k={k_value}, n_values={args.n_values}")
-        minimal_dims = experiment.find_minimal_dimension(
-            k=k_value,
-            m_values=args.n_values,
-        )
-
-        elapsed = time.perf_counter() - t0
-        print("\n[RUN] Minimal dimensions found:", minimal_dims)
-        print(f"[RUN] Total elapsed: {elapsed:.2f}s")
-
-        results_list = []
+    results: dict = {}
+    for kval in args.k_values:
+        sk = str(kval)
+        results[sk] = []
         for n in args.n_values:
-            results_list.append({
+            results[sk].append({
                 "m": n,
-                "med": minimal_dims.get(n, -1),
-                "search_path": experiment.search_paths.get(n, []),
-                "time": experiment.timings.get(n, -1),
+                "med": experiment.minimal_dimensions.get(kval, {}).get(n, -1),
+                "search_path": experiment.search_paths.get(kval, {}).get(n, []),
+                "time": experiment.timings.get(kval, {}).get(n, -1),
             })
 
-        unified = {
-            "experiment": "medc",
-            "k": k_value,
-            "scoring_function": args.scoring_function,
-            "trainer": args.trainer,
-            "results": results_list,
-        }
-        try:
-            with open("results.json", "w") as f:
-                json.dump(unified, f, indent=2)
-        except Exception as e:  # pragma: no cover
-            print(f"[WARN] Failed to write results.json: {e}")
+    unified: dict = {
+        "experiment": "medc",
+        "scoring_function": args.scoring_function,
+        "trainer": args.trainer,
+        "results": results,
+    }
+    try:
+        with open("results.json", "w") as f:
+            json.dump(unified, f, indent=2)
+    except Exception as e:
+        print(f"[WARN] Failed to write results.json: {e}")
 
 
 if __name__ == "__main__":

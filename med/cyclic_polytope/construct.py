@@ -1,10 +1,38 @@
 from __future__ import annotations
 
-import math
-import random
 from typing import Optional
 
 import numpy as np
+
+
+def generate_cyclic_polytope_configuration(m: int, n: int, t: np.ndarray | None = None) -> np.ndarray:
+    """Generate the vertex set of a cyclic polytope C(m, n) using the moment curve.
+
+    Parameters
+    ----------
+    m : int
+        Number of points (vertices).
+    n : int
+        Dimension of the ambient space.
+    t : np.ndarray | None
+        Optional strictly increasing parameter values of shape (m,). If None, uses arange(m).
+
+    Returns
+    -------
+    np.ndarray
+        Array of shape (m, n) with vertex coordinates.
+    """
+    if t is None:
+        t = np.arange(m, dtype=float)
+    else:
+        t = np.asarray(t, dtype=float)
+        assert t.shape == (m,), "t must have shape (m,)"
+        assert np.all(np.diff(t) > 0), "t must be strictly increasing"
+
+    t_col = t.reshape(m, 1)
+    coords = [t_col ** i for i in range(1, n + 1)]
+    X = np.concatenate(coords, axis=1)
+    return X
 
 
 def construct_query_for_subset(
@@ -50,36 +78,18 @@ def verify_construction(
     k: int,
     n: int,
     t: Optional[np.ndarray] = None,
-    max_checks: Optional[int] = 2000,
-    seed: int = 42,
-    progress: bool = True,
 ) -> tuple[bool, int, int]:
     """Check whether the polynomial construction works for *all* k-subsets.
 
-    Generates m moment-curve points in Rⁿ, then samples k-subsets (or
-    enumerates all if binom(m,k) ≤ max_checks).  For each subset, constructs
-    the squared-polynomial query and verifies exact top-k retrieval.
+    Generates m moment-curve points in Rⁿ, enumerates every k-subset,
+    constructs the squared-polynomial query, and verifies exact top-k retrieval.
 
     Returns (all_passed, num_checked, num_failed).
     """
-    from .generator import generate_cyclic_polytope_configuration
+    import itertools
 
     points = generate_cyclic_polytope_configuration(m, n, t)
     t_values = t if t is not None else np.arange(m, dtype=float)
-
-    total = math.comb(m, k)
-    rng = random.Random(seed)
-
-    if max_checks and max_checks < total:
-        indices = list(range(m))
-        for i in range(max_checks):
-            subset = sorted(rng.sample(indices, k))
-            query = construct_query_for_subset(t_values, subset, n)
-            if not check_subset_retrieval(points, subset, query):
-                return False, i + 1, 1
-        return True, max_checks, 0
-
-    import itertools
 
     checked = 0
     for subset in itertools.combinations(range(m), k):

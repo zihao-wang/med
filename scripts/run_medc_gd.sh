@@ -45,7 +45,7 @@ echo "  git_commit = $(git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/nu
 
 ARGS=(
   --trainer gd
-  --k "${K}"
+  --k_values "${K}"
   --scoring_function "${METRIC}"
   --n_values ${N_LIST}
   --num_epochs ${NUM_EPOCHS}

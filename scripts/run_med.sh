@@ -5,9 +5,9 @@ set -euo pipefail
 # via polynomial construction on the moment-curve point set.
 #
 # Usage: ./run_med.sh
-#        M=20 K=3 MAX_CHECKS=5000 ./run_med.sh
-#        M_LIST="8 16 32 64" K=2 ./run_med.sh
-#        K_LIST="2 3 4 5" M_LIST="8 16 32 64" ./run_med.sh   # grid mode
+#        K_LIST=3 M=20 ./run_med.sh
+#        M_LIST="8 16 32 64" K_LIST=2 ./run_med.sh
+#        K_LIST="2 3 4 5" M_LIST="8 16 32 64" ./run_med.sh
 #
 # Results written to results/cyclic_polytope/<label>/<timestamp>/
 #   - results.json        : unified format (see CLAUDE.md Result protocol)
@@ -21,24 +21,14 @@ export PYTHONPATH="${PROJECT_ROOT}:${PYTHONPATH:-}"
 
 M="${M:-}"
 M_LIST="${M_LIST:-8 16 32 64 128 256 512 1024}"
-K="${K:-2}"
-K_LIST="${K_LIST:-}"
-MAX_CHECKS="${MAX_CHECKS:-2000}"
-SEED="${SEED:-42}"
-
+K_LIST="${K_LIST:-2}"
 RUN_ID="$(date +%Y%m%d_%H%M%S)"
 
 # Build run label
 if [ -n "${M}" ]; then
-  if [ -n "${K_LIST}" ]; then
-    LABEL="m${M}_k_list"
-  else
-    LABEL="m${M}_k${K}"
-  fi
-elif [ -n "${K_LIST}" ]; then
-  LABEL="k_list"
+  LABEL="m${M}_k_list"
 else
-  LABEL="m_list_k${K}"
+  LABEL="m_list_k_list"
 fi
 
 OUT_DIR="${RESULTS_DIR}/cyclic_polytope/${LABEL}/${RUN_ID}"
@@ -48,30 +38,17 @@ pushd "${OUT_DIR}" >/dev/null
 echo "[INFO] MED (cyclic polytope) run" | tee run.log
 echo "  m          = ${M:-<from m_values>}" | tee -a run.log
 echo "  m_values   = ${M_LIST}" | tee -a run.log
-echo "  k          = ${K}" | tee -a run.log
 echo "  k_values   = ${K_LIST}" | tee -a run.log
-echo "  max_checks = ${MAX_CHECKS}" | tee -a run.log
-echo "  seed       = ${SEED}" | tee -a run.log
 echo "  timestamp  = ${RUN_ID}" | tee -a run.log
 echo "  git_commit = $(git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
 
-ARGS=(
-  --max_checks "${MAX_CHECKS}"
-  --seed "${SEED}"
-)
+ARGS=(--k_values ${K_LIST})
 
 # Build m_values: single M overrides M_LIST
 if [ -n "${M}" ]; then
   ARGS+=(--m_values "${M}")
 else
   ARGS+=(--m_values ${M_LIST})
-fi
-
-# Build k arguments
-if [ -n "${K_LIST}" ]; then
-  ARGS+=(--k_values ${K_LIST})
-else
-  ARGS+=(--k "${K}")
 fi
 
 echo "[CMD] python -m med.cyclic_polytope.cli ${ARGS[*]}" | tee -a run.log
