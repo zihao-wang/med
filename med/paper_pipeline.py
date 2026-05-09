@@ -16,6 +16,7 @@ import torch
 from med.cyclic_polytope.experiment import Experiment as CyclicPolytopeExperiment
 from med.defaults import DEFAULT_M_VALUES
 from med.mean_embedding.experiment import Experiment as MeanEmbeddingExperiment
+from med.mean_embedding.lr_scaling import LR_SCALING_CHOICES
 from med.plotting import invert_wbnl_curve, set_paper_style, wbnl_critical_m
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -308,6 +309,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
             "num_epochs": args.num_epochs,
             "patience": args.patience,
             "learning_rate": args.learning_rate,
+            "lr_scaling": args.lr_scaling,
         },
         "env": _env_info(),
         "run_dir": str(run_dir),
@@ -325,6 +327,7 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         scoring_function=INNER_PRODUCT,
         num_epochs=args.num_epochs,
         learning_rate=args.learning_rate,
+        lr_scaling=args.lr_scaling,
         patience=args.patience,
     )
     mean.find_minimal_dimension(k_values=[args.k], m_values=args.m_values)
@@ -368,6 +371,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num_epochs", type=int, default=1000)
     parser.add_argument("--patience", type=int, default=1000)
     parser.add_argument("--learning_rate", type=float, default=1.0)
+    parser.add_argument(
+        "--lr_scaling", type=str, default="constant", choices=LR_SCALING_CHOICES
+    )
     parser.add_argument(
         "--output-root",
         type=Path,
