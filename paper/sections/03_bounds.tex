@@ -1,0 +1,60 @@
+\section{Tight bounds for MED and discussions}\label{sec:optimal-standard-theory}
+
+This section derives tight bounds of $\med$ under $\fln$, $\fcos$, and $\fl{2}$.
+The choices are based on the broad interest of their applications in modern machine learning and representation learning. By Proposition~\ref{prop:half-shatter}, we only need to study the cases where $2\leq k \leq \lfloor \frac{m}{2} \rfloor$. The general proof strategy applied here is to find the upper bound of $\med$ by construction, and to find the lower bound by VC dimension by Proposition~\ref{prop:vc-bounds}.
+
+\subsection{Tight bounds of $\med(m, k;\fln)$}\label{sec:linear-bounds}
+To begin with, let's consider the cyclic polytope~\citep{ziegler2012lectures}.
+\begin{example}[Cyclic polytope]\label{eg:cyclic-polytope}
+	Given moment curve $\vx(t) = (1, t, t^2, ..., t^d)\in \real^d, 0\leq t\leq 1$, a cyclic polytope is the convex hull ${\rm Conv}(\vx(t_1), \vx(t_2), \dots, \vx(t_m))$, where $t_1 < t_2 < \cdots < t_m$ can be arbitrary real numbers.
+\end{example}
+One of the most well-known results of cyclic polytopes is that a cyclic polytope in $\real^d$ is an $\lfloor \frac{d}{2} \rfloor$-neighborly polytope, in which every $k$ vertices form a face when $k\leq \lfloor \frac{d}{2} \rfloor$~\citep{ziegler2012lectures}. By forming a $k$-face, it means that the $k$ vertices in this face can be linearly separated from the rest of the vertices of the polytope.
+
+\begin{theorem}\label{thm:linear-lower-upper}
+    $$k-1\leq \med(m, k; \fln) \leq 2k.$$
+\end{theorem}
+\begin{proof}
+Noticing the VC dimension of $\fln$ in $\real^n$ is $n+1$~\citep{mohri2018foundations}, the lower bound is derived as a direct result of Proposition~\ref{prop:vc-bounds}. The upper bound is by the cyclic polytope construct in Example~\ref{eg:cyclic-polytope}.
+\end{proof}
+
+We see that $\med(m, k, \fln)$ only depends on $k$. Ignoring the coefficient, $\med(m, k; \fln) = \Theta(k)$ also holds. Then, we show that the $\fcos$ and $\fl{2}$ share the similar bounds as $\fln$.
+
+\subsection{Tight bounds of $\med(m, k;\fl{2})$}~\label{sec:generalize_linear}
+
+By geometric constructions in $\real^n$ regarding the $k$-shattering, the following relation is revealed.
+
+\begin{proposition}\label{prop:l2<linear}
+
+$$\med(m, k; \fl{2}) \leq \med(m, k; \fln). $$
+
+\end{proposition}
+\begin{proof}
+Given a configuration that can be $k$-shattered by $\fln$, then for each set $S, |S| \leq k$, there exists a hyperplane $H_S$ that separates $S$ from $X-S$. We can always find an $\ell_2$ ball that includes $S$ and is tangent to $H_S$, which automatically does not contain $X-S$.
+\end{proof}
+When considering the Proposition~\ref{prop:l2<linear}, we conclude $\med(m, k;\fl{2})$ in Theorem~\ref{thm:l2-lower-upper} with additional information that $\vcd(n;\fl{2}) = n+1$ and Proposition~\ref{prop:vc-bounds}.
+
+\begin{theorem}\label{thm:l2-lower-upper}
+    $$k-1\leq \med(m, k; \fl{2}) \leq 2k.$$
+\end{theorem}
+
+\subsection{Tight bounds of $\med(m, k; \fcos)$}
+
+\begin{proposition}\label{prop:linear=cos}
+\begin{align*}
+    \med(m, k; \fln)) &\leq \med(m, k; \fcos) \leq \med(m, k; \fln)) + 1.
+\end{align*}
+\end{proposition}
+\noindent\textit{Proof sketch:} Notice that the decision boundary by cosine similarity on a sphere is the intersection between hyperplanes and this sphere. Given a configuration in $\real^n$ that can be $k$-shattered by $\fln$, one could use the inverse stereographic projection to project onto a sphere in $\real^{n+1}$, where the original points are projected to the points on the sphere. Meanwhile, suppose a configuration can be $k$-shattered by cosine similarities. In that case, one can first project every point onto the sphere by $x\mapsto \frac{x}{\|x\|_2}$; then, the decision boundaries on spheres can be extended to hyperplanes. The full proof can be found in Appendix~\ref{app:proof:prop:linear=cos}.
+
+Combination of the Theorem~\ref{thm:linear-lower-upper} and the Proposition~\ref{prop:linear=cos} also shows that $\med(m, k; \fcos) = \Theta(k)$.
+
+\begin{theorem}\label{thm:cos-lower-upper}
+    $$k-1\leq \med(m, k; \fcos) \leq 2k+1.$$
+\end{theorem}
+
+\subsection{Discussion on $\Theta(k)$ bound of MEDs}
+To summarize, the minimum embeddable dimension for $\fln$, $\fcos$, and $\fl{2}$ are all $\Theta(k)$, which is independent of the number of total elements in the set system. This result suggests that, despite the difficulty, it is possible to encode all top-$k$ queries into a space of no more than $2k$ dimensions, regardless of the number of elements to embed.
+
+\noindent\textbf{The real performance bottleneck of the embedding-based retrieval}. The bounds clearly show that the geometric space \textbf{does not} limit the effectiveness of the embedding-based retrieval system. To make this even more transparent, one possible strategy to build a perfect top-$k$ queries of a retrieval system with $m$ elements is to (1) put elements in the vertices of a cyclic polytope in $\real^{2k}$, (2) learn the query embeddings model which predict the query embedding that clearly separates the (at most $k$) answers from the rest. Our theory guarantees that such query embeddings exist, but the real problem is how to build a function to predict them. Knowing that neural networks can universally approximate functions~\citep {hornik1989multilayer}, the bottleneck of embedding-based retrieval is essentially a learnability problem: how to actually learn such a function with embedding dimension $2k$ from data.
+
+\noindent\textbf{Can the $\Theta(k)$ bounds be observed?} Although the fundamental property of the underlying geometric space does not put any restrictions on embedding-based retrieval. However, two issues still challenge whether we can observe this bound in the real world. (1) \textbf{limited numerical precision:} Even with the cyclic polytope example, it is still questionable when $m$ embeddings are represented in a fixed-digit floating-point number. The budget of float points does not have infinite capacity. (2) \textbf{infeasible number of functionals to determine:} To realize $\Theta(k)$ bound, one would search for $\binom{m}{k}$ functionals. The total number of tasks is infeasible to complete. Those two issues

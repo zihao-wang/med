@@ -1,0 +1,93 @@
+\section{Minimal Embeddable Dimension}\label{sec:problem-definition}
+
+For convenience, we summarize the notations in this paper.
+$m, n, d, k$ are positive integers. $n$ and $d$ are both used for dimension. They can be used interchangeably. The subtle difference is that $d$ usually represents dimension in general while $n$ appeared in the quantitative relations. $X$ is the set of $m$ elements to be embedded and $\vx \in \real^d$ denotes the embeddings of $x\in X$. For simplicity, we don't distinguish the embedding $\vx$ and element $x$, so it is fine to state $X = \{\vx_i\}_{i=1}^m \subseteq \real^d$.
+We study all possible queries $q$ that concern at most $ k$ objects in $X$. In that sense, it is equivalent to consider all subsets of at most $k$ elements in $X$ ($k \leq m$ by default), denoted as $ \collection_k=\{S\subseteq X, |S|\leq k\}$ and $\collection_m=2^X$. We also use $q$ to denote a subset in $X$.
+The scoring function $s: \real^d \times \real^d\mapsto \real$ measures the relatedness of two vectors in $\real^d$. The description of $\real^d$ is omitted if the context is clear. The scoring functions of our interest include:
+\begin{compactdesc}
+    \item[Linear:] $s_{\rm linear}(\vx, \vw) = \langle \vx, \vw\rangle$, where $\vw$ is a query vector, $\langle \cdot, \cdot\rangle$ is the inner product.
+    \item[Cosine similarity:] $s_{\cos}(\vx, \vw) = \frac{\langle \vx, \vw \rangle }{ \|\vx\|\|\vw\|}$.
+    \item[Euclidean distance ($\ell_2$):] $s_{\ell_2}(\vx, \vw) = - \|\vx - \vw\|_2 $.
+\end{compactdesc}
+For convenience, we consider the functional classes $\functionals$ induced by those three scoring functions, e.g. The linear functional class $\fln = \{f(\cdot ):= s_{\rm linear}(\cdot, \vw) | \vw \in \real^d\}$, the cosine family$\fcos = \{  f(\cdot ):= s_{\cos}(\cdot, \vw) | \vw \in \real^d\}$, and the $\ell_2$ family $\fl{2} = \{f(\cdot ):= s_{\ell_2}(\cdot, \vw) | \vw \in \real^d\}$. Each functional $f\in \functionals: \real^d\mapsto\real$. We use the subscript to indicate that the specific function $f_q\in \functionals$ is used for a specific query $q$ or $f_S$ for a subset $S$.
+
+
+
+The primary focus of this section is to present the definition and general properties of the Minimal Embeddable Dimension (MED). Notably, we dedicate the last subsection~\ref{sec:maed} to a special \textbf{centroid} setting, where the $\vw_q = \frac{1}{|S|} \sum_{x\in S} \vx$, which concerns the MED in centroid (\textbf{MED-C}), an upper bound of MED.
+
+\subsection{$k$-shatter problem}
+To formally define the minimal embeddable dimension, we introduce the concept of $k$-shattering.
+\begin{definition}[$k$-shattering]
+    Let $X\subseteq \real^d$ be a set of $m$ points. \textbf{$X$ is $k$-shattered by $\functionals$} if and only if  $\forall S\in \collection_k,\exists f_S\in \functionals,\forall \vx \in S,\forall \vy\notin S, f_S(\vx) > b_S > f_S(\vy)$, where $b_S\in \real$ depends on $S$ and $\functionals$.
+\end{definition}
+
+\begin{remark}
+    The definition of $k$-shattering precisely determines whether there exists a configuration of vectors in $X$ under a specific functional family or scoring function with query embeddings such that \textbf{the embedding-based retrieval built upon this configuration succeeds on all queries concerning at most $k$ elements}.
+\end{remark}
+
+Minimal Embeddable Dimension ($\med$) is then defined based on $k$-shattering, which depends on $m$, $k$, and $\functionals$. For convenience, $\med$ is denoted as a function $n^*=\med(m, k; \functionals)$.
+\begin{definition}[Minimal Embeddable Dimension]\label{def:med}
+    Given $m$, $k$, $\functionals$, $\med$ $n^*$ is the integer that a configuration of $m$ points that can be $k$-shattered by $\functionals$ exists in $\real^{n^*}$ but not in $\real^{(n^*-1)}$.
+\end{definition}
+
+One direct result, according to Definition~\ref{def:med}, is the non-strict monotonicity of $\med(m, k; \functionals)$.
+\begin{proposition}\label{prop:monotonic}
+For $2\leq k\leq m$, the following inequality holds:
+\begin{align*}
+    \med(m, k-1;\functionals) &\leq \med(m, k; \functionals) \leq \med(m+1, k; \functionals).
+\end{align*}
+\end{proposition}
+
+Meanwhile, when all subsets of at most half the points can be shattered, all subsets can be shattered.
+\begin{proposition}\label{prop:half-shatter}
+    For $k\geq \lfloor \frac{m}{2} \rfloor$, $\med(m, k;\functionals) = \med(m, m;\functionals)$.
+\end{proposition}
+
+
+\subsection{General bounds of $\med$ by VC dimension}
+
+The definition of $k$-shattering also defines the VC dimension~\citep{mohri2018foundations}, which is redefined below in terms of $k$-shattering.
+\begin{definition}[VC dimension]
+    The VC dimension of a functional family $\functionals$ (maps $\real^n$ to $\real$) is the maximal size $m$ of a set $X$ that can be $m$-shattered by $\functionals$, denoted as $m = \vcd(n; \functionals)$.
+\end{definition}
+VC dimension is a measure of the capacity of classes of sets or binary functions~\citep{vapnik2013nature}. This concept plays a fundamental role in statistical learning theory, particularly in the study of approximability. By defining both the MED and VC dimensions using $k$-shattering, it is reasonable to expect some connections to hold between them, and indeed they do. For notational convenience, we define the ``inversion" of VC dimension as $$\vcd^{-1}(m; \functionals)=\min \{i \mid s.t. \vcd(i;\functionals)\ge m\},$$ namely the minimum dimension required. Notably, the function $\vcd(\cdot ;\functionals)$ is not guaranteed to increase strictly; therefore, there is no inverse function formally.
+\begin{lemma}\label{lemma:connection-VCD}
+    $\med(m, m;\functionals) = \vcd^{-1}(m;\functionals)$.
+\end{lemma}
+
+\begin{proof}
+    Let $n = \vcd^{-1}(m, \functionals)$, then (1) $m$ points in $\real^n$ can be $m$-shattered by $\functionals$ but (2) $m$ points in $\real^{(n-1)}$ cannot be $m$-shattered by $\functionals$. Those two claims imply, in the sense of \med, that (1) $\med(m, m, \functionals) \leq n$ and (2) $\med(m, m, \functionals) > n - 1$. Thus $\med(m, m, \functionals) = n$
+\end{proof}
+
+
+Additionally, combining Proposition~\ref{prop:monotonic} and Lemma~\ref{lemma:connection-VCD} yields the following proposition.
+\begin{proposition}\label{prop:vc-bounds}
+    $$\vcd^{-1}(k; \functionals) \leq \med(m, k; \functionals) \leq \vcd^{-1}(m; \functionals).$$
+\end{proposition}
+Thus, a rough lower and upper bound of $\med$ can be derived from the VC dimension. Specifically, the upper (lower) bounds of VC dimensions now form the lower (upper) bounds of $\med$, respectively.
+
+\subsection{MED in the centroid setting}\label{sec:maed}
+We present the centroid setting, where the query embedding is the simple average of the element embeddings. The centroid setting imposes more constraints than $k$-shattering. Formal definitions are now provided.
+
+We begin with the definition of $k$-centroid shattering as the restricted version of $k$-shattering.
+\begin{definition}[$k$-centroid shattering]
+    Let $X\subseteq \real^d$ be a set of $m$ points, $X$ is $k$-centroid shattered by a scoring function $s(\cdot, \cdot)$ if and only if $\forall S\in \collection_k, \forall \vx\in S, \forall \vy \notin S, s(\vx, \vc_S) > s(\vy, \vc_S)$, where $\vc_S = \sum_{x \in S} \frac{1}{|S|}\vx$ is the center vector of $S$.
+\end{definition}
+\begin{remark}
+    We stress that the concept of centroid shattering concerns a specific scoring function ($s_{\rm linear}, s_{\cos}, s_{\ell_p}$) rather than a functional class $\fln, \fcos, \flp$ because we already fix the vector for each of the query as the center of its answer set $S$, specifically, $\vw:= \vc_S$.
+\end{remark}
+
+Then, the MED in the centroid setting is defined below,
+\begin{definition}[MED in Centroids (MED-C)]
+    Given $m, k, s(\cdot, \cdot)$, MED-C $n^* = \medc(m, k; s)$ is the integer that a configuration of $m$ points that can be $k$-centroid shattered by $s(\cdot, \cdot)$ exists in $\real^{n^*}$ but not in $\real^{(n^*-1)}$.
+\end{definition}
+
+\textbf{MED-C and MED. In the original definition of MED, only the existence of functionals is required to prove the $k$-shattering definition. In the centroid setting, $k$-centroid shattering fixes the subset query embeddings $\vc_S$, which further determine functionals explicitly. Noticing that the number of ``free'' functionals involved in $k$-shattering is $\binom{m}{k}$, the $k$-centroid setting reduces the freedom into as few as $m$ vectors, which facilitates numerical simulation. For the same reason, however, MED lower bounds MED-C because of the flexibility to freely determine $f(\cdot)$ other than the centroid one $s(\cdot, \vc_S)$}. Formally, we have the following proposition.
+\begin{proposition}
+    $\med(m, k; \functionals) \leq \medc (m, k; s)$, where $\functionals$ is the functional family induced by the scoring function $s$.
+\end{proposition}
+\begin{proof}
+    Let $n = \medc(m, k; s)$, we consider the configuration of vectors $\vx_i$ for $i=1,...,m$ elements. Let the functionals for each $S\in \collection_k$, we select the functional $f_S(\cdot) := s(\cdot, \vc_S)$, where $\vc_S =\frac{1}{|S|} \sum_{x \in S} \vx$. We can say that this configuration is also $k$-shattered by $\functionals$. Then, $\med(m, k; \functionals) \leq \medc(m,k;s)$ by definition.
+\end{proof}
+
+\textbf{MED-C and neural set embeddings.} One of the common deep learning approaches to compute a set embedding is to aggregate the embeddings of contained elements~\citep{zaheer2017deep}. We can also study the Minimum Embeddable Dimension in the Neural set embedding setting (MED-N), where the set embedding $\vw_S = {\rm NN}(\{\vx: x \in S\})$ is computed by a complex neural architecture (such as MLP or multi-head self attention). The centroid setting simplifies the aggregation of complex neural networks by simple averaging. Therefore, one could expect that the MED-C is not smaller than the MED-N due to a less capable averaging operation. Combined with the definition of MED, this informal discussion suggested that we can roughly consider MED-N to be between MED and MED-C.
