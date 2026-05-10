@@ -1,4 +1,5 @@
 import itertools
+from math import log2
 import time
 from typing import Tuple
 
@@ -70,7 +71,7 @@ class Trainer:
             self.n, d, device=self.device, requires_grad=True
         )
 
-        max_lr = learning_rate
+        max_lr = learning_rate / log2(self.n)
         optimizer = optim.Adam([self.vector_embeddings], lr=max_lr)
         scheduler = optim.lr_scheduler.OneCycleLR(
             optimizer=optimizer,

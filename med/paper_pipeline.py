@@ -24,6 +24,24 @@ INNER_PRODUCT = "inner_product"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "results" / "upper_bound_witness"
 DEFAULT_PAPER_TABLE_DIR = REPO_ROOT / "paper" / "table"
 DEFAULT_PAPER_FIGURE_DIR = REPO_ROOT / "paper" / "figure"
+SUMMARY_CSV_NAME = "upper_bound_witness_table.csv"
+RESULTS_JSON_NAME = "results.json"
+
+SUMMARY_INT_FIELDS = {
+    "m",
+    "k",
+    "top_k_queries",
+    "cyclic_polytope_d",
+    "cyclic_queries_checked",
+    "cyclic_total_queries",
+    "mean_embedding_d",
+    "mean_embedding_violations",
+}
+SUMMARY_FLOAT_FIELDS = {
+    "cyclic_checked_fraction",
+    "cyclic_time",
+    "mean_embedding_time",
+}
 
 
 def _env_info() -> dict[str, Any]:
@@ -60,7 +78,9 @@ def _experiment_rows(
     return rows
 
 
-def _entry_for_dimension(search_path: list[dict[str, Any]], dimension: int) -> dict[str, Any]:
+def _entry_for_dimension(
+    search_path: list[dict[str, Any]], dimension: int
+) -> dict[str, Any]:
     for entry in search_path:
         if entry.get("dimension") == dimension:
             return entry
@@ -93,7 +113,9 @@ def _build_summary_rows(
                 "top_k_queries": total_queries,
                 "cyclic_polytope_d": cyclic_d,
                 "cyclic_queries_checked": cyclic_entry.get("checks", 0),
-                "cyclic_total_queries": cyclic_entry.get("total_queries", total_queries),
+                "cyclic_total_queries": cyclic_entry.get(
+                    "total_queries", total_queries
+                ),
                 "cyclic_checked_fraction": cyclic_entry.get("checked_fraction", 0.0),
                 "cyclic_time": cyclic["time"],
                 "mean_embedding_d": mean_d,
@@ -131,6 +153,50 @@ def _write_table_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
+def _parse_csv_cell(value: str | None, field: str) -> Any:
+    if value in (None, "", "--"):
+        return None
+    if field in SUMMARY_INT_FIELDS:
+        return int(value)
+    if field in SUMMARY_FLOAT_FIELDS:
+        return float(value)
+    return value
+
+
+def _load_summary_csv(path: Path) -> list[dict[str, Any]]:
+    with path.open(newline="") as f:
+        rows = [
+            {field: _parse_csv_cell(value, field) for field, value in row.items()}
+            for row in csv.DictReader(f)
+        ]
+
+    if not rows:
+        raise ValueError(f"No rows found in summary CSV: {path}")
+    return rows
+
+
+def _payload_from_summary_csv(path: Path) -> dict[str, Any]:
+    summary_rows = _load_summary_csv(path)
+    m_values = [int(row["m"]) for row in summary_rows]
+    k_values = {int(row["k"]) for row in summary_rows if row.get("k") is not None}
+    if len(k_values) > 1:
+        raise ValueError(f"Expected one k value in summary CSV, found {sorted(k_values)}")
+    k = next(iter(k_values), DEFAULT_K)
+
+    return {
+        "pipeline": "upper_bound_witness_grid",
+        "k": k,
+        "m_values": m_values,
+        "scoring_function": INNER_PRODUCT,
+        "results": {},
+        "summary_rows": summary_rows,
+        "config": {
+            "resume_source": str(path),
+            "resume_format": "summary_csv",
+        },
+    }
+
+
 def _format_float(value: Any, digits: int = 3) -> str:
     if value is None:
         return "--"
@@ -161,7 +227,9 @@ def _write_table_tex(path: Path, rows: list[dict[str, Any]]) -> None:
     path.write_text("\n".join(lines))
 
 
-def _observed_m_star(rows: list[dict[str, Any]], d_key: str) -> tuple[list[int], list[float]]:
+def _observed_m_star(
+    rows: list[dict[str, Any]], d_key: str
+) -> tuple[list[int], list[float]]:
     pairs = [
         (int(row[d_key]), int(row["m"]))
         for row in rows
@@ -344,15 +412,61 @@ def run_pipeline(args: argparse.Namespace) -> dict[str, Any]:
         "config": config,
     }
 
-    _write_json(run_dir / "results.json", payload)
-    _write_table_csv(run_dir / "upper_bound_witness_table.csv", summary_rows)
+    _write_json(run_dir / RESULTS_JSON_NAME, payload)
+    _write_table_csv(run_dir / SUMMARY_CSV_NAME, summary_rows)
     _write_table_tex(run_dir / "upper_bound_witness_table.tex", summary_rows)
     return payload | {"_run_dir": str(run_dir)}
 
 
 def load_payload(results_file: Path) -> dict[str, Any]:
+    if results_file.suffix.lower() == ".csv":
+        return _payload_from_summary_csv(results_file)
     with results_file.open() as f:
         return json.load(f)
+
+
+def _validate_plot_payload(payload: dict[str, Any], source: Path) -> dict[str, Any]:
+    rows = payload.get("summary_rows")
+    if not isinstance(rows, list) or not rows:
+        raise ValueError(f"{source} does not contain non-empty summary_rows")
+    return payload
+
+
+def _load_plot_payload(args: argparse.Namespace) -> tuple[dict[str, Any], Path, Path]:
+    if args.results_file is not None:
+        payload = _validate_plot_payload(
+            load_payload(args.results_file), args.results_file
+        )
+        return payload, args.results_file.parent, args.results_file
+
+    json_path = args.output_root / RESULTS_JSON_NAME
+    csv_path = args.output_root / SUMMARY_CSV_NAME
+
+    if json_path.exists():
+        try:
+            payload = _validate_plot_payload(load_payload(json_path), json_path)
+        except (OSError, json.JSONDecodeError, ValueError) as exc:
+            if not csv_path.exists():
+                raise SystemExit(
+                    f"Could not load {json_path}: {exc}. "
+                    f"No fallback CSV found at {csv_path}."
+                ) from exc
+            print(
+                f"[PIPELINE] Could not load {json_path}; "
+                f"resuming from {csv_path}"
+            )
+            payload = _validate_plot_payload(load_payload(csv_path), csv_path)
+            return payload, csv_path.parent, csv_path
+        return payload, json_path.parent, json_path
+
+    if csv_path.exists():
+        payload = _validate_plot_payload(load_payload(csv_path), csv_path)
+        return payload, csv_path.parent, csv_path
+
+    raise SystemExit(
+        "--results-file was not provided and no saved results were found at "
+        f"{json_path} or {csv_path}"
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -365,9 +479,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mode", choices=["run", "plot"], default="run")
     parser.add_argument("--k", type=int, default=DEFAULT_K)
     parser.add_argument("--m_values", type=int, nargs="*", default=DEFAULT_M_VALUES)
-    parser.add_argument("--num_epochs", type=int, default=1000)
+    parser.add_argument("--num_epochs", type=int, default=2000)
     parser.add_argument("--patience", type=int, default=1000)
-    parser.add_argument("--learning_rate", type=float, default=2.0)
+    parser.add_argument("--learning_rate", type=float, default=1.0)
     parser.add_argument(
         "--output-root",
         type=Path,
@@ -396,6 +510,10 @@ def parse_args() -> argparse.Namespace:
         "--results-file",
         type=Path,
         default=None,
+        help=(
+            "Saved results to plot from. Accepts results.json or "
+            "upper_bound_witness_table.csv. Defaults to --output-root results."
+        ),
     )
     parser.add_argument(
         "--no-paper-copy",
@@ -421,24 +539,34 @@ def main() -> None:
     if args.mode == "run":
         payload = run_pipeline(args)
         run_dir = Path(payload["_run_dir"])
+        results_source = run_dir / RESULTS_JSON_NAME
+        wrote_results = True
     else:
-        if args.results_file is None:
-            raise SystemExit("--results-file is required in --mode plot")
-        payload = load_payload(args.results_file)
-        run_dir = args.results_file.parent
+        payload, run_dir, results_source = _load_plot_payload(args)
+        wrote_results = False
+        print(f"[PIPELINE] Resuming plot/table generation from {results_source}")
 
     paper_table_dir, paper_figure_dir = _paper_dirs(args)
     generate_figures(payload, run_dir, paper_figure_dir)
-    _write_table_csv(run_dir / "upper_bound_witness_table.csv", payload["summary_rows"])
+    _write_table_csv(run_dir / SUMMARY_CSV_NAME, payload["summary_rows"])
     _write_table_tex(run_dir / "upper_bound_witness_table.tex", payload["summary_rows"])
     if paper_table_dir is not None:
         paper_table_dir.mkdir(parents=True, exist_ok=True)
-        _write_table_csv(paper_table_dir / "upper_bound_witness_table.csv", payload["summary_rows"])
-        _write_table_tex(paper_table_dir / "upper_bound_witness_table.tex", payload["summary_rows"])
+        _write_table_csv(
+            paper_table_dir / "upper_bound_witness_table.csv", payload["summary_rows"]
+        )
+        _write_table_tex(
+            paper_table_dir / "upper_bound_witness_table.tex", payload["summary_rows"]
+        )
 
-    print(f"[PIPELINE] Wrote results to {run_dir / 'results.json'}")
-    print(f"[PIPELINE] Wrote table to {run_dir / 'upper_bound_witness_table.csv'}")
-    print(f"[PIPELINE] Wrote figures to {run_dir / 'compare_plot1.pdf'} and compare_plot2.pdf")
+    if wrote_results:
+        print(f"[PIPELINE] Wrote results to {results_source}")
+    else:
+        print(f"[PIPELINE] Loaded results from {results_source}")
+    print(f"[PIPELINE] Wrote table to {run_dir / SUMMARY_CSV_NAME}")
+    print(
+        f"[PIPELINE] Wrote figures to {run_dir / 'compare_plot1.pdf'} and compare_plot2.pdf"
+    )
     if paper_table_dir is not None or paper_figure_dir is not None:
         print(
             "[PIPELINE] Wrote paper artifacts to "

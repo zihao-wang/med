@@ -20,7 +20,13 @@ PAPER_FIGURE_DIR="${PAPER_FIGURE_DIR:-${PROJECT_ROOT}/paper/figure}"
 
 mkdir -p "${OUT_DIR}"
 
-python -u -m med.paper_pipeline \
+if command -v uv >/dev/null 2>&1; then
+  PYTHON_CMD=(uv run python)
+else
+  PYTHON_CMD=(python)
+fi
+
+"${PYTHON_CMD[@]}" -u -m med.paper_pipeline \
   --output-root "${OUT_DIR}" \
   --paper-table-dir "${PAPER_TABLE_DIR}" \
   --paper-figure-dir "${PAPER_FIGURE_DIR}" \

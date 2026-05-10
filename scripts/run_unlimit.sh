@@ -5,6 +5,7 @@ set -euo pipefail
 #
 # Usage:
 #   ./run_unlimit.sh
+#   MODE=plot ./run_unlimit.sh
 #   DIMS="32 64 128" ./run_unlimit.sh
 #   SPLITS="limit-small" ./run_unlimit.sh
 #   TOKENIZERS="handmade qwen" ./run_unlimit.sh
@@ -37,6 +38,8 @@ SPLITS="${SPLITS:-limit-small limit}"
 TOKENIZERS="${TOKENIZERS:-handmade qwen}"
 QWEN_MODEL="${QWEN_MODEL:-Qwen/Qwen3-0.6B}"
 QWEN_LOCAL_FILES_ONLY="${QWEN_LOCAL_FILES_ONLY:-0}"
+RESUME="${RESUME:-1}"
+MODE="${MODE:-run}"
 BASE_SEED="${BASE_SEED:-42}"
 DEVICE="${DEVICE:-cpu}"
 OUT_DIR="${OUT_DIR:-${RESULTS_DIR}/unlimit/random_embeddings}"
@@ -46,11 +49,18 @@ PAPER_FIGURE_DIR="${PAPER_FIGURE_DIR:-${PROJECT_ROOT}/paper/figure}"
 mkdir -p "${OUT_DIR}"
 pushd "${OUT_DIR}" >/dev/null
 
-echo "[INFO] unlimit random-token embedding run" | tee run.log
+if [ "${RESUME}" = "1" ] && [ -f run.log ]; then
+  printf "\n[INFO] resuming unlimit random-token embedding run\n" | tee -a run.log
+else
+  : > run.log
+  echo "[INFO] unlimit random-token embedding run" | tee -a run.log
+fi
 echo "  dims      = ${DIMS}" | tee -a run.log
 echo "  datasets  = ${SPLITS}" | tee -a run.log
 echo "  tokenizers= ${TOKENIZERS}" | tee -a run.log
 echo "  qwen_model= ${QWEN_MODEL}" | tee -a run.log
+echo "  mode      = ${MODE}" | tee -a run.log
+echo "  resume    = ${RESUME}" | tee -a run.log
 echo "  base_seed = ${BASE_SEED}" | tee -a run.log
 echo "  device    = ${DEVICE}" | tee -a run.log
 echo "  python    = ${PYTHON_BIN}" | tee -a run.log
@@ -60,6 +70,7 @@ echo "  paper_fig = ${PAPER_FIGURE_DIR}" | tee -a run.log
 echo "  git_commit = $(git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || echo none)" | tee -a run.log
 
 ARGS=(
+  --mode "${MODE}"
   --output-dir "${OUT_DIR}"
   --paper-table-dir "${PAPER_TABLE_DIR}"
   --paper-figure-dir "${PAPER_FIGURE_DIR}"
@@ -73,6 +84,9 @@ ARGS=(
 
 if [ "${QWEN_LOCAL_FILES_ONLY}" = "1" ]; then
   ARGS+=(--qwen-local-files-only)
+fi
+if [ "${RESUME}" = "1" ]; then
+  ARGS+=(--resume)
 fi
 
 echo "[CMD] ${PYTHON_BIN} -m unlimit.random_embedding_sweep ${ARGS[*]}" | tee -a run.log
