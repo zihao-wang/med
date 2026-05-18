@@ -1,4 +1,4 @@
-"""Tests for packaged LiMIT dataset assets."""
+"""Tests for packaged LIMIT dataset assets."""
 
 from unlimit.datasets.limit import load_limit, qrels_positive_distribution
 

@@ -1,4 +1,4 @@
-"""Hand-built LiMIT concept vocabulary (sorted ``vocab.txt``) + phrase tokenization."""
+"""Hand-built LIMIT concept vocabulary (sorted ``vocab.txt``) + phrase tokenization."""
 
 from __future__ import annotations
 

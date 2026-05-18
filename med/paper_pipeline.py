@@ -227,7 +227,7 @@ def _write_table_tex(path: Path, rows: list[dict[str, Any]]) -> None:
     path.write_text("\n".join(lines))
 
 
-def _observed_m_star(
+def _inverted_med_frontier(
     rows: list[dict[str, Any]], d_key: str
 ) -> tuple[list[int], list[float]]:
     pairs = [
@@ -238,12 +238,18 @@ def _observed_m_star(
     if not pairs:
         return [], []
 
-    d_values = list(range(1, max(d for d, _ in pairs) + 1))
-    m_values: list[float] = []
-    for d in d_values:
-        supported = [m for d_star, m in pairs if d_star <= d]
-        m_values.append(float(max(supported)) if supported else np.nan)
-    return d_values, m_values
+    best_m_by_d: dict[int, int] = {}
+    for d, m in pairs:
+        best_m_by_d[d] = max(m, best_m_by_d.get(d, 0))
+
+    frontier: list[tuple[int, int]] = []
+    best_m = 0
+    for d, m in sorted(best_m_by_d.items()):
+        if m > best_m:
+            frontier.append((d, m))
+            best_m = m
+
+    return [d for d, _ in frontier], [float(m) for _, m in frontier]
 
 
 def _valid_dimension_pairs(
@@ -274,8 +280,8 @@ def generate_figures(
     rows = payload["summary_rows"]
     max_m = max(row["m"] for row in rows)
 
-    cyclic_ds, cyclic_ms = _observed_m_star(rows, "cyclic_polytope_d")
-    mean_ds, mean_ms = _observed_m_star(rows, "mean_embedding_d")
+    cyclic_ds, cyclic_ms = _inverted_med_frontier(rows, "cyclic_polytope_d")
+    mean_ds, mean_ms = _inverted_med_frontier(rows, "mean_embedding_d")
     max_d = max(cyclic_ds + mean_ds + [10])
     d_range = np.linspace(1, max_d, 300)
 

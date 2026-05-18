@@ -1,4 +1,4 @@
-"""LiMIT corpus / query / qrel loading."""
+"""LIMIT corpus / query / qrel loading."""
 
 from __future__ import annotations
 

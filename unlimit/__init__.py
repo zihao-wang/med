@@ -1,4 +1,4 @@
-"""LiMIT experiments: datasets, tokenizers, and retrieval (PyTorch-only core)."""
+"""LIMIT experiments: datasets, tokenizers, and retrieval (PyTorch-only core)."""
 
 from __future__ import annotations
 

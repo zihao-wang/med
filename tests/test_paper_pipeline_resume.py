@@ -60,3 +60,32 @@ def test_load_plot_payload_falls_back_to_summary_csv(tmp_path):
     assert run_dir == tmp_path
     assert loaded_from == csv_path
     assert payload["summary_rows"][1]["mean_embedding_d"] == 7
+
+
+def test_inverted_med_frontier_removes_redundant_points():
+    rows = _summary_rows() + [
+        {
+            **_summary_rows()[-1],
+            "m": 40,
+            "top_k_queries": 780,
+            "cyclic_polytope_d": 4,
+            "mean_embedding_d": 7,
+        },
+        {
+            **_summary_rows()[-1],
+            "m": 80,
+            "top_k_queries": 3160,
+            "cyclic_polytope_d": 5,
+            "mean_embedding_d": 9,
+        },
+    ]
+
+    cyclic_d, cyclic_m = paper_pipeline._inverted_med_frontier(
+        rows, "cyclic_polytope_d"
+    )
+    mean_d, mean_m = paper_pipeline._inverted_med_frontier(rows, "mean_embedding_d")
+
+    assert cyclic_d == [4, 5]
+    assert cyclic_m == [40.0, 80.0]
+    assert mean_d == [1, 7, 9]
+    assert mean_m == [10.0, 40.0, 80.0]

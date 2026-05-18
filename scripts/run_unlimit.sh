@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run the unlimit random-token embedding sweep on LiMIT-small and LiMIT.
+# Run the unlimit random-token embedding sweep on LIMIT-small and LIMIT.
 #
 # Usage:
 #   ./run_unlimit.sh
@@ -9,10 +9,12 @@ set -euo pipefail
 #   DIMS="32 64 128" ./run_unlimit.sh
 #   SPLITS="limit-small" ./run_unlimit.sh
 #   TOKENIZERS="handmade qwen" ./run_unlimit.sh
+#   SCORE_CHUNK_SIZE=1024 ./run_unlimit.sh
+#   NO_PHRASE_COVER_FREE=1 ./run_unlimit.sh
 #
 # Results written to results/unlimit/random_embeddings/
 #   - config.json  : run configuration
-#   - results.json : per-(dataset, dim) metrics
+#   - results.json : per-(dataset, tokenizer, dim) metrics
 #   - summary.csv  : compact table with recall_at_2
 #   - limit_retrieval_table.tex
 #   - limit_retrieval.pdf
@@ -42,6 +44,8 @@ RESUME="${RESUME:-1}"
 MODE="${MODE:-run}"
 BASE_SEED="${BASE_SEED:-42}"
 DEVICE="${DEVICE:-cpu}"
+SCORE_CHUNK_SIZE="${SCORE_CHUNK_SIZE:-2048}"
+NO_PHRASE_COVER_FREE="${NO_PHRASE_COVER_FREE:-${NO_COVER_FREE:-0}}"
 OUT_DIR="${OUT_DIR:-${RESULTS_DIR}/unlimit/random_embeddings}"
 PAPER_TABLE_DIR="${PAPER_TABLE_DIR:-${PROJECT_ROOT}/paper/table}"
 PAPER_FIGURE_DIR="${PAPER_FIGURE_DIR:-${PROJECT_ROOT}/paper/figure}"
@@ -63,6 +67,8 @@ echo "  mode      = ${MODE}" | tee -a run.log
 echo "  resume    = ${RESUME}" | tee -a run.log
 echo "  base_seed = ${BASE_SEED}" | tee -a run.log
 echo "  device    = ${DEVICE}" | tee -a run.log
+echo "  score_chk = ${SCORE_CHUNK_SIZE}" | tee -a run.log
+echo "  phrasecf  = $([ "${NO_PHRASE_COVER_FREE}" = "1" ] && echo disabled || echo enabled)" | tee -a run.log
 echo "  python    = ${PYTHON_BIN}" | tee -a run.log
 echo "  output_dir= ${OUT_DIR}" | tee -a run.log
 echo "  paper_tbl = ${PAPER_TABLE_DIR}" | tee -a run.log
@@ -76,6 +82,7 @@ ARGS=(
   --paper-figure-dir "${PAPER_FIGURE_DIR}"
   --base-seed "${BASE_SEED}"
   --device "${DEVICE}"
+  --score-chunk-size "${SCORE_CHUNK_SIZE}"
   --qwen-model "${QWEN_MODEL}"
   --dims ${DIMS}
   --splits ${SPLITS}
@@ -87,6 +94,9 @@ if [ "${QWEN_LOCAL_FILES_ONLY}" = "1" ]; then
 fi
 if [ "${RESUME}" = "1" ]; then
   ARGS+=(--resume)
+fi
+if [ "${NO_PHRASE_COVER_FREE}" = "1" ]; then
+  ARGS+=(--no-phrase-cover-free)
 fi
 
 echo "[CMD] ${PYTHON_BIN} -m unlimit.random_embedding_sweep ${ARGS[*]}" | tee -a run.log

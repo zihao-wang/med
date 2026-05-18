@@ -129,6 +129,29 @@ def find_maximal_n(
 # ---------------------------------------------------------------------------
 
 
+def _inverted_med_frontier(d_star_data: dict) -> tuple[list[int], list[float]]:
+    pairs = [
+        (int(d), int(m))
+        for m, d in d_star_data.items()
+        if d is not None and int(d) > 0
+    ]
+    if not pairs:
+        return [], []
+
+    best_m_by_d: dict[int, int] = {}
+    for d, m in pairs:
+        best_m_by_d[d] = max(m, best_m_by_d.get(d, 0))
+
+    frontier: list[tuple[int, int]] = []
+    best_m = 0
+    for d, m in sorted(best_m_by_d.items()):
+        if m > best_m:
+            frontier.append((d, m))
+            best_m = m
+
+    return [d for d, _ in frontier], [float(m) for _, m in frontier]
+
+
 def generate_plots(results: dict, output_dir: str) -> None:
     """Generate compare_plot1.pdf and compare_plot2.pdf from experiment results."""
     import matplotlib
@@ -139,13 +162,14 @@ def generate_plots(results: dict, output_dir: str) -> None:
     set_paper_style()
 
     d_star_data = results["d_star"]  # {n: d} pairs
-    m_star_data = results["m_star"]  # {d: n} pairs
 
     # ---- Plot 1: m*(d) vs d (critical points vs dimension) ----
     fig1, ax1 = plt.subplots(figsize=(8, 5))
 
     # WBNL curve
-    d_range = np.linspace(1, max(int(k) for k in m_star_data.keys()), 200)
+    d_vals, m_vals = _inverted_med_frontier(d_star_data)
+    max_d = max(d_vals) if d_vals else 10
+    d_range = np.linspace(1, max_d, 200)
     ax1.plot(
         d_range,
         wbnl_critical_m(d_range),
@@ -154,10 +178,16 @@ def generate_plots(results: dict, output_dir: str) -> None:
         label="WBNL (2025) fitted",
     )
 
-    # Our centroid results: m*(d)
-    d_vals = sorted(int(k) for k in m_star_data.keys() if m_star_data[k] is not None)
-    m_vals = [m_star_data[str(d)] for d in d_vals]
-    ax1.plot(d_vals, m_vals, "bo-", linewidth=2, markersize=7, label="Centroid (ours)")
+    # Our centroid results: inverted d*(m) frontier with redundant points removed.
+    if d_vals:
+        ax1.plot(
+            d_vals,
+            m_vals,
+            "bo-",
+            linewidth=2,
+            markersize=7,
+            label="Centroid (ours)",
+        )
 
     ax1.set_xlabel("Dimension $d$")
     ax1.set_ylabel("Critical number of points $m^*$")

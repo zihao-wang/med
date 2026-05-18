@@ -1,4 +1,4 @@
-"""Tokenizer backends for LiMIT experiments."""
+"""Tokenizer backends for LIMIT experiments."""
 
 from __future__ import annotations
 

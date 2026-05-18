@@ -1,9 +1,9 @@
-"""Generate limit_retrieval.pdf for the random-token LiMIT experiment.
+"""Generate limit_retrieval.pdf for the random-token LIMIT experiment.
 
 The experiment assigns each vocabulary item a fixed random Gaussian vector,
 embeds each document/query by summing its token vectors, and ranks documents by
-query/document inner product. It sweeps embedding dimension on LiMIT-small and,
-optionally, LiMIT-full.
+query/document inner product. It sweeps embedding dimension on LIMIT-small and,
+optionally, LIMIT-full.
 
 Usage:
     python -m unlimit.limit_figure --mode run
@@ -63,9 +63,9 @@ def run_sweep(
     dims: list[int],
     base_seed: int = BASE_SEED,
 ) -> list[dict]:
-    """Run the random-token embedding dimension sweep on one LiMIT split."""
+    """Run the random-token embedding dimension sweep on one LIMIT split."""
     print(f"\n{'=' * 60}")
-    print(f"Loading LiMIT-{split} ...")
+    print(f"Loading LIMIT-{split} ...")
     corpus, queries, qrels = load_limit(split)  # type: ignore[arg-type]
     tokenized_corpus = tokenize_corpus_records(corpus)
     tokenized_queries = tokenize_query_records(queries)
@@ -97,28 +97,24 @@ def run_sweep(
         token_matrix = build_random_token_matrix(num_token_types, dim, seed)
         scores = score_random_embeddings(corpus_tokens, query_tokens, token_matrix)
         metrics = retrieval_metrics_from_logits(scores, labels)
-        metrics["dim"] = dim
-        metrics["seed"] = seed
-        metrics["split"] = split
-        results.append(metrics)
-        print(
-            f"top2_EM={metrics['top2_exact_match']:.3f}  "
-            f"R@1={metrics['recall_at_1']:.3f}  "
-            f"R@2={metrics['recall_at_2']:.3f}  "
-            f"mean_rank={metrics['mean_rank']:.2f}"
+        results.append(
+            {
+                "split": split,
+                "dim": dim,
+                "seed": seed,
+                "recall_at_2": metrics["recall_at_2"],
+                "num_queries_eval": metrics["num_queries_eval"],
+            }
         )
+        print(f"R@2={metrics['recall_at_2']:.3f}")
 
     results.append(
         {
             "split": split,
             "dim": -1,
             "seed": -1,
-            "top2_exact_match": membership_metrics["top2_exact_match"],
-            "recall_at_1": membership_metrics["recall_at_1"],
             "recall_at_2": membership_metrics["recall_at_2"],
-            "mean_rank": membership_metrics["mean_rank"],
             "num_queries_eval": membership_metrics["num_queries_eval"],
-            "num_queries_top2_eval": membership_metrics["num_queries_top2_eval"],
         }
     )
     return results
@@ -161,24 +157,26 @@ def generate_plots(results: list[dict], output_dir: str) -> None:
     sweep = [row for row in results if row["dim"] >= 0]
     splits = sorted({row["split"] for row in sweep})
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5.2))
+    fig, ax = plt.subplots(figsize=(7.2, 4.8))
 
-    ax = axes[0]
+    positive_values: list[float] = []
     for split in splits:
         points = sorted(
             [row for row in sweep if row["split"] == split],
             key=lambda row: row["dim"],
         )
         marker, color, linestyle = _SPLIT_STYLE.get(split, ("o", "gray", "-"))
+        recall2 = [float(point["recall_at_2"]) for point in points]
+        positive_values.extend(value for value in recall2 if value > 0)
         ax.plot(
             [point["dim"] for point in points],
-            [point["top2_exact_match"] for point in points],
+            [value if value > 0 else float("nan") for value in recall2],
             marker=marker,
             color=color,
             linestyle=linestyle,
             linewidth=1.7,
             markersize=6,
-            label=f"LiMIT-{split}",
+            label=f"LIMIT-{split}",
         )
     ax.axhline(y=1.0, color="black", linestyle=":", linewidth=1, alpha=0.6)
     ax.text(
@@ -190,41 +188,17 @@ def generate_plots(results: list[dict], output_dir: str) -> None:
         alpha=0.6,
     )
     ax.set_xlabel("Embedding dimension $d$")
-    ax.set_ylabel("Top-2 exact match")
-    ax.set_title("Top-2 exact match vs dimension")
-    ax.set_xscale("log", base=2)
-    ax.set_ylim(-0.05, 1.08)
-    ax.grid(True, alpha=0.25)
-    ax.legend(fontsize=8, loc="lower right")
-
-    ax = axes[1]
-    for split in splits:
-        points = sorted(
-            [row for row in sweep if row["split"] == split],
-            key=lambda row: row["dim"],
-        )
-        marker, color, linestyle = _SPLIT_STYLE.get(split, ("o", "gray", "-"))
-        ax.plot(
-            [point["dim"] for point in points],
-            [point["mean_rank"] for point in points],
-            marker=marker,
-            color=color,
-            linestyle=linestyle,
-            linewidth=1.7,
-            markersize=6,
-            label=f"LiMIT-{split}",
-        )
-    ax.axhline(y=1.0, color="black", linestyle=":", linewidth=1, alpha=0.6)
-    ax.set_xlabel("Embedding dimension $d$")
-    ax.set_ylabel("Mean rank")
-    ax.set_title("Mean rank vs dimension")
+    ax.set_ylabel("Recall@2")
+    ax.set_title("Recall@2 vs dimension")
     ax.set_xscale("log", base=2)
     ax.set_yscale("log")
-    ax.grid(True, alpha=0.25)
-    ax.legend(fontsize=8, loc="upper right")
+    if positive_values:
+        ax.set_ylim(min(positive_values) * 0.8, 1.08)
+    ax.grid(True, alpha=0.25, which="both")
+    ax.legend(fontsize=8, loc="lower right")
 
     fig.suptitle(
-        "LiMIT retrieval with random token embeddings",
+        "LIMIT retrieval with random token embeddings",
         fontsize=14,
         y=1.02,
     )
@@ -238,7 +212,7 @@ def generate_plots(results: list[dict], output_dir: str) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate LiMIT random-token retrieval figure"
+        description="Generate LIMIT random-token retrieval figure"
     )
     parser.add_argument(
         "--mode",
@@ -249,7 +223,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--full",
         action="store_true",
-        help="Include LiMIT-full dataset (~50k docs; slower)",
+        help="Include LIMIT-full dataset (~50k docs; slower)",
     )
     parser.add_argument(
         "--dims",

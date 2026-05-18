@@ -1,4 +1,4 @@
-"""Load packaged LiMIT JSONL splits."""
+"""Load packaged LIMIT JSONL splits."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def load_jsonl_from_asset(
     split: Literal["small", "full"],
     name: Literal["corpus", "queries", "qrels"],
 ) -> list[dict[str, Any]]:
-    """Load one packaged LiMIT JSONL asset."""
+    """Load one packaged LIMIT JSONL asset."""
     path = resources.files("unlimit").joinpath(
         "assets",
         LIMIT_ASSET_DIR_BY_SPLIT[split],
@@ -104,7 +104,7 @@ def load_limit_train_test(
     list[QrelRecord],
 ]:
     """
-    Load LiMIT, then partition **queries** (and qrels) into train / test.
+    Load LIMIT, then partition **queries** (and qrels) into train / test.
 
     The **corpus** is unchanged (full retrieval pool for both splits).
     """
@@ -123,7 +123,7 @@ def load_limit(
     split: Literal["small", "full"] = "small",
 ) -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelRecord]]:
     """
-    Load corpus, queries, and qrels from packaged LiMIT JSONL assets.
+    Load corpus, queries, and qrels from packaged LIMIT JSONL assets.
 
     Args:
         split: ``\"small\"`` — 46 docs / 1000 queries / 2000 qrels (quick demos).
@@ -164,7 +164,7 @@ def load_limit_full() -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelR
 if __name__ == "__main__":
     import argparse
 
-    ap = argparse.ArgumentParser(description="Load packaged LiMIT JSONL assets")
+    ap = argparse.ArgumentParser(description="Load packaged LIMIT JSONL assets")
     ap.add_argument(
         "split",
         nargs="?",

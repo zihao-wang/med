@@ -1,4 +1,4 @@
-"""Training-free LiMIT retrieval with random token embeddings."""
+"""Training-free LIMIT retrieval with random token embeddings."""
 
 from __future__ import annotations
 
@@ -78,6 +78,68 @@ def score_random_embeddings(
     return queries @ docs.T
 
 
+@torch.no_grad()
+def recall_at_2_random_embeddings_chunked(
+    corpus_tokens: list[list[int]],
+    query_tokens: list[list[int]],
+    token_matrix: torch.Tensor,
+    labels: torch.Tensor,
+    *,
+    doc_chunk_size: int = 2048,
+) -> dict[str, float]:
+    """Compute Recall@2 without materializing the full query-document matrix."""
+    if doc_chunk_size <= 0:
+        raise ValueError("doc_chunk_size must be positive")
+
+    num_queries = len(query_tokens)
+    num_docs = len(corpus_tokens)
+    if num_queries == 0 or num_docs == 0:
+        return {"recall_at_2": 0.0, "num_queries_eval": 0.0}
+
+    k = min(2, num_docs)
+    queries = sum_token_rows(query_tokens, token_matrix)
+    top_values = torch.full(
+        (num_queries, k),
+        -torch.inf,
+        device=token_matrix.device,
+        dtype=token_matrix.dtype,
+    )
+    top_indices = torch.full(
+        (num_queries, k),
+        -1,
+        device=token_matrix.device,
+        dtype=torch.long,
+    )
+
+    for start in range(0, num_docs, doc_chunk_size):
+        end = min(start + doc_chunk_size, num_docs)
+        docs = sum_token_rows(corpus_tokens[start:end], token_matrix)
+        scores = queries @ docs.T
+        chunk_indices = torch.arange(start, end, device=scores.device, dtype=torch.long)
+        chunk_indices = chunk_indices.unsqueeze(0).expand(num_queries, -1)
+
+        combined_values = torch.cat([top_values, scores], dim=1)
+        combined_indices = torch.cat([top_indices, chunk_indices], dim=1)
+        top_values, local_top = torch.topk(combined_values, k=k, dim=1, largest=True)
+        top_indices = torch.gather(combined_indices, 1, local_top)
+
+    recall2_sum = 0.0
+    num_eval = 0
+    for qi in range(num_queries):
+        pos = labels[qi].nonzero(as_tuple=False).squeeze(-1)
+        if pos.numel() == 0:
+            continue
+        recall2_sum += float(labels[qi, top_indices[qi]].sum().item()) / float(
+            pos.numel()
+        )
+        num_eval += 1
+
+    return {
+        "recall_at_2": recall2_sum / num_eval if num_eval else 0.0,
+        "num_queries_eval": float(num_eval),
+    }
+
+
 def run_random_embedding_eval(
     tokenizer: LimitTokenizer,
     *,
@@ -87,7 +149,7 @@ def run_random_embedding_eval(
     device: str | torch.device | None = None,
     verbose: bool = True,
 ) -> dict[str, float]:
-    """Evaluate random-token embedding retrieval on an official LiMIT split."""
+    """Evaluate random-token embedding retrieval on an official LIMIT split."""
     dev = resolve_torch_device(device)
     seed = base_seed + embed_dim
 
@@ -132,10 +194,7 @@ def run_random_embedding_eval(
     if verbose:
         print(
             "[random-emb] metrics: "
-            f"mean_rank={metrics['mean_rank']:.4f}  "
-            f"recall_at_1={metrics['recall_at_1']:.4f}  "
-            f"recall_at_2={metrics['recall_at_2']:.4f}  "
-            f"top2_exact_match={metrics['top2_exact_match']:.4f}",
+            f"recall_at_2={metrics['recall_at_2']:.4f}",
             flush=True,
         )
 
@@ -144,6 +203,7 @@ def run_random_embedding_eval(
 
 __all__ = [
     "build_random_token_matrix",
+    "recall_at_2_random_embeddings_chunked",
     "run_random_embedding_eval",
     "score_random_embeddings",
     "sum_token_rows",

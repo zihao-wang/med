@@ -1,4 +1,4 @@
-"""Shared record types for tokenized LiMIT data."""
+"""Shared record types for tokenized LIMIT data."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class TokenizedQueryRecord(TypedDict):
 
 @runtime_checkable
 class LimitTokenizer(Protocol):
-    """Maps raw LiMIT corpus / query dicts to token id sequences."""
+    """Maps raw LIMIT corpus / query dicts to token id sequences."""
 
     name: str
 

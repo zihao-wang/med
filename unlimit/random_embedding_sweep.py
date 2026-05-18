@@ -1,4 +1,4 @@
-"""Run random-token embedding sweeps on packaged LiMIT assets."""
+"""Run random-token embedding sweeps on packaged LIMIT assets."""
 
 from __future__ import annotations
 
@@ -16,10 +16,13 @@ import torch
 from unlimit.datasets import load_limit
 from unlimit.device import resolve_torch_device
 from unlimit.dtype import DEFAULT_FLOAT_DTYPE
-from unlimit.retrieval.metrics import build_qrels_tensor, retrieval_metrics_from_logits
+from unlimit.retrieval.cover_free import (
+    phrase_cover_free_recall_at_2_curve,
+)
+from unlimit.retrieval.metrics import build_qrels_tensor
 from unlimit.retrieval.random_embeddings import (
     build_random_token_matrix,
-    score_random_embeddings,
+    recall_at_2_random_embeddings_chunked,
 )
 from unlimit.tokenizers.handmade import HandmadeTokenizer
 from unlimit.tokenizers.qwen import QwenSubwordTokenizer
@@ -28,6 +31,7 @@ from unlimit.tokenizers.types import LimitTokenizer
 DEFAULT_DIMS = [32, 64, 128, 256, 512, 1024, 2048, 4096]
 DEFAULT_SPLITS = ["limit-small", "limit"]
 DEFAULT_TOKENIZERS = ["handmade", "qwen"]
+PHRASE_COVER_FREE = "phrase-cover-free"
 BASE_SEED = 42
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "results" / "unlimit" / "random_embeddings"
@@ -44,24 +48,16 @@ RESULT_FIELDNAMES = [
     "dim",
     "seed",
     "recall_at_2",
-    "top2_exact_match",
-    "recall_at_1",
-    "mean_rank",
     "num_queries_eval",
-    "num_queries_top2_eval",
 ]
 
 INT_RESULT_FIELDS = {
     "dim",
     "seed",
     "num_queries_eval",
-    "num_queries_top2_eval",
 }
 FLOAT_RESULT_FIELDS = {
     "recall_at_2",
-    "top2_exact_match",
-    "recall_at_1",
-    "mean_rank",
 }
 
 
@@ -78,13 +74,33 @@ def _dataset_name(split: SplitName) -> str:
     return "limit-small" if split == "small" else "limit"
 
 
+def _display_dataset_name(dataset: object) -> str:
+    value = str(dataset)
+    if value == "limit-small":
+        return "LIMIT-small"
+    if value == "limit":
+        return "LIMIT"
+    return value
+
+
 def _normalize_tokenizer(name: str) -> str:
     value = name.strip().lower()
     if value in {"handmade", "vocab", "vocab.txt"}:
         return "handmade"
     if value in {"qwen", "qwen3"}:
         return "qwen"
-    raise ValueError(f"unknown tokenizer {name!r}; expected handmade or qwen")
+    if value in {
+        "phrase-cover-free",
+        "phrase_cover_free",
+        "cover-free",
+        "cover_free",
+        "free-cover",
+        "free_cover",
+    }:
+        return PHRASE_COVER_FREE
+    raise ValueError(
+        f"unknown tokenizer {name!r}; expected handmade, qwen, or phrase-cover-free"
+    )
 
 
 def _build_tokenizer(
@@ -118,8 +134,9 @@ def evaluate_split(
     qwen_local_files_only: bool,
     base_seed: int,
     device: torch.device,
+    score_chunk_size: int,
 ) -> list[dict[str, float | int | str]]:
-    """Evaluate one packaged LiMIT split over token embedding dimensions."""
+    """Evaluate one packaged LIMIT split over token embedding dimensions."""
     dataset = _dataset_name(split)
     tokenizer = _build_tokenizer(
         tokenizer_name,
@@ -144,7 +161,7 @@ def evaluate_split(
         f"qrels={len(qrels)}  token_types={tokenizer.num_token_types()}",
         flush=True,
     )
-    print("  dim    recall@2    top2_exact    recall@1    mean_rank", flush=True)
+    print("  dim    recall@2", flush=True)
 
     rows: list[ResultRow] = []
     for dim in dims:
@@ -156,8 +173,13 @@ def evaluate_split(
             device=device,
             dtype=DEFAULT_FLOAT_DTYPE,
         )
-        scores = score_random_embeddings(corpus_tokens, query_tokens, token_matrix)
-        metrics = retrieval_metrics_from_logits(scores, labels)
+        metrics = recall_at_2_random_embeddings_chunked(
+            corpus_tokens,
+            query_tokens,
+            token_matrix,
+            labels,
+            doc_chunk_size=score_chunk_size,
+        )
         row: ResultRow = {
             "dataset": dataset,
             "split": split,
@@ -165,25 +187,83 @@ def evaluate_split(
             "dim": dim,
             "seed": seed,
             "recall_at_2": metrics["recall_at_2"],
-            "top2_exact_match": metrics["top2_exact_match"],
-            "recall_at_1": metrics["recall_at_1"],
-            "mean_rank": metrics["mean_rank"],
             "num_queries_eval": metrics["num_queries_eval"],
-            "num_queries_top2_eval": metrics["num_queries_top2_eval"],
         }
         rows.append(row)
         print(
             f"  {dim:<6d} "
-            f"{metrics['recall_at_2']:<11.4f} "
-            f"{metrics['top2_exact_match']:<12.4f} "
-            f"{metrics['recall_at_1']:<10.4f} "
-            f"{metrics['mean_rank']:.2f}",
+            f"{metrics['recall_at_2']:.4f}",
             flush=True,
         )
-        del scores, token_matrix
+        del token_matrix
         if device.type == "cuda":
             torch.cuda.empty_cache()
     return rows
+
+
+def evaluate_phrase_cover_free_split(
+    split: SplitName,
+    dims: list[int],
+    *,
+    base_seed: int,
+    device: torch.device,
+    score_chunk_size: int,
+) -> list[dict[str, float | int | str]]:
+    """Evaluate the label-unaware phrase cover-free construction on one split."""
+    dataset = _dataset_name(split)
+    print(f"\n[DATA] {dataset}  tokenizer={PHRASE_COVER_FREE}", flush=True)
+    corpus, queries, qrels = load_limit(split)
+    tokenizer = HandmadeTokenizer()
+    tokenized_corpus = tokenizer.tokenize_corpus_records(corpus)
+    tokenized_queries = tokenizer.tokenize_query_records(queries)
+
+    corpus_ids = [record["_id"] for record in tokenized_corpus]
+    query_ids = [record["_id"] for record in tokenized_queries]
+    corpus_tokens = [record["token_ids"] for record in tokenized_corpus]
+    query_tokens = [record["token_ids"] for record in tokenized_queries]
+    labels = build_qrels_tensor(qrels, query_ids, corpus_ids, device)
+
+    print(
+        "  "
+        f"corpus_docs={len(corpus_tokens)}  queries={len(query_tokens)}  "
+        f"qrels={len(qrels)}  token_types={tokenizer.num_token_types()}  "
+        f"construction={PHRASE_COVER_FREE}",
+        flush=True,
+    )
+    print("  dim    recall@2", flush=True)
+
+    curve = phrase_cover_free_recall_at_2_curve(
+        corpus_tokens,
+        query_tokens,
+        labels,
+        tokenizer.num_token_types(),
+        dims,
+        seed=base_seed,
+        device=device,
+        dtype=DEFAULT_FLOAT_DTYPE,
+        doc_chunk_size=score_chunk_size,
+    )
+    rows: list[ResultRow] = []
+    for dim in sorted(dims):
+        metrics = curve[int(dim)]
+        row: ResultRow = {
+            "dataset": dataset,
+            "split": split,
+            "tokenizer": PHRASE_COVER_FREE,
+            "dim": int(dim),
+            "seed": base_seed,
+            "recall_at_2": metrics["recall_at_2"],
+            "num_queries_eval": metrics["num_queries_eval"],
+        }
+        rows.append(row)
+        print(f"  {int(dim):<6d} {metrics['recall_at_2']:.4f}", flush=True)
+    return rows
+
+
+def _effective_seed(tokenizer_name: str, dim: int, *, base_seed: int) -> int:
+    if tokenizer_name == PHRASE_COVER_FREE:
+        return base_seed
+    return base_seed + dim
 
 
 def _row_key(row: ResultRow) -> tuple[str, str, str, int, int]:
@@ -207,14 +287,21 @@ def _sort_rows(rows: list[ResultRow]) -> list[ResultRow]:
     )
 
 
-def _parse_result_cell(value: str | None, field: str) -> float | int | str:
-    if value is None:
+def _parse_result_cell(value: object, field: str) -> float | int | str:
+    if value is None or value == "":
         return ""
     if field in INT_RESULT_FIELDS:
         return int(float(value))
     if field in FLOAT_RESULT_FIELDS:
         return float(value)
-    return value
+    return str(value)
+
+
+def _normalize_result_row(row: dict) -> ResultRow:
+    """Drop legacy fields such as top-2 exact match from saved result rows."""
+    return {
+        field: _parse_result_cell(row.get(field), field) for field in RESULT_FIELDNAMES
+    }
 
 
 def _load_json_rows(path: Path) -> list[ResultRow]:
@@ -222,15 +309,12 @@ def _load_json_rows(path: Path) -> list[ResultRow]:
         payload = json.load(handle)
     if not isinstance(payload, list):
         raise ValueError(f"Expected a list of result rows in {path}")
-    return [dict(row) for row in payload]
+    return [_normalize_result_row(dict(row)) for row in payload]
 
 
 def _load_summary_csv(path: Path) -> list[ResultRow]:
     with path.open(encoding="utf-8", newline="") as handle:
-        return [
-            {field: _parse_result_cell(value, field) for field, value in row.items()}
-            for row in csv.DictReader(handle)
-        ]
+        return [_normalize_result_row(dict(row)) for row in csv.DictReader(handle)]
 
 
 def _recover_rows_from_log(path: Path, *, base_seed: int) -> list[ResultRow]:
@@ -239,11 +323,7 @@ def _recover_rows_from_log(path: Path, *, base_seed: int) -> list[ResultRow]:
         r"^\s+corpus_docs=\d+\s+queries=(?P<queries>\d+)\s+qrels=\d+"
     )
     metric_re = re.compile(
-        r"^\s+(?P<dim>\d+)\s+"
-        r"(?P<recall2>[0-9.]+)\s+"
-        r"(?P<top2>[0-9.]+)\s+"
-        r"(?P<recall1>[0-9.]+)\s+"
-        r"(?P<mean_rank>[0-9.]+)\s*$"
+        r"^\s+(?P<dim>\d+)\s+(?P<recall2>[0-9.]+)(?:\s+[0-9.]+)*\s*$"
     )
 
     rows: list[ResultRow] = []
@@ -258,7 +338,16 @@ def _recover_rows_from_log(path: Path, *, base_seed: int) -> list[ResultRow]:
             if data_match:
                 dataset = data_match.group("dataset")
                 split = _normalize_split(dataset)
-                tokenizer = _normalize_tokenizer(data_match.group("tokenizer"))
+                raw_tokenizer = data_match.group("tokenizer").strip().lower()
+                if raw_tokenizer in {
+                    "cover-free",
+                    "cover_free",
+                    "free-cover",
+                    "free_cover",
+                }:
+                    tokenizer = "cover-free"
+                else:
+                    tokenizer = _normalize_tokenizer(raw_tokenizer)
                 num_queries = 0
                 continue
 
@@ -283,13 +372,9 @@ def _recover_rows_from_log(path: Path, *, base_seed: int) -> list[ResultRow]:
                     "split": split,
                     "tokenizer": tokenizer,
                     "dim": dim,
-                    "seed": base_seed + dim,
+                    "seed": _effective_seed(tokenizer, dim, base_seed=base_seed),
                     "recall_at_2": float(metric_match.group("recall2")),
-                    "top2_exact_match": float(metric_match.group("top2")),
-                    "recall_at_1": float(metric_match.group("recall1")),
-                    "mean_rank": float(metric_match.group("mean_rank")),
                     "num_queries_eval": num_queries,
-                    "num_queries_top2_eval": num_queries,
                 }
             )
     return rows
@@ -330,7 +415,7 @@ def _requested_keys(
             split,
             tokenizer_name,
             dim,
-            base_seed + dim,
+            _effective_seed(tokenizer_name, dim, base_seed=base_seed),
         )
         for tokenizer_name in tokenizers
         for split in splits
@@ -369,19 +454,17 @@ def _write_latex_table(
         key=lambda row: (str(row["dataset"]), str(row["tokenizer"]), int(row["dim"])),
     )
     lines = [
-        "\\begin{tabular}{llrrrr}",
+        "\\begin{tabular}{llrr}",
         "\\toprule",
-        "Dataset & Tokenizer & $d$ & Recall@2 & Top-2 EM & Mean rank \\\\",
+        "Dataset & Construction & $d$ & Recall@2 \\\\",
         "\\midrule",
     ]
     for row in sorted_rows:
         lines.append(
-            f"{_latex_escape(row['dataset'])} & "
+            f"{_latex_escape(_display_dataset_name(row['dataset']))} & "
             f"{_latex_escape(row['tokenizer'])} & "
             f"{row['dim']} & "
-            f"{_format_float(row['recall_at_2'])} & "
-            f"{_format_float(row['top2_exact_match'])} & "
-            f"{_format_float(row['mean_rank'], digits=2)} \\\\"
+            f"{_format_float(row['recall_at_2'])} \\\\"
         )
     lines.extend(["\\bottomrule", "\\end{tabular}", ""])
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -419,9 +502,10 @@ def _write_pdf_figure(
 
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5.2))
+    fig, ax = plt.subplots(figsize=(7.2, 4.8))
     groups = sorted({(str(row["dataset"]), str(row["tokenizer"])) for row in rows})
     markers = ["o", "s", "^", "D", "v", "P"]
+    positive_values: list[float] = []
 
     for idx, (dataset, tokenizer) in enumerate(groups):
         points = sorted(
@@ -432,41 +516,29 @@ def _write_pdf_figure(
             ],
             key=lambda row: int(row["dim"]),
         )
-        label = f"{dataset} / {tokenizer}"
+        label = f"{_display_dataset_name(dataset)} / {tokenizer}"
         marker = markers[idx % len(markers)]
         dims = [int(point["dim"]) for point in points]
-        axes[0].plot(
+        recall2 = [float(point["recall_at_2"]) for point in points]
+        positive_values.extend(value for value in recall2 if value > 0)
+        ax.plot(
             dims,
-            [float(point["top2_exact_match"]) for point in points],
-            marker=marker,
-            linewidth=1.7,
-            markersize=5,
-            label=label,
-        )
-        axes[1].plot(
-            dims,
-            [float(point["mean_rank"]) for point in points],
+            [value if value > 0 else float("nan") for value in recall2],
             marker=marker,
             linewidth=1.7,
             markersize=5,
             label=label,
         )
 
-    axes[0].set_xlabel("Embedding dimension $d$")
-    axes[0].set_ylabel("Top-2 exact match")
-    axes[0].set_title("Top-2 exact match vs dimension")
-    axes[0].set_xscale("log", base=2)
-    axes[0].set_ylim(-0.05, 1.05)
-    axes[0].grid(True, alpha=0.25)
-
-    axes[1].set_xlabel("Embedding dimension $d$")
-    axes[1].set_ylabel("Mean rank")
-    axes[1].set_title("Mean rank vs dimension")
-    axes[1].set_xscale("log", base=2)
-    axes[1].set_yscale("log")
-    axes[1].grid(True, alpha=0.25)
-
-    axes[1].legend(fontsize=8, loc="upper right")
+    ax.set_xlabel("Embedding dimension $d$")
+    ax.set_ylabel("Recall@2")
+    ax.set_title("Recall@2 vs dimension")
+    ax.set_xscale("log", base=2)
+    ax.set_yscale("log")
+    if positive_values:
+        ax.set_ylim(min(positive_values) * 0.8, 1.05)
+    ax.grid(True, alpha=0.25, which="both")
+    ax.legend(fontsize=8, loc="lower right")
     fig.tight_layout()
     fig.savefig(path)
     plt.close(fig)
@@ -480,6 +552,7 @@ def _write_outputs(
     paper_table_dir: str | None,
     paper_figure_dir: str | None,
 ) -> None:
+    rows = [_normalize_result_row(dict(row)) for row in rows]
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -493,7 +566,11 @@ def _write_outputs(
 
     csv_path = output_path / "summary.csv"
     with open(csv_path, "w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=RESULT_FIELDNAMES)
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=RESULT_FIELDNAMES,
+            extrasaction="ignore",
+        )
         writer.writeheader()
         writer.writerows(_sort_rows(rows))
 
@@ -519,7 +596,7 @@ def _write_outputs(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Evaluate random-token embeddings on LiMIT and LiMIT-small"
+        description="Evaluate random-token embeddings on LIMIT and LIMIT-small"
     )
     parser.add_argument(
         "--mode",
@@ -568,6 +645,12 @@ def parse_args() -> argparse.Namespace:
         help="Torch device for evaluation",
     )
     parser.add_argument(
+        "--score-chunk-size",
+        type=int,
+        default=2048,
+        help="Number of documents to score at once; lower values reduce memory use",
+    )
+    parser.add_argument(
         "--output-dir",
         default=_default_output_dir(),
         help="Deterministic directory for config.json, results.json, summary.csv, table, and figure",
@@ -595,6 +678,13 @@ def parse_args() -> argparse.Namespace:
             "--output-dir and only evaluate missing combinations"
         ),
     )
+    parser.add_argument(
+        "--no-phrase-cover-free",
+        "--no-cover-free",
+        action="store_true",
+        dest="no_phrase_cover_free",
+        help="Do not include the label-unaware phrase cover-free construction",
+    )
     return parser.parse_args()
 
 
@@ -620,25 +710,39 @@ def main() -> None:
 
     splits = [_normalize_split(split) for split in args.splits]
     tokenizers = [_normalize_tokenizer(name) for name in args.tokenizers]
+    random_tokenizers = [name for name in tokenizers if name != PHRASE_COVER_FREE]
+    include_phrase_cover_free = (
+        not args.no_phrase_cover_free
+    ) or PHRASE_COVER_FREE in tokenizers
+    requested_tokenizers = random_tokenizers[:]
+    if include_phrase_cover_free and PHRASE_COVER_FREE not in requested_tokenizers:
+        requested_tokenizers.append(PHRASE_COVER_FREE)
     device = resolve_torch_device(args.device)
     config = {
         "dims": dims,
         "splits": [_dataset_name(split) for split in splits],
-        "tokenizers": tokenizers,
+        "tokenizers": random_tokenizers,
+        "include_phrase_cover_free": include_phrase_cover_free,
         "qwen_model": args.qwen_model,
         "qwen_compact_token_ids": True,
         "qwen_local_files_only": bool(args.qwen_local_files_only),
         "base_seed": int(args.base_seed),
         "device": str(device),
+        "score_chunk_size": int(args.score_chunk_size),
         "mode": args.mode,
-        "scoring": "inner_product(sum_random_token_embeddings)",
+        "scoring": (
+            "inner_product(sum_random_token_embeddings); "
+            "phrase_cover_free uses label-unaware Bernoulli phrase codes"
+        ),
     }
 
-    print("[INFO] Random-token LiMIT sweep", flush=True)
+    print("[INFO] Random-token LIMIT sweep", flush=True)
     print(f"  dims      = {' '.join(str(dim) for dim in dims)}", flush=True)
     print(f"  datasets  = {' '.join(config['splits'])}", flush=True)
-    print(f"  tokenizers= {' '.join(tokenizers)}", flush=True)
-    if "qwen" in tokenizers:
+    print(f"  tokenizers= {' '.join(random_tokenizers)}", flush=True)
+    if include_phrase_cover_free:
+        print("  phrasecf = enabled", flush=True)
+    if "qwen" in random_tokenizers:
         print(f"  qwen_model= {args.qwen_model}", flush=True)
     print(f"  base_seed = {args.base_seed}", flush=True)
     print(f"  device    = {device}", flush=True)
@@ -646,7 +750,7 @@ def main() -> None:
     requested_keys = _requested_keys(
         dims,
         splits,
-        tokenizers,
+        requested_tokenizers,
         base_seed=int(args.base_seed),
     )
     rows_by_key: dict[tuple[str, str, str, int, int], ResultRow] = {}
@@ -677,7 +781,7 @@ def main() -> None:
         )
         return
 
-    for tokenizer_name in tokenizers:
+    for tokenizer_name in random_tokenizers:
         for split in splits:
             missing_dims = [
                 dim
@@ -687,7 +791,11 @@ def main() -> None:
                     split,
                     tokenizer_name,
                     dim,
-                    int(args.base_seed) + dim,
+                    _effective_seed(
+                        tokenizer_name,
+                        dim,
+                        base_seed=int(args.base_seed),
+                    ),
                 )
                 not in rows_by_key
             ]
@@ -707,6 +815,44 @@ def main() -> None:
                 qwen_local_files_only=bool(args.qwen_local_files_only),
                 base_seed=int(args.base_seed),
                 device=device,
+                score_chunk_size=int(args.score_chunk_size),
+            )
+            for row in new_rows:
+                rows_by_key[_row_key(row)] = row
+
+    if include_phrase_cover_free:
+        tokenizer_name = PHRASE_COVER_FREE
+        for split in splits:
+            missing_dims = [
+                dim
+                for dim in dims
+                if (
+                    _dataset_name(split),
+                    split,
+                    tokenizer_name,
+                    dim,
+                    _effective_seed(
+                        tokenizer_name,
+                        dim,
+                        base_seed=int(args.base_seed),
+                    ),
+                )
+                not in rows_by_key
+            ]
+            if not missing_dims:
+                print(
+                    f"[SKIP] {_dataset_name(split)} tokenizer={PHRASE_COVER_FREE}: "
+                    "all requested dims are complete",
+                    flush=True,
+                )
+                continue
+
+            new_rows = evaluate_phrase_cover_free_split(
+                split,
+                missing_dims,
+                base_seed=int(args.base_seed),
+                device=device,
+                score_chunk_size=int(args.score_chunk_size),
             )
             for row in new_rows:
                 rows_by_key[_row_key(row)] = row

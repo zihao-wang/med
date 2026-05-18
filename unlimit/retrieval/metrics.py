@@ -1,4 +1,4 @@
-"""Shared LiMIT retrieval metrics (PyTorch)."""
+"""Shared LIMIT retrieval metrics (PyTorch)."""
 
 from __future__ import annotations
 
@@ -35,15 +35,13 @@ def retrieval_metrics_from_logits(
     ``logits``: (Q, N) similarity scores.
     ``y_full``: (Q, N) bool relevance.
 
-    LiMIT: each query has exactly two positives in official splits; primary
-    diagnostic: ``top2_exact_match`` when ``pos.numel() == 2``.
+    LIMIT official splits have two positives per query, so ``recall_at_2``
+    reports the fraction of target items retrieved in the top two positions.
     """
     num_queries = logits.shape[0]
     ranks: list[int] = []
     hits1 = 0
     recall2_sum = 0.0
-    top2_hits = 0
-    n_top2_eval = 0
     for qi in range(num_queries):
         scores = logits[qi]
         pos = y_full[qi].nonzero(as_tuple=False).squeeze(-1)
@@ -63,22 +61,14 @@ def retrieval_metrics_from_logits(
         if k2 > 0:
             top2_idx = torch.topk(scores, k=k2, largest=True).indices
             recall2_sum += float(y_full[qi, top2_idx].sum().item()) / float(pos.numel())
-        if pos.numel() == 2:
-            n_top2_eval += 1
-            top2_idx = torch.topk(scores, k=k2, largest=True).indices
-            if set(top2_idx.tolist()) == set(pos.tolist()):
-                top2_hits += 1
     mean_rank = sum(ranks) / len(ranks) if ranks else 0.0
     recall1 = hits1 / len(ranks) if ranks else 0.0
     recall2 = recall2_sum / len(ranks) if ranks else 0.0
-    top2_exact_match = top2_hits / n_top2_eval if n_top2_eval else 0.0
     return {
         "mean_rank": mean_rank,
         "recall_at_1": recall1,
         "recall_at_2": recall2,
-        "top2_exact_match": top2_exact_match,
         "num_queries_eval": float(len(ranks)),
-        "num_queries_top2_eval": float(n_top2_eval),
     }
 
 

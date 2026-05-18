@@ -1,4 +1,4 @@
-"""Qwen subword tokenizer for random-token LiMIT baselines."""
+"""Qwen subword tokenizer for random-token LIMIT baselines."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class QwenSubwordTokenizer:
     """
-    Tokenize raw LiMIT text with a Qwen tokenizer.
+    Tokenize raw LIMIT text with a Qwen tokenizer.
 
     The retrieval experiment still uses random token embeddings. By default this
     tokenizer compacts the raw Qwen ids observed in the evaluated split to a
