@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List
+from typing import Dict, List
 
-from .checker import FeasibilityChecker
 from .search import binary_search_med
 
 
@@ -12,11 +12,11 @@ from .search import binary_search_med
 class Experiment:
     """Orchestrates MED binary search sweeps over k and m values.
 
-    checker_factory is a callable that takes (m, k) and returns a
-    FeasibilityChecker instance.
+    check_factory is a callable that takes (m, k) and returns a
+    ``check_dimension(d) -> bool`` callable.
     """
 
-    checker_factory: Callable[[int, int], FeasibilityChecker]
+    check_factory: Callable[[int, int], Callable[[int], bool]]
     search_paths: Dict[int, Dict[int, List[dict]]] = field(default_factory=dict)
     minimal_dimensions: Dict[int, Dict[int, int]] = field(default_factory=dict)
     timings: Dict[int, Dict[int, float]] = field(default_factory=dict)
@@ -46,8 +46,12 @@ class Experiment:
                 print(f"[EXP] Finding minimal dimension for m={m}, k={k}")
                 print("#" * 30)
 
-                checker = self.checker_factory(m, k)
-                result = binary_search_med(checker, left0=last_minimal, verbose=True)
+                check_dimension = self.check_factory(m, k)
+                result = binary_search_med(
+                    check_dimension,
+                    left0=last_minimal,
+                    verbose=True,
+                )
 
                 self.search_paths[k][m] = result["search_path"]
                 med = result.get("med")

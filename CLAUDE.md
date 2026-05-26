@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-ICML 2026 paper: "$\mathbb{R}^{2k}$ is Theoretically Large Enough for Embedding-based Top-$k$ Retrieval." Studies the minimal embeddable dimension (MED) required for perfect top-$k$ subset retrieval under inner product, cosine similarity, and Euclidean distance scoring functions. Proves $d = \Theta(k)$ tight bounds independent of universe size $m$, reframing retrieval limits from approximability to learnability.
+ICML 2026 paper: "$\mathbb{R}^{2k}$ is Theoretically Large Enough for Embedding-based Top-$k$ Retrieval." Studies the minimal embeddable dimension (MED) required for perfect top-$k$ subset retrieval. The runnable experiments currently use inner product scoring. Proves $d = \Theta(k)$ tight bounds independent of universe size $m$, reframing retrieval limits from approximability to learnability.
 
 ## Build
 
@@ -43,16 +43,15 @@ cd paper && pdflatex icml2026.tex && bibtex icml2026 && pdflatex icml2026.tex &&
 
 ```
 med/
-├── scoring.py              # shared scoring functions (inner_product, L2, cosine, L1)
+├── scoring.py              # shared inner product scoring
 ├── plotting.py             # WBNL fitted curve reference and plot styling
+├── paper_pipeline.py       # combined paper pipeline: run, table, figures
 ├── mean_embedding/
 │   ├── cli.py              # package CLI for custom sweeps
-│   ├── compare_plots.py    # reproduce paper's compare_plot{1,2}.pdf
 │   ├── trainer_gd.py       # full-batch GD trainer with early stopping (O(C(n,k)) memory)
 │   └── experiment.py       # binary search for minimal d, grid search over (k, n)
 └── cyclic_polytope/
     ├── construct.py        # moment curve points + polynomial construction of separating queries
-    ├── checker.py          # CyclicPolytopeChecker (FeasibilityChecker impl)
     ├── experiment.py       # factory wrapping shared Experiment
     └── cli.py              # package CLI for custom sweeps
 unlimit/
@@ -128,7 +127,7 @@ Top-level fields:
 |-------|-------|-----|-------------|
 | `experiment` | `"medc"` | `"med"` | Experiment type |
 | `k` | ✓ | ✓ (if uniform) | Subset size (omitted in grid mode) |
-| `scoring_function` | ✓ | — | `inner_product`, `l2`, `cosine`, or `l1` |
+| `scoring_function` | ✓ | — | `inner_product` |
 | `trainer` | ✓ | — | Always `gd` |
 | `results` | ✓ | ✓ | Array or nested object (see below) |
 
@@ -148,12 +147,10 @@ Per-result fields:
 |-------|------|-------------|
 | `m` | int | Number of objects |
 | `med` | int or null | Minimal embedding dimension (`-1` or `null` if infeasible) |
-| `search_path` | array | Binary search trace (entries differ by experiment type) |
+| `search_path` | array | Binary search trace |
 | `time` | float | Wall-clock seconds for this `m` |
 
-**MED-C search_path entries:** `{"dimension": d, "violations": v}` — dimension tested and number of constraint violations found by the trainer.
-
-**MED search_path entries:** `{"dimension": n, "feasible": bool, "checks": int, "total_queries": int, "checked_fraction": float, "time": float}` — dimension tested, construction-based verification result (squared-polynomial query), number of checked top-$k$ queries, total possible top-$k$ queries $\binom{m}{k}$, checked fraction, and timing.
+**search_path entries:** `{"dimension": d, "feasible": bool, "time": float}` — dimension tested, whether the checker passed, and elapsed seconds.
 
 ### Other output files
 
@@ -165,10 +162,6 @@ Per-result fields:
 
 ### Comparison / figure outputs
 
-**`med/mean_embedding/compare_plots.py`** writes `results/mean_embedding/compare_plots/results.json` by default:
-```json
-{"d_star": {"8": 6, "16": 7, ...}, "m_star": {"6": 8, "7": 16, ...}, "k": 2, "scoring": "inner_product"}
-```
 The paper pipeline writes final figures to `paper/figure/compare_plot1.pdf` (m* vs d) and `paper/figure/compare_plot2.pdf` (d* vs m), and the final LaTeX table to `paper/table/upper_bound_witness_table.tex`.
 
 **`unlimit/limit_figure.py`** writes `results/unlimit/limit_figure/results.json` by default as a JSON array of per-(split, dim) metrics:

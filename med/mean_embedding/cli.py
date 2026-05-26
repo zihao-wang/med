@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
         "--scoring_function",
         type=str,
         default="inner_product",
-        choices=["inner_product", "l2", "cosine", "l1"],
+        choices=["inner_product"],
     )
 
     parser.add_argument("--num_epochs", type=int, default=1000)

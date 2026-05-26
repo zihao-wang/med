@@ -11,9 +11,7 @@ from unlimit.datasets.limit import (
     load_limit,
     load_limit_full,
     load_limit_small,
-    load_limit_train_test,
     qrels_positive_distribution,
-    split_train_test_query_ids,
 )
 
 __all__ = [
@@ -25,7 +23,5 @@ __all__ = [
     "load_limit",
     "load_limit_full",
     "load_limit_small",
-    "load_limit_train_test",
     "qrels_positive_distribution",
-    "split_train_test_query_ids",
 ]

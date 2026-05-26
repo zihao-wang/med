@@ -2,7 +2,7 @@
 
 Companion code for the ICML 2026 paper: *"$\mathbb{R}^{2k}$ is Theoretically Large Enough for Embedding-based Top-$k$ Retrieval."*
 
-Studies the minimal dimension required to embed subset memberships into vector spaces under inner product, cosine similarity, and Euclidean distance scoring.
+Studies the minimal dimension required to embed subset memberships into vector spaces, with the runnable experiments using inner product scoring.
 
 ## Quick start
 
@@ -16,7 +16,7 @@ Requires Python 3.10+.
 
 ## Reproducing the paper's figures
 
-The paper contains one figure (Figure 1) with two panels, both comparing centroid embedding experiments against the fitted curve from Weller et al. (2025):
+The paper contains one upper-bound witness figure with two panels, comparing cyclic-polytope and centroid GD witnesses against the fitted curve from Weller et al. (2025):
 
 | Panel | File | Content |
 |-------|------|---------|
@@ -25,39 +25,30 @@ The paper contains one figure (Figure 1) with two panels, both comparing centroi
 
 ### Step-by-step
 
-**1. Generate both plots from scratch (runs the full experiment):**
+**1. Generate the paper tables and figures from scratch:**
 
 ```bash
-python -m med.mean_embedding.compare_plots --mode run
+bash scripts/run_paper_upper_bounds.sh
 ```
 
-This runs centroid embedding experiments with $k=2$ and inner product scoring. It searches for feasible embeddings across a grid of $n$ (number of points) and $d$ (dimension) values, then saves the results to `results/mean_embedding/compare_plots/results.json` and writes the two PDFs to `paper/figure/`.
+This runs the default $k=2$ upper-bound witness grid with cyclic-polytope and centroid GD witnesses, then writes `results/upper_bound_witness/results.json`, `results/upper_bound_witness/upper_bound_witness_table.{csv,tex}`, and the two PDFs to `paper/figure/`.
 
 Expected runtime: ~10–30 minutes on a modern GPU; longer on CPU. Progress is printed to stdout.
 
-**2. Regenerate plots from saved results (no re-computation):**
+**2. Regenerate plots and tables from saved results (no re-computation):**
 
 ```bash
-python -m med.mean_embedding.compare_plots --mode plot
+python -m med.paper_pipeline --mode plot
 ```
 
-Reads `results/mean_embedding/compare_plots/results.json` and redraws the PDFs. Useful for tweaking plot styling without rerunning the experiment.
-
-**3. Reproduce with other scoring functions:**
-
-```bash
-python -m med.mean_embedding.compare_plots --mode run --scoring l2
-python -m med.mean_embedding.compare_plots --mode run --scoring cosine
-```
-
-Supported scoring functions: `inner_product` (default), `l2`, `cosine`, `l1`.
+Reads `results/upper_bound_witness/results.json` or falls back to `results/upper_bound_witness/upper_bound_witness_table.csv`, then redraws the PDFs and table files.
 
 ### What the experiment does
 
-For each $(n, d)$ pair, the script trains a set of $n$ learnable vectors in $\mathbb{R}^d$ using gradient descent. The loss function enforces that for every $k$-subset, the centroid embedding has a higher score with its member vectors than with non-members. If the loss reaches zero (no violations), a feasible embedding exists for that $(n, d)$ pair.
+For each $m$ value, the pipeline searches for the minimal witness dimension for two constructions:
 
-- **Phase 1** — for each $n$, binary search for the minimal $d$ where violations = 0 → $d^*(n)$
-- **Phase 2** — for each $d$, binary search for the maximal $n$ where violations = 0 → $m^*(d)$
+- **Cyclic polytope witness** — verifies the moment-curve squared-polynomial construction.
+- **Centroid GD witness** — trains $m$ learnable vectors in $\mathbb{R}^d$ and checks whether all top-$k$ centroid constraints have zero violations.
 
 The results are plotted against the WBNL fitted curve $m(d) = -10.53 + 4.03d + 0.052d^2 + 0.0037d^3$ from Weller et al. (2025).
 
@@ -66,16 +57,13 @@ The results are plotted against the WBNL fitted curve $m(d) = -10.53 + 4.03d + 0
 To get a quick sense of the results with fewer $(n, d)$ points:
 
 ```bash
-python -m med.mean_embedding.compare_plots --mode run \
-    --n-values 8 16 32 64 \
-    --d-values 1 2 3 4 5 6 7 8 9 10
+bash scripts/run_paper_upper_bounds.sh --m_values 10 20 40 80
 ```
 
 Reduce training epochs for a rougher but faster sweep:
 
 ```bash
-python -m med.mean_embedding.compare_plots --mode run \
-    --num-epochs 500 --patience 50
+bash scripts/run_paper_upper_bounds.sh --num_epochs 500 --patience 50
 ```
 
 ### LiMIT retrieval figure
@@ -121,20 +109,16 @@ LiMIT (LIkes Memory Identification Test) is a retrieval benchmark where each que
 │   ├── custom_command.tex  #   custom math macros
 │   └── preprint.bib        #   bibliography
 ├── med/                    # Python package code
-│   ├── scoring.py          #   shared scoring functions (inner product, L2, cosine, L1)
+│   ├── scoring.py          #   shared inner product scoring
 │   ├── plotting.py         #   WBNL curve reference and plot styling
-│   ├── checker.py          #   FeasibilityChecker ABC + CheckResult
 │   ├── experiment.py       #   shared experiment orchestration (binary search, grid)
 │   ├── search.py           #   shared binary search over dimensions
 │   ├── mean_embedding/     #   centroid embedding experiments
 │   │   ├── cli.py          #     package CLI for custom sweeps
-│   │   ├── compare_plots.py #    paper compare-plot runner
 │   │   ├── trainer_gd.py   #     full-batch GD trainer
-│   │   ├── checker.py      #     MeanEmbeddingChecker (FeasibilityChecker impl)
 │   │   └── experiment.py   #     factory wrapping shared Experiment
 │   ├── cyclic_polytope/    #   cyclic polytope face verification
 │   │   ├── construct.py    #     moment curve points + squared-polynomial query construction
-│   │   ├── checker.py      #     CyclicPolytopeChecker (FeasibilityChecker impl)
 │   │   ├── cli.py          #     package CLI for custom sweeps
 │   │   └── experiment.py   #     factory wrapping shared Experiment
 ├── unlimit/                # LiMIT retrieval library

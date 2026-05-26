@@ -1,24 +1,23 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from typing import Optional
-
-from .checker import FeasibilityChecker
 
 
 def binary_search_med(
-    checker: FeasibilityChecker,
+    check_dimension: Callable[[int], bool],
     left0: int = 0,
     max_range: int = 40,
     verbose: bool = True,
 ) -> dict:
-    """Binary search for the minimal dimension d such that checker.check(d) passes.
+    """Binary search for the minimal dimension d such that ``check_dimension(d)`` passes.
 
     Search interval is [left0 + 1, left0 + max_range].
 
     Returns a dict with keys:
         med: int or None  — minimal feasible dimension (None if none found)
-        search_path: list[dict] — each checked dimension with CheckResult details
+        search_path: list[dict] — each checked dimension with feasibility and timing
         total_time: float
     """
     lo = left0 + 1
@@ -37,25 +36,17 @@ def binary_search_med(
             mid = 1
 
         t0 = time.perf_counter()
-        cr = checker.check(mid)
+        feasible = check_dimension(mid)
         elapsed = time.perf_counter() - t0
 
-        entry = {"dimension": mid, "feasible": cr.feasible, "time": round(elapsed, 3)}
-        entry.update(cr.details)
+        entry = {"dimension": mid, "feasible": feasible, "time": round(elapsed, 3)}
         search_path.append(entry)
 
         if verbose:
-            status = "OK" if cr.feasible else "FAIL"
-            coverage = ""
-            if "checks" in entry and "total_queries" in entry:
-                pct = 100 * entry.get("checked_fraction", 0.0)
-                coverage = (
-                    f"  queries={entry['checks']}/{entry['total_queries']}"
-                    f" ({pct:.2f}%)"
-                )
-            print(f"  d={mid}: {status}  ({elapsed:.1f}s){coverage}")
+            status = "OK" if feasible else "FAIL"
+            print(f"  d={mid}: {status}  ({elapsed:.1f}s)")
 
-        if cr.feasible:
+        if feasible:
             minimal_d = mid
             hi = mid - 1
         else:

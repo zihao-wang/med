@@ -6,7 +6,9 @@ from typing import Optional
 import numpy as np
 
 
-def generate_cyclic_polytope_configuration(m: int, n: int, t: np.ndarray | None = None) -> np.ndarray:
+def generate_cyclic_polytope_configuration(
+    m: int, n: int, t: np.ndarray | None = None
+) -> np.ndarray:
     """Generate the vertex set of a cyclic polytope C(m, n) using the moment curve.
 
     Parameters
@@ -31,7 +33,7 @@ def generate_cyclic_polytope_configuration(m: int, n: int, t: np.ndarray | None 
         assert np.all(np.diff(t) > 0), "t must be strictly increasing"
 
     t_col = t.reshape(m, 1)
-    coords = [t_col ** i for i in range(1, n + 1)]
+    coords = [t_col**i for i in range(1, n + 1)]
     X = np.concatenate(coords, axis=1)
     return X
 
@@ -94,6 +96,7 @@ def verify_construction(
     t_values = t if t is not None else np.arange(m, dtype=float)
 
     checked = 0
+    failed = 0
     subsets = itertools.combinations(range(m), k)
     if max_checks is not None:
         if max_checks < 0:
@@ -103,8 +106,8 @@ def verify_construction(
     for subset in subsets:
         query = construct_query_for_subset(t_values, list(subset), n)
         if not check_subset_retrieval(points, list(subset), query):
-            return False, checked + 1, 1
+            failed += 1
         checked += 1
         if progress and checked % 1000 == 0:
             print(f"[VERIFY] checked {checked} subsets")
-    return True, checked, 0
+    return failed == 0, checked, failed

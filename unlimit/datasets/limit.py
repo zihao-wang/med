@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import random
 from collections import Counter, defaultdict
 from importlib import resources
 from typing import Any, Literal, TypedDict
@@ -69,56 +68,6 @@ def qrels_positive_distribution(qrels: list[QrelRecord]) -> Counter[int]:
     return Counter(per_q.values())
 
 
-def split_train_test_query_ids(
-    query_ids: list[str],
-    train_fraction: float,
-    seed: int,
-) -> tuple[list[str], list[str]]:
-    """
-    Deterministic train / test partition of query ids (for supervised training).
-
-    The `google-deepmind/limit` JSONL release does **not** ship separate train/test
-    files; Hugging Face / MTEB expose qrels under a ``test`` split name only. This
-    helper creates a standard held-out query set for experiments.
-    """
-    if not 0.0 < train_fraction < 1.0:
-        raise ValueError("train_fraction must be strictly between 0 and 1")
-    ids = sorted(query_ids)
-    rng = random.Random(seed)
-    shuffled = ids[:]
-    rng.shuffle(shuffled)
-    n_train = int(round(len(shuffled) * train_fraction))
-    n_train = max(1, min(len(shuffled) - 1, n_train))
-    return shuffled[:n_train], shuffled[n_train:]
-
-
-def load_limit_train_test(
-    split: Literal["small", "full"] = "small",
-    train_fraction: float = 0.8,
-    split_seed: int = 42,
-) -> tuple[
-    list[CorpusRecord],
-    list[QueryRecord],
-    list[QueryRecord],
-    list[QrelRecord],
-    list[QrelRecord],
-]:
-    """
-    Load LIMIT, then partition **queries** (and qrels) into train / test.
-
-    The **corpus** is unchanged (full retrieval pool for both splits).
-    """
-    corpus, queries, qrels = load_limit(split)
-    all_ids = [q["_id"] for q in queries]
-    train_ids, test_ids = split_train_test_query_ids(all_ids, train_fraction, split_seed)
-    tr_set, te_set = set(train_ids), set(test_ids)
-    q_train = sorted((q for q in queries if q["_id"] in tr_set), key=lambda x: x["_id"])
-    q_test = sorted((q for q in queries if q["_id"] in te_set), key=lambda x: x["_id"])
-    qr_train = [r for r in qrels if r["query_id"] in tr_set]
-    qr_test = [r for r in qrels if r["query_id"] in te_set]
-    return corpus, q_train, q_test, qr_train, qr_test
-
-
 def load_limit(
     split: Literal["small", "full"] = "small",
 ) -> tuple[list[CorpusRecord], list[QueryRecord], list[QrelRecord]]:
@@ -136,9 +85,8 @@ def load_limit(
                ``corpus_id`` to ``corpus._id``.
 
     Note:
-        The GitHub release is a **single** JSONL triple per scale (no separate
-        ``train.jsonl`` / ``test.jsonl``). For train/test experiments, use
-        :func:`load_limit_train_test`.
+        The GitHub release is a **single** JSONL triple per scale; it does not
+        ship separate ``train.jsonl`` / ``test.jsonl`` files.
     """
     corpus_raw = load_jsonl_from_asset(split, "corpus")
     queries_raw = load_jsonl_from_asset(split, "queries")
@@ -174,9 +122,7 @@ if __name__ == "__main__":
     )
     args = ap.parse_args()
     c, q, r = load_limit(args.split)
-    tr, te = split_train_test_query_ids([x["_id"] for x in q], 0.8, 42)
     print(f"split={args.split!r} | Corpus: {len(c)} | Queries: {len(q)} | Qrels: {len(r)}")
-    print(f"example train/test query partition (80/20, seed=42): {len(tr)} train, {len(te)} test")
     print("Sample corpus:", c[0])
     print("Sample query:", q[0])
     print("Sample qrel:", r[0])

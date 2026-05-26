@@ -1,33 +1,20 @@
 """Tests for search.py — binary search over dimensions."""
 
-import pytest
 
-from med.checker import CheckResult, FeasibilityChecker
-
-
-class AlwaysFailChecker(FeasibilityChecker):
-    def check(self, d: int) -> CheckResult:
-        return CheckResult(feasible=False, details={"d": d})
-
-
-class AlwaysPassChecker(FeasibilityChecker):
-    def check(self, d: int) -> CheckResult:
-        return CheckResult(feasible=True, details={"d": d})
-
-
-class ThresholdChecker(FeasibilityChecker):
+class ThresholdChecker:
     """Passes when d >= threshold."""
+
     def __init__(self, threshold: int):
         self.threshold = threshold
 
-    def check(self, d: int) -> CheckResult:
-        return CheckResult(feasible=(d >= self.threshold), details={"d": d})
+    def __call__(self, d: int) -> bool:
+        return d >= self.threshold
 
 
 def test_binary_search_always_fail():
     from med.search import binary_search_med
 
-    result = binary_search_med(AlwaysFailChecker(), left0=0, max_range=10, verbose=False)
+    result = binary_search_med(lambda _d: False, left0=0, max_range=10, verbose=False)
     assert result["med"] is None
     assert len(result["search_path"]) > 0
 
@@ -35,7 +22,7 @@ def test_binary_search_always_fail():
 def test_binary_search_always_pass():
     from med.search import binary_search_med
 
-    result = binary_search_med(AlwaysPassChecker(), left0=0, max_range=10, verbose=False)
+    result = binary_search_med(lambda _d: True, left0=0, max_range=10, verbose=False)
     assert result["med"] == 1  # smallest checked
 
 
@@ -77,4 +64,3 @@ def test_search_path_entries():
         assert "dimension" in entry
         assert "feasible" in entry
         assert "time" in entry
-        assert "d" in entry  # from details

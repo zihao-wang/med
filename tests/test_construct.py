@@ -96,4 +96,5 @@ def test_verify_construction_insufficient_dimension():
     """For m=5, k=2, n=1 (n < k), should fail."""
     ok, checked, failed = verify_construction(5, 2, 1, max_checks=None, progress=False)
     assert not ok
-    assert failed == 1
+    assert checked == 10
+    assert failed > 0

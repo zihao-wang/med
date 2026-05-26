@@ -78,15 +78,6 @@ def _experiment_rows(
     return rows
 
 
-def _entry_for_dimension(
-    search_path: list[dict[str, Any]], dimension: int
-) -> dict[str, Any]:
-    for entry in search_path:
-        if entry.get("dimension") == dimension:
-            return entry
-    return {}
-
-
 def _build_summary_rows(
     m_values: list[int],
     k: int,
@@ -102,9 +93,8 @@ def _build_summary_rows(
         mean = mean_by_m[m]
         cyclic_d = int(cyclic["med"])
         mean_d = int(mean["med"])
-        cyclic_entry = _entry_for_dimension(cyclic["search_path"], cyclic_d)
-        mean_entry = _entry_for_dimension(mean["search_path"], mean_d)
         total_queries = math.comb(m, k)
+        cyclic_checked = total_queries if cyclic_d > 0 else 0
 
         summary.append(
             {
@@ -112,14 +102,12 @@ def _build_summary_rows(
                 "k": k,
                 "top_k_queries": total_queries,
                 "cyclic_polytope_d": cyclic_d,
-                "cyclic_queries_checked": cyclic_entry.get("checks", 0),
-                "cyclic_total_queries": cyclic_entry.get(
-                    "total_queries", total_queries
-                ),
-                "cyclic_checked_fraction": cyclic_entry.get("checked_fraction", 0.0),
+                "cyclic_queries_checked": cyclic_checked,
+                "cyclic_total_queries": total_queries,
+                "cyclic_checked_fraction": 1.0 if cyclic_d > 0 else 0.0,
                 "cyclic_time": cyclic["time"],
                 "mean_embedding_d": mean_d,
-                "mean_embedding_violations": mean_entry.get("violations"),
+                "mean_embedding_violations": 0 if mean_d > 0 else None,
                 "mean_embedding_time": mean["time"],
             }
         )
@@ -220,7 +208,7 @@ def _write_table_tex(path: Path, rows: list[dict[str, Any]]) -> None:
             f"{row['cyclic_polytope_d']} & "
             f"{row['cyclic_queries_checked']}/{row['cyclic_total_queries']} & "
             f"{row['mean_embedding_d']} & "
-            f"{row['mean_embedding_violations']} & "
+            f"{_format_float(row['mean_embedding_violations'])} & "
             f"{_format_float(row['mean_embedding_time'])} \\\\"
         )
     lines.extend(["\\bottomrule", "\\end{tabular}", ""])
