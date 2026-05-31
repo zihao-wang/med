@@ -7,20 +7,18 @@ math: mathjax
 ---
 
 <!--
-Target: 5-minute ICML-style video, 7 slides.
+Target: 5-minute ICML-style video, 7--8 slides.
 
 Primary sources:
 - README.md
 - paper/draft_main.tex
-- results/upper_bound_witness/upper_bound_witness_table.tex
 - results/unlimit/random_embeddings/limit_retrieval_table.tex
 - results/unlimit/cyclic_overfit/limit_cyclic_overfit_summary.tex
 
-Optional existing visual assets for rendering:
-- ../../results/upper_bound_witness/compare_plot1.pdf
-- ../../results/upper_bound_witness/compare_plot2.pdf
-- ../../results/unlimit/random_embeddings/limit_retrieval_limit.pdf
-- ../../results/unlimit/random_embeddings/limit_retrieval_limit_small.pdf
+Visual assets:
+- ../../paper/figures/top2_dimension_fit.pdf
+- ../../paper/figures/limit_retrieval_limit.pdf
+- ../../paper/figures/limit_retrieval_limit_small.pdf
 -->
 
 <!-- _class: lead -->
@@ -31,7 +29,7 @@ Optional existing visual assets for rendering:
 
 Zihao Wang, Hang Yin, Lihui Liu, Hanghang Tong, Yangqiu Song, Ginny Wong, Simon See
 
-**Main message:** exact separability is cheap; robust, learnable retrieval is the hard part.
+**Main message:** exact geometric approximability is not the obstruction.
 
 ---
 
@@ -111,13 +109,20 @@ $$
 \frac{\log {m \choose k}}{\log(1+2/\epsilon)} .
 $$
 
-And margins above
+Finite-$m$ score gaps are capped by
 
 $$
-\epsilon_\star(m,k)=\frac{m}{\sqrt{k(m-1)(m-k)}}\sim \frac{1}{\sqrt{k}}
+\epsilon_\star(m,k)=\frac{m}{\sqrt{k(m-1)(m-k)}}.
 $$
 
-are infeasible when $m\gg k$.
+Our RMED shorthand uses the large-universe regime $m/k\to\infty$, where
+
+$$
+\epsilon_\star(m,k)\sim \frac{1}{\sqrt{k}}.
+$$
+
+At the feasible $c/\sqrt{k}$ scale, Gaussian centroid witnesses give
+$O(k^2\log m)$ dimensions.
 
 ---
 
@@ -127,7 +132,7 @@ For $k=2$, the exact construction uses $d=4$.
 
 | Paper witness grid | Final row |
 |---|---|
-| Cyclic polytope | $d=4$, $204{,}480/204{,}480$ pair queries checked at $m=640$ |
+| Cyclic polytope | exact $d=4$ witness for arbitrary top-2 answer sets |
 | Centroid GD | zero violations at $d=24$ for $m=640$ |
 
 LIMIT retrieval shows the practical side:
@@ -150,7 +155,7 @@ Exact threshold retrieval:
 
 Robust or learned retrieval:
 
-**The bottlenecks are margin, conditioning, finite precision, tokenization, and query-map learnability.**
+**The bottlenecks are margin, learning, tokenization, objectives, conditioning, finite precision, and optimization.**
 
 The repository provides:
 

@@ -104,7 +104,7 @@
   $\epsilon$.
 
   \vspace{0.5em}
-  Positive gap makes $m$ reappear:
+  Positive gap makes $m$ reappear through packing:
   \[
     \RMED(m,k,\epsilon)
     \geq
@@ -112,14 +112,17 @@
   \]
 
   \vspace{0.2em}
-  Score gaps above
+  Finite-$m$ gaps are capped by
   \[
-    \epsilon_\star(m,k)=\frac{m}{\sqrt{k(m-1)(m-k)}}\sim \frac{1}{\sqrt{k}}
+    \epsilon_\star(m,k)=\frac{m}{\sqrt{k(m-1)(m-k)}}.
   \]
-  are infeasible when $m \gg k$.
+
+  \vspace{0.1em}
+  The paper's RMED shorthand is the large-universe regime
+  $m/k\to\infty$, where $\epsilon_\star(m,k)\sim1/\sqrt{k}$.
 
   \vspace{0.2em}
-  At the feasible scale, a Gaussian centroid witness gives
+  At the feasible $c/\sqrt{k}$ scale, a Gaussian centroid witness gives
   \[
     \RMEDC(m,k,c/\sqrt{k}) \leq O(k^2\log m).
   \]
@@ -170,14 +173,15 @@
   \end{block}
 
   \begin{block}{Robust MED}
-    The normalized-gap problem is different: $m$ reappears, and Gaussian
-    centroid witnesses give logarithmic growth in $m$ in the feasible regime.
+    The normalized-gap problem is different: finite-$m$ gaps are capped by
+    $\epsilon_\star(m,k)$, and Gaussian centroid witnesses give
+    $O(k^2\log m)$ dimensions at the feasible large-universe scale.
   \end{block}
 
   \begin{block}{Empirical interpretation}
     The synthetic and LIMIT failures are not failures of geometric
-    approximability; they are entangled with optimization protocol,
-    tokenization, or neural embedding models.
+    approximability; the remaining difficulties lie in learning,
+    tokenization, objectives, conditioning, finite precision, and optimization.
   \end{block}
 \end{frame}
 

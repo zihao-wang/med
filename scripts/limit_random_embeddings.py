@@ -681,13 +681,13 @@ def _write_promptriever_crossing_table(
     target_dim: int = 4096,
 ) -> None:
     lines = [
-        r"\begin{table}[t]",
+        r"\begin{table}[H]",
         r"  \centering",
+        r"  \small",
         r"  \caption{Random token-sum controls compared with Weller et al.'s",
         r"  strongest comparable single-vector baseline, Promptriever Llama3 8B",
         rf"  at $d={target_dim}$ (we use baseline in the table).}}",
         r"  \label{tab:limit-promptriever-crossing}",
-        r"  \resizebox{\linewidth}{!}{%",
         r"  \begin{tabular}{lrlrr}",
         r"    \toprule",
         rf"    Dataset & Baseline R@2 & Tokenizer & First $d$ above baseline & R@2 at $d={target_dim}$ \\",
@@ -726,7 +726,7 @@ def _write_promptriever_crossing_table(
     lines.extend(
         [
             r"    \bottomrule",
-            r"  \end{tabular}}",
+            r"  \end{tabular}",
             r"\end{table}",
             "",
         ]
