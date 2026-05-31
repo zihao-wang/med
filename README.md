@@ -30,7 +30,7 @@ The release code is scoped to the figures and tables consumed directly by
 paper-ready exports are copied to `paper/figures/` and `paper/tables/`.
 
 | Goal | Results cache | Paper export |
-|---|---|
+|---|---|---|
 | Synthetic top-2 witness dimensions | `results/upper_bound_witness/results.json`, `upper_bound_witness_table.{csv,tex}`, `top2_dimension_fit.pdf` | `paper/figures/top2_dimension_fit.pdf`, `paper/tables/upper_bound_witness_table.{csv,tex}` |
 | LIMIT random token-sum Recall@2 | `results/unlimit/random_embeddings/results.json`, `summary.csv`, `limit_retrieval_table.tex`, `limit_promptriever_crossing.tex`, `limit_retrieval_limit.pdf`, `limit_retrieval_limit_small.pdf` | `paper/figures/limit_retrieval_limit.pdf`, `paper/figures/limit_retrieval_limit_small.pdf`, `paper/tables/limit_retrieval_table.tex`, `paper/tables/limit_promptriever_crossing.tex` |
 | LIMIT cyclic-polytope overfit witness | `results/unlimit/cyclic_overfit/*` | `paper/tables/limit_cyclic_overfit_summary.tex`, `paper/tables/limit_small_cyclic_*_table.tex` |
