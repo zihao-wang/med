@@ -1,0 +1,1712 @@
+{
+  "pipeline": "upper_bound_witness_grid",
+  "k": 2,
+  "m_values": [
+    10,
+    20,
+    40,
+    80,
+    160,
+    320,
+    640
+  ],
+  "scoring_function": "inner_product",
+  "results": {
+    "cyclic_polytope": [
+      {
+        "experiment": "cyclic_polytope",
+        "m": 10,
+        "k": 2,
+        "med": 4,
+        "search_path": [
+          {
+            "dimension": 20,
+            "feasible": true,
+            "time": 0.001,
+            "checks": 55,
+            "total_queries": 55,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 10,
+              "2": 45
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 10,
+            "feasible": true,
+            "time": 0.001,
+            "checks": 55,
+            "total_queries": 55,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 10,
+              "2": 45
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 0.001,
+            "checks": 55,
+            "total_queries": 55,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 10,
+              "2": 45
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 2,
+            "feasible": false,
+            "time": 0.0,
+            "checks": 12,
+            "total_queries": 55,
+            "checked_fraction": 0.21818181818181817,
+            "checks_by_size": {
+              "1": 10,
+              "2": 2
+            },
+            "failures": 1
+          },
+          {
+            "dimension": 3,
+            "feasible": false,
+            "time": 0.0,
+            "checks": 11,
+            "total_queries": 55,
+            "checked_fraction": 0.2,
+            "checks_by_size": {
+              "1": 10,
+              "2": 1
+            },
+            "failures": 1
+          },
+          {
+            "dimension": 4,
+            "feasible": true,
+            "time": 0.0,
+            "checks": 55,
+            "total_queries": 55,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 10,
+              "2": 45
+            },
+            "failures": 0
+          }
+        ],
+        "time": 0.0,
+        "status": "complete"
+      },
+      {
+        "experiment": "cyclic_polytope",
+        "m": 20,
+        "k": 2,
+        "med": 4,
+        "search_path": [
+          {
+            "dimension": 23,
+            "feasible": true,
+            "time": 0.002,
+            "checks": 210,
+            "total_queries": 210,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 20,
+              "2": 190
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 13,
+            "feasible": true,
+            "time": 0.002,
+            "checks": 210,
+            "total_queries": 210,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 20,
+              "2": 190
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 8,
+            "feasible": true,
+            "time": 0.002,
+            "checks": 210,
+            "total_queries": 210,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 20,
+              "2": 190
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 0.002,
+            "checks": 210,
+            "total_queries": 210,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 20,
+              "2": 190
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 4,
+            "feasible": true,
+            "time": 0.002,
+            "checks": 210,
+            "total_queries": 210,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 20,
+              "2": 190
+            },
+            "failures": 0
+          }
+        ],
+        "time": 0.0,
+        "status": "complete"
+      },
+      {
+        "experiment": "cyclic_polytope",
+        "m": 40,
+        "k": 2,
+        "med": 4,
+        "search_path": [
+          {
+            "dimension": 23,
+            "feasible": true,
+            "time": 0.007,
+            "checks": 820,
+            "total_queries": 820,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 40,
+              "2": 780
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 13,
+            "feasible": true,
+            "time": 0.007,
+            "checks": 820,
+            "total_queries": 820,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 40,
+              "2": 780
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 8,
+            "feasible": true,
+            "time": 0.007,
+            "checks": 820,
+            "total_queries": 820,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 40,
+              "2": 780
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 0.007,
+            "checks": 820,
+            "total_queries": 820,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 40,
+              "2": 780
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 4,
+            "feasible": true,
+            "time": 0.007,
+            "checks": 820,
+            "total_queries": 820,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 40,
+              "2": 780
+            },
+            "failures": 0
+          }
+        ],
+        "time": 0.0,
+        "status": "complete"
+      },
+      {
+        "experiment": "cyclic_polytope",
+        "m": 80,
+        "k": 2,
+        "med": 4,
+        "search_path": [
+          {
+            "dimension": 23,
+            "feasible": true,
+            "time": 0.028,
+            "checks": 3240,
+            "total_queries": 3240,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 80,
+              "2": 3160
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 13,
+            "feasible": true,
+            "time": 0.028,
+            "checks": 3240,
+            "total_queries": 3240,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 80,
+              "2": 3160
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 8,
+            "feasible": true,
+            "time": 0.028,
+            "checks": 3240,
+            "total_queries": 3240,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 80,
+              "2": 3160
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 0.028,
+            "checks": 3240,
+            "total_queries": 3240,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 80,
+              "2": 3160
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 4,
+            "feasible": true,
+            "time": 0.028,
+            "checks": 3240,
+            "total_queries": 3240,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 80,
+              "2": 3160
+            },
+            "failures": 0
+          }
+        ],
+        "time": 0.1,
+        "status": "complete"
+      },
+      {
+        "experiment": "cyclic_polytope",
+        "m": 160,
+        "k": 2,
+        "med": 4,
+        "search_path": [
+          {
+            "dimension": 23,
+            "feasible": true,
+            "time": 0.117,
+            "checks": 12880,
+            "total_queries": 12880,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 160,
+              "2": 12720
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 13,
+            "feasible": true,
+            "time": 0.119,
+            "checks": 12880,
+            "total_queries": 12880,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 160,
+              "2": 12720
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 8,
+            "feasible": true,
+            "time": 0.114,
+            "checks": 12880,
+            "total_queries": 12880,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 160,
+              "2": 12720
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 0.113,
+            "checks": 12880,
+            "total_queries": 12880,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 160,
+              "2": 12720
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 4,
+            "feasible": true,
+            "time": 0.164,
+            "checks": 12880,
+            "total_queries": 12880,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 160,
+              "2": 12720
+            },
+            "failures": 0
+          }
+        ],
+        "time": 0.6,
+        "status": "complete"
+      },
+      {
+        "experiment": "cyclic_polytope",
+        "m": 320,
+        "k": 2,
+        "med": 4,
+        "search_path": [
+          {
+            "dimension": 23,
+            "feasible": true,
+            "time": 0.516,
+            "checks": 51360,
+            "total_queries": 51360,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 320,
+              "2": 51040
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 13,
+            "feasible": true,
+            "time": 0.494,
+            "checks": 51360,
+            "total_queries": 51360,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 320,
+              "2": 51040
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 8,
+            "feasible": true,
+            "time": 0.487,
+            "checks": 51360,
+            "total_queries": 51360,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 320,
+              "2": 51040
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 0.481,
+            "checks": 51360,
+            "total_queries": 51360,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 320,
+              "2": 51040
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 4,
+            "feasible": true,
+            "time": 0.486,
+            "checks": 51360,
+            "total_queries": 51360,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 320,
+              "2": 51040
+            },
+            "failures": 0
+          }
+        ],
+        "time": 2.5,
+        "status": "complete"
+      },
+      {
+        "experiment": "cyclic_polytope",
+        "m": 640,
+        "k": 2,
+        "med": 4,
+        "search_path": [
+          {
+            "dimension": 23,
+            "feasible": true,
+            "time": 2.489,
+            "checks": 205120,
+            "total_queries": 205120,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 640,
+              "2": 204480
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 13,
+            "feasible": true,
+            "time": 2.284,
+            "checks": 205120,
+            "total_queries": 205120,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 640,
+              "2": 204480
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 8,
+            "feasible": true,
+            "time": 2.189,
+            "checks": 205120,
+            "total_queries": 205120,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 640,
+              "2": 204480
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 2.164,
+            "checks": 205120,
+            "total_queries": 205120,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 640,
+              "2": 204480
+            },
+            "failures": 0
+          },
+          {
+            "dimension": 4,
+            "feasible": true,
+            "time": 2.121,
+            "checks": 205120,
+            "total_queries": 205120,
+            "checked_fraction": 1.0,
+            "checks_by_size": {
+              "1": 640,
+              "2": 204480
+            },
+            "failures": 0
+          }
+        ],
+        "time": 11.3,
+        "status": "complete"
+      }
+    ],
+    "mean_embedding": [
+      {
+        "experiment": "mean_embedding",
+        "m": 10,
+        "k": 2,
+        "med": 5,
+        "search_path": [
+          {
+            "dimension": 20,
+            "feasible": true,
+            "time": 0.62,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 3,
+              "best_step": 3,
+              "witness_step": 3,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.093,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 55,
+              "total_constraints": 810,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 10,
+            "feasible": true,
+            "time": 0.009,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 23,
+              "best_step": 23,
+              "witness_step": 23,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.009,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 55,
+              "total_constraints": 810,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 5,
+            "feasible": true,
+            "time": 0.098,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 615,
+              "best_step": 615,
+              "witness_step": 615,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.098,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 55,
+              "total_constraints": 810,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 2,
+            "feasible": false,
+            "time": 0.278,
+            "violations": 145,
+            "train_stats": {
+              "steps_run": 1757,
+              "best_step": 757,
+              "witness_step": null,
+              "min_violations": 145,
+              "final_violations": 302,
+              "elapsed": 0.278,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 55,
+              "total_constraints": 810,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 3,
+            "feasible": false,
+            "time": 0.167,
+            "violations": 84,
+            "train_stats": {
+              "steps_run": 1015,
+              "best_step": 15,
+              "witness_step": null,
+              "min_violations": 84,
+              "final_violations": 166,
+              "elapsed": 0.167,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 55,
+              "total_constraints": 810,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 4,
+            "feasible": false,
+            "time": 0.191,
+            "violations": 34,
+            "train_stats": {
+              "steps_run": 1197,
+              "best_step": 197,
+              "witness_step": null,
+              "min_violations": 34,
+              "final_violations": 92,
+              "elapsed": 0.191,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 55,
+              "total_constraints": 810,
+              "constraint_chunk_size": 8192
+            }
+          }
+        ],
+        "time": 1.4,
+        "status": "complete"
+      },
+      {
+        "experiment": "mean_embedding",
+        "m": 20,
+        "k": 2,
+        "med": 8,
+        "search_path": [
+          {
+            "dimension": 24,
+            "feasible": true,
+            "time": 0.002,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 5,
+              "best_step": 5,
+              "witness_step": 5,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.002,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 210,
+              "total_constraints": 7220,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 14,
+            "feasible": true,
+            "time": 0.006,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 26,
+              "best_step": 26,
+              "witness_step": 26,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.006,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 210,
+              "total_constraints": 7220,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 9,
+            "feasible": true,
+            "time": 0.021,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 91,
+              "best_step": 91,
+              "witness_step": 91,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.021,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 210,
+              "total_constraints": 7220,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 6,
+            "feasible": false,
+            "time": 0.238,
+            "violations": 150,
+            "train_stats": {
+              "steps_run": 1174,
+              "best_step": 174,
+              "witness_step": null,
+              "min_violations": 150,
+              "final_violations": 403,
+              "elapsed": 0.238,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 210,
+              "total_constraints": 7220,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 7,
+            "feasible": false,
+            "time": 0.232,
+            "violations": 21,
+            "train_stats": {
+              "steps_run": 1160,
+              "best_step": 160,
+              "witness_step": null,
+              "min_violations": 21,
+              "final_violations": 139,
+              "elapsed": 0.232,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 210,
+              "total_constraints": 7220,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 8,
+            "feasible": true,
+            "time": 0.022,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 98,
+              "best_step": 98,
+              "witness_step": 98,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.022,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 210,
+              "total_constraints": 7220,
+              "constraint_chunk_size": 8192
+            }
+          }
+        ],
+        "time": 0.5,
+        "status": "complete"
+      },
+      {
+        "experiment": "mean_embedding",
+        "m": 40,
+        "k": 2,
+        "med": 9,
+        "search_path": [
+          {
+            "dimension": 27,
+            "feasible": true,
+            "time": 0.004,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 9,
+              "best_step": 9,
+              "witness_step": 9,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.004,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 820,
+              "total_constraints": 60840,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 17,
+            "feasible": true,
+            "time": 0.018,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 43,
+              "best_step": 43,
+              "witness_step": 43,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.018,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 820,
+              "total_constraints": 60840,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 12,
+            "feasible": true,
+            "time": 0.049,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 107,
+              "best_step": 107,
+              "witness_step": 107,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.049,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 820,
+              "total_constraints": 60840,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 9,
+            "feasible": true,
+            "time": 0.719,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1619,
+              "best_step": 1619,
+              "witness_step": 1619,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.718,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 820,
+              "total_constraints": 60840,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 8,
+            "feasible": false,
+            "time": 0.504,
+            "violations": 927,
+            "train_stats": {
+              "steps_run": 1152,
+              "best_step": 152,
+              "witness_step": null,
+              "min_violations": 927,
+              "final_violations": 2101,
+              "elapsed": 0.504,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 820,
+              "total_constraints": 60840,
+              "constraint_chunk_size": 8192
+            }
+          }
+        ],
+        "time": 1.3,
+        "status": "complete"
+      },
+      {
+        "experiment": "mean_embedding",
+        "m": 80,
+        "k": 2,
+        "med": 12,
+        "search_path": [
+          {
+            "dimension": 28,
+            "feasible": true,
+            "time": 0.039,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 36,
+              "best_step": 36,
+              "witness_step": 36,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.039,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 3240,
+              "total_constraints": 499280,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 18,
+            "feasible": true,
+            "time": 0.089,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 90,
+              "best_step": 90,
+              "witness_step": 90,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.089,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 3240,
+              "total_constraints": 499280,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 13,
+            "feasible": true,
+            "time": 1.165,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1203,
+              "best_step": 1203,
+              "witness_step": 1203,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 1.165,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 3240,
+              "total_constraints": 499280,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 10,
+            "feasible": false,
+            "time": 1.042,
+            "violations": 5005,
+            "train_stats": {
+              "steps_run": 1119,
+              "best_step": 119,
+              "witness_step": null,
+              "min_violations": 5005,
+              "final_violations": 11468,
+              "elapsed": 1.042,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 3240,
+              "total_constraints": 499280,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 11,
+            "feasible": false,
+            "time": 2.107,
+            "violations": 2418,
+            "train_stats": {
+              "steps_run": 2000,
+              "best_step": 1283,
+              "witness_step": null,
+              "min_violations": 2418,
+              "final_violations": 4240,
+              "elapsed": 2.107,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 3240,
+              "total_constraints": 499280,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 12,
+            "feasible": true,
+            "time": 1.292,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1340,
+              "best_step": 1340,
+              "witness_step": 1340,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 1.291,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 3240,
+              "total_constraints": 499280,
+              "constraint_chunk_size": 8192
+            }
+          }
+        ],
+        "time": 5.7,
+        "status": "complete"
+      },
+      {
+        "experiment": "mean_embedding",
+        "m": 160,
+        "k": 2,
+        "med": 15,
+        "search_path": [
+          {
+            "dimension": 31,
+            "feasible": true,
+            "time": 0.503,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 63,
+              "best_step": 63,
+              "witness_step": 63,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.503,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 12880,
+              "total_constraints": 4044960,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 21,
+            "feasible": true,
+            "time": 0.845,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 115,
+              "best_step": 115,
+              "witness_step": 115,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 0.845,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 12880,
+              "total_constraints": 4044960,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 16,
+            "feasible": true,
+            "time": 8.345,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1277,
+              "best_step": 1277,
+              "witness_step": 1277,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 8.345,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 12880,
+              "total_constraints": 4044960,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 13,
+            "feasible": false,
+            "time": 14.258,
+            "violations": 12908,
+            "train_stats": {
+              "steps_run": 2000,
+              "best_step": 1210,
+              "witness_step": null,
+              "min_violations": 12908,
+              "final_violations": 27588,
+              "elapsed": 14.258,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 12880,
+              "total_constraints": 4044960,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 14,
+            "feasible": false,
+            "time": 13.356,
+            "violations": 6147,
+            "train_stats": {
+              "steps_run": 2000,
+              "best_step": 1288,
+              "witness_step": null,
+              "min_violations": 6147,
+              "final_violations": 7232,
+              "elapsed": 13.356,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 12880,
+              "total_constraints": 4044960,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 15,
+            "feasible": true,
+            "time": 9.918,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1404,
+              "best_step": 1404,
+              "witness_step": 1404,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 9.917,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 12880,
+              "total_constraints": 4044960,
+              "constraint_chunk_size": 8192
+            }
+          }
+        ],
+        "time": 47.2,
+        "status": "complete"
+      },
+      {
+        "experiment": "mean_embedding",
+        "m": 320,
+        "k": 2,
+        "med": 19,
+        "search_path": [
+          {
+            "dimension": 34,
+            "feasible": true,
+            "time": 5.391,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 92,
+              "best_step": 92,
+              "witness_step": 92,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 5.391,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 51360,
+              "total_constraints": 32563520,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 24,
+            "feasible": true,
+            "time": 9.428,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 164,
+              "best_step": 164,
+              "witness_step": 164,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 9.428,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 51360,
+              "total_constraints": 32563520,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 19,
+            "feasible": true,
+            "time": 84.005,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1473,
+              "best_step": 1473,
+              "witness_step": 1473,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 84.005,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 51360,
+              "total_constraints": 32563520,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 16,
+            "feasible": false,
+            "time": 133.919,
+            "violations": 45962,
+            "train_stats": {
+              "steps_run": 2000,
+              "best_step": 1131,
+              "witness_step": null,
+              "min_violations": 45962,
+              "final_violations": 99963,
+              "elapsed": 133.918,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 51360,
+              "total_constraints": 32563520,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 17,
+            "feasible": false,
+            "time": 138.607,
+            "violations": 27723,
+            "train_stats": {
+              "steps_run": 2000,
+              "best_step": 1918,
+              "witness_step": null,
+              "min_violations": 27723,
+              "final_violations": 27789,
+              "elapsed": 138.607,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 51360,
+              "total_constraints": 32563520,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 18,
+            "feasible": false,
+            "time": 96.619,
+            "violations": 15730,
+            "train_stats": {
+              "steps_run": 1474,
+              "best_step": 474,
+              "witness_step": null,
+              "min_violations": 15730,
+              "final_violations": 15844,
+              "elapsed": 96.619,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 51360,
+              "total_constraints": 32563520,
+              "constraint_chunk_size": 8192
+            }
+          }
+        ],
+        "time": 468.0,
+        "status": "complete"
+      },
+      {
+        "experiment": "mean_embedding",
+        "m": 640,
+        "k": 2,
+        "med": 24,
+        "search_path": [
+          {
+            "dimension": 38,
+            "feasible": true,
+            "time": 53.759,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 113,
+              "best_step": 113,
+              "witness_step": 113,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 53.759,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 205120,
+              "total_constraints": 261325440,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 28,
+            "feasible": true,
+            "time": 222.899,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 485,
+              "best_step": 485,
+              "witness_step": 485,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 222.899,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 205120,
+              "total_constraints": 261325440,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 23,
+            "feasible": false,
+            "time": 826.343,
+            "violations": 78,
+            "train_stats": {
+              "steps_run": 2000,
+              "best_step": 1996,
+              "witness_step": null,
+              "min_violations": 78,
+              "final_violations": 87,
+              "elapsed": 826.342,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 205120,
+              "total_constraints": 261325440,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 25,
+            "feasible": true,
+            "time": 473.569,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1120,
+              "best_step": 1120,
+              "witness_step": 1120,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 473.569,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 205120,
+              "total_constraints": 261325440,
+              "constraint_chunk_size": 8192
+            }
+          },
+          {
+            "dimension": 24,
+            "feasible": true,
+            "time": 534.853,
+            "violations": 0,
+            "train_stats": {
+              "steps_run": 1271,
+              "best_step": 1271,
+              "witness_step": 1271,
+              "min_violations": 0,
+              "final_violations": 0,
+              "elapsed": 534.853,
+              "lr": 1.0,
+              "max_lr": 1.0,
+              "margin": 1e-06,
+              "subset_sizes": [
+                1,
+                2
+              ],
+              "total_subsets": 205120,
+              "total_constraints": 261325440,
+              "constraint_chunk_size": 8192
+            }
+          }
+        ],
+        "time": 2111.4,
+        "status": "complete"
+      }
+    ]
+  },
+  "summary_rows": [
+    {
+      "m": 10,
+      "k": 2,
+      "top_k_queries": 55,
+      "cyclic_polytope_d": 4,
+      "cyclic_queries_checked": 55,
+      "cyclic_total_queries": 55,
+      "cyclic_checked_fraction": 1.0,
+      "cyclic_time": 0.0,
+      "mean_embedding_d": 5,
+      "mean_embedding_violations": 0,
+      "mean_embedding_time": 1.4
+    },
+    {
+      "m": 20,
+      "k": 2,
+      "top_k_queries": 210,
+      "cyclic_polytope_d": 4,
+      "cyclic_queries_checked": 210,
+      "cyclic_total_queries": 210,
+      "cyclic_checked_fraction": 1.0,
+      "cyclic_time": 0.0,
+      "mean_embedding_d": 8,
+      "mean_embedding_violations": 0,
+      "mean_embedding_time": 0.5
+    },
+    {
+      "m": 40,
+      "k": 2,
+      "top_k_queries": 820,
+      "cyclic_polytope_d": 4,
+      "cyclic_queries_checked": 820,
+      "cyclic_total_queries": 820,
+      "cyclic_checked_fraction": 1.0,
+      "cyclic_time": 0.0,
+      "mean_embedding_d": 9,
+      "mean_embedding_violations": 0,
+      "mean_embedding_time": 1.3
+    },
+    {
+      "m": 80,
+      "k": 2,
+      "top_k_queries": 3240,
+      "cyclic_polytope_d": 4,
+      "cyclic_queries_checked": 3240,
+      "cyclic_total_queries": 3240,
+      "cyclic_checked_fraction": 1.0,
+      "cyclic_time": 0.1,
+      "mean_embedding_d": 12,
+      "mean_embedding_violations": 0,
+      "mean_embedding_time": 5.7
+    },
+    {
+      "m": 160,
+      "k": 2,
+      "top_k_queries": 12880,
+      "cyclic_polytope_d": 4,
+      "cyclic_queries_checked": 12880,
+      "cyclic_total_queries": 12880,
+      "cyclic_checked_fraction": 1.0,
+      "cyclic_time": 0.6,
+      "mean_embedding_d": 15,
+      "mean_embedding_violations": 0,
+      "mean_embedding_time": 47.2
+    },
+    {
+      "m": 320,
+      "k": 2,
+      "top_k_queries": 51360,
+      "cyclic_polytope_d": 4,
+      "cyclic_queries_checked": 51360,
+      "cyclic_total_queries": 51360,
+      "cyclic_checked_fraction": 1.0,
+      "cyclic_time": 2.5,
+      "mean_embedding_d": 19,
+      "mean_embedding_violations": 0,
+      "mean_embedding_time": 468.0
+    },
+    {
+      "m": 640,
+      "k": 2,
+      "top_k_queries": 205120,
+      "cyclic_polytope_d": 4,
+      "cyclic_queries_checked": 205120,
+      "cyclic_total_queries": 205120,
+      "cyclic_checked_fraction": 1.0,
+      "cyclic_time": 11.3,
+      "mean_embedding_d": 24,
+      "mean_embedding_violations": 0,
+      "mean_embedding_time": 2111.4
+    }
+  ],
+  "config": {
+    "k": 2,
+    "m_values": [
+      10,
+      20,
+      40,
+      80,
+      160,
+      320,
+      640
+    ],
+    "scoring_function": "inner_product",
+    "mean_embedding": {
+      "trainer": "gd",
+      "num_epochs": 2000,
+      "patience": 1000,
+      "learning_rate": 1.0,
+      "margin": 1e-06,
+      "constraint_chunk_size": 8192,
+      "show_progress": false
+    },
+    "env": {
+      "python": "3.13.12",
+      "platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
+      "torch": "2.11.0",
+      "cuda_available": false,
+      "cuda_device_count": 0,
+      "cuda_device_name": null
+    },
+    "run_dir": "/Users/zihao/Project/med/results/upper_bound_witness"
+  }
+}

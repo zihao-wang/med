@@ -1,0 +1,33 @@
+[project]
+name = "med"
+version = "0.1.0"
+description = "Minimal Embeddable Dimension — ICML 2026 companion code"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "numpy",
+    "matplotlib",
+    "tqdm",
+    "transformers",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["med*"]
+
+[tool.setuptools.package-data]
+"med.unlimit" = [
+    "vocab.txt",
+    "assets/limit-small/*.jsonl",
+    "assets/limit/*.jsonl",
+]

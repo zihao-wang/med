@@ -1,0 +1,3 @@
+dataset,corpus_docs,queries,qrels,positive_docs_per_query,max_dim_checked,minimal_overfit_dim,recall_at_2,exact_top2_match
+limit-small,46,1000,2000,2,4,4,1.0,1.0
+limit,50000,1000,2000,2,4,4,1.0,1.0

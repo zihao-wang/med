@@ -1,0 +1,20 @@
+\begin{table}[t]
+  \centering
+  \caption{Random token-sum controls compared with Weller et al.'s
+  strongest comparable single-vector baseline, Promptriever Llama3 8B
+  at $d=4096$ (we use baseline in the table).}
+  \label{tab:limit-promptriever-crossing}
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{lrlrr}
+    \toprule
+    Dataset & Baseline R@2 & Tokenizer & First $d$ above baseline & R@2 at $d=4096$ \\
+    \midrule
+    LIMIT & 0.030 & handmade & 256 & 0.9980 \\
+    LIMIT & 0.030 & qwen & 512 & 0.2675 \\
+    LIMIT & 0.030 & vanilla & 512 & 0.7060 \\
+    LIMIT-small & 0.543 & handmade & 256 & 1.0000 \\
+    LIMIT-small & 0.543 & qwen & 1024 & 0.8010 \\
+    LIMIT-small & 0.543 & vanilla & 512 & 0.9545 \\
+    \bottomrule
+  \end{tabular}}
+\end{table}

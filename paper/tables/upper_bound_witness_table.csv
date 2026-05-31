@@ -1,0 +1,8 @@
+m,k,top_k_queries,cyclic_polytope_d,cyclic_queries_checked,cyclic_total_queries,cyclic_checked_fraction,cyclic_time,mean_embedding_d,mean_embedding_violations,mean_embedding_time
+10,2,55,4,55,55,1.0,0.0,5,0,1.4
+20,2,210,4,210,210,1.0,0.0,8,0,0.5
+40,2,820,4,820,820,1.0,0.0,9,0,1.3
+80,2,3240,4,3240,3240,1.0,0.1,12,0,5.7
+160,2,12880,4,12880,12880,1.0,0.6,15,0,47.2
+320,2,51360,4,51360,51360,1.0,2.5,19,0,468.0
+640,2,205120,4,205120,205120,1.0,11.3,24,0,2111.4

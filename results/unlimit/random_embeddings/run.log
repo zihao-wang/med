@@ -1,0 +1,102 @@
+[INFO] unlimit random-token embedding run
+  dims      = 32 64 128 256 512 1024 2048 4096
+  datasets  = limit-small limit
+  tokenizers= handmade qwen vanilla
+  qwen_model= Qwen/Qwen3-0.6B
+  mode      = run
+  resume    = 1
+  base_seed = 42
+  device    = cpu
+  score_chunk_size = 2048
+  python    = /Users/zihao/Project/med/.venv/bin/python
+  output_dir= /Users/zihao/Project/med/results/unlimit/random_embeddings
+  git_commit = a6fe202
+[CMD] /Users/zihao/Project/med/.venv/bin/python /Users/zihao/Project/med/scripts/limit_random_embeddings.py --mode run --output-dir /Users/zihao/Project/med/results/unlimit/random_embeddings --base-seed 42 --device cpu --score-chunk-size 2048 --qwen-model Qwen/Qwen3-0.6B --dims 32 64 128 256 512 1024 2048 4096 --splits limit-small limit --tokenizers handmade qwen vanilla --paper-table-dir /Users/zihao/Project/med/paper/tables --paper-figure-dir /Users/zihao/Project/med/paper/figures --resume
+[INFO] Random-token LiMIT sweep
+  dims      = 32 64 128 256 512 1024 2048 4096
+  datasets  = limit-small limit
+  tokenizers= handmade qwen vanilla
+  qwen_model= Qwen/Qwen3-0.6B
+  base_seed = 42
+  device    = cpu
+
+[DATA] limit-small  tokenizer=handmade
+  corpus_docs=46  queries=1000  qrels=2000  token_types=1849
+  dim    recall@2    top2_exact    recall@1    mean_rank
+  32     0.1715      0.0120       0.1990     6.66
+  64     0.2670      0.0480       0.3370     4.65
+  128    0.4005      0.1100       0.5310     2.83
+  256    0.6215      0.3350       0.7950     1.45
+  512    0.8780      0.7590       0.9730     1.03
+  1024   0.9940      0.9880       0.9990     1.00
+  2048   1.0000      1.0000       1.0000     1.00
+  4096   1.0000      1.0000       1.0000     1.00
+
+[DATA] limit  tokenizer=handmade
+  corpus_docs=50000  queries=1000  qrels=2000  token_types=1849
+  dim    recall@2    top2_exact    recall@1    mean_rank
+  32     0.0020      0.0000       0.0030     7114.07
+  64     0.0045      0.0000       0.0060     4285.21
+  128    0.0140      0.0000       0.0170     1889.83
+  256    0.0725      0.0020       0.0930     584.33
+  512    0.3035      0.0760       0.4520     72.85
+  1024   0.7725      0.5970       0.9090     7.69
+  2048   0.9915      0.9850       0.9980     5.63
+  4096   0.9980      0.9980       0.9980     4.39
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+[DATA] limit-small  tokenizer=qwen
+  corpus_docs=46  queries=1000  qrels=2000  token_types=1839
+  dim    recall@2    top2_exact    recall@1    mean_rank
+  32     0.1120      0.0060       0.1180     9.90
+  64     0.1695      0.0240       0.2020     8.02
+  128    0.2180      0.0400       0.2740     6.48
+  256    0.3735      0.1160       0.4630     3.29
+  512    0.5160      0.2630       0.6270     2.49
+  1024   0.6010      0.3640       0.7120     1.78
+  2048   0.7510      0.5760       0.8500     1.30
+  4096   0.8010      0.6650       0.8530     1.26
+
+[DATA] limit  tokenizer=qwen
+  corpus_docs=50000  queries=1000  qrels=2000  token_types=11545
+  dim    recall@2    top2_exact    recall@1    mean_rank
+  32     0.0015      0.0000       0.0020     8552.09
+  64     0.0010      0.0000       0.0010     7025.28
+  128    0.0025      0.0000       0.0030     8040.40
+  256    0.0120      0.0000       0.0150     2669.93
+  512    0.0365      0.0050       0.0470     1745.39
+  1024   0.0570      0.0060       0.0750     1472.06
+  2048   0.1515      0.0570       0.1970     507.85
+  4096   0.2675      0.1600       0.3210     249.16
+
+[DATA] limit-small  tokenizer=vanilla
+  corpus_docs=46  queries=1000  qrels=2000  token_types=1378
+  dim    recall@2    top2_exact    recall@1    mean_rank
+  32     0.1230      0.0050       0.1430     9.71
+  64     0.1705      0.0230       0.2050     7.15
+  128    0.2925      0.0700       0.3750     4.64
+  256    0.3845      0.1220       0.4560     3.20
+  512    0.6145      0.3640       0.7160     1.64
+  1024   0.7845      0.6030       0.9130     1.19
+  2048   0.8980      0.8150       0.9530     1.08
+  4096   0.9545      0.9220       0.9590     1.07
+
+[DATA] limit  tokenizer=vanilla
+  corpus_docs=50000  queries=1000  qrels=2000  token_types=50660
+  dim    recall@2    top2_exact    recall@1    mean_rank
+  32     0.0025      0.0000       0.0040     5852.88
+  64     0.0025      0.0000       0.0040     5077.35
+  128    0.0095      0.0000       0.0100     2476.01
+  256    0.0265      0.0000       0.0320     1814.80
+  512    0.0630      0.0120       0.0820     639.97
+  1024   0.1990      0.0760       0.2650     171.75
+  2048   0.4570      0.2620       0.5790     80.98
+  4096   0.7060      0.6170       0.7670     86.92
+
+[DONE] Results saved to /Users/zihao/Project/med/results/unlimit/random_embeddings
+[DONE] Table saved to /Users/zihao/Project/med/results/unlimit/random_embeddings/limit_retrieval_table.tex
+[DONE] Table saved to /Users/zihao/Project/med/results/unlimit/random_embeddings/limit_promptriever_crossing.tex
+[DONE] Figure saved to /Users/zihao/Project/med/results/unlimit/random_embeddings/limit_retrieval.pdf
+[DONE] Figure saved to /Users/zihao/Project/med/results/unlimit/random_embeddings/limit_retrieval_limit.pdf
+[DONE] Figure saved to /Users/zihao/Project/med/results/unlimit/random_embeddings/limit_retrieval_limit_small.pdf
+[DONE] Results saved to /Users/zihao/Project/med/results/unlimit/random_embeddings

@@ -1,0 +1,29 @@
+{
+  "dims": [
+    32,
+    64,
+    128,
+    256,
+    512,
+    1024,
+    2048,
+    4096
+  ],
+  "splits": [
+    "limit-small",
+    "limit"
+  ],
+  "tokenizers": [
+    "handmade",
+    "qwen",
+    "vanilla"
+  ],
+  "qwen_model": "Qwen/Qwen3-0.6B",
+  "qwen_compact_token_ids": true,
+  "qwen_local_files_only": false,
+  "base_seed": 42,
+  "device": "cpu",
+  "mode": "plot",
+  "score_chunk_size": 2048,
+  "scoring": "inner_product(sum_random_token_embeddings)"
+}

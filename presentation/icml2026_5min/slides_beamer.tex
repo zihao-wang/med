@@ -1,0 +1,184 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usetheme{Boadilla}
+\usecolortheme{dolphin}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamercolor{title}{fg=blue!35!black}
+\setbeamercolor{frametitle}{fg=blue!30!black}
+\setbeamercolor{block title}{bg=blue!8,fg=blue!30!black}
+\setbeamercolor{block body}{bg=blue!2}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\MED}{\operatorname{MED}}
+\newcommand{\RMED}{\operatorname{RMED}}
+\newcommand{\RMEDC}{\mathrm{RMED\text{-}C}}
+\newcommand{\figdir}{../../paper/figures}
+
+\title[\texorpdfstring{$\R^{2k}$}{R2k} is Enough for Top-$k$ Retrieval]{\texorpdfstring{$\R^{2k}$}{R2k} is Theoretically Large Enough for Embedding-based Top-$k$ Retrieval}
+\subtitle{Minimal Embeddable Dimension}
+\author{Zihao Wang \and Hang Yin \and Lihui Liu \and Hanghang Tong \and Yangqiu Song \and Ginny Wong \and Simon See}
+\institute{ICML 2026}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+  \vspace{-0.8em}
+  \begin{center}
+    \large Geometric approximability is not the obstruction.
+  \end{center}
+\end{frame}
+
+\begin{frame}{The approximability question}
+  Embedding retrieval stores objects as vectors, embeds a query, and
+  retrieves by score comparison.
+
+  \vspace{0.5em}
+  \begin{block}{Minimal Embeddable Dimension}
+    Given $m$ objects, $\MED$ is the least $d$ such that some vectors in
+    $\R^d$ can exactly retrieve every answer set
+    \[
+      S \subseteq X,\qquad 1 \leq |S| \leq k
+    \]
+    by score comparison and a threshold.
+  \end{block}
+
+  This isolates exact geometric capacity from positive-margin or learned
+  embedding protocols.
+\end{frame}
+
+\begin{frame}{Exact capacity is $\Theta(k)$, not a function of $m$}
+  \begin{center}
+  \begin{tabular}{lcc}
+    \toprule
+    Scoring rule & Lower bound & Upper bound \\
+    \midrule
+    Inner product & $k-1$ & $2k$ \\
+    Euclidean distance & $k-1$ & $2k$ \\
+    Cosine similarity & $k-1$ & $2k+1$ \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+
+  \vspace{0.8em}
+  \begin{itemize}
+    \item Lower bounds come from VC dimension.
+    \item Upper bounds are explicit constructions.
+    \item Exact geometric capacity does not grow with the universe size $m$.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The construction in one line}
+  Place objects on the moment curve:
+  \[
+    v_i = (t_i,t_i^2,\ldots,t_i^{2k}).
+  \]
+
+  For a target subset $S$, form
+  \[
+    P_S(t)=\prod_{i\in S}(t-t_i).
+  \]
+
+  Use the coefficients of $-P_S(t)^2$ as the query vector.
+
+  \vspace{0.6em}
+  \begin{block}{Closed-form witness}
+    Selected objects score at the shared maximum; every other object scores lower.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Robust MED: normalized gaps change the regime}
+  Exact MED is the no-margin problem.
+
+  \vspace{0.4em}
+  RMED adds unit-norm vectors and a fixed selected-unselected score gap
+  $\epsilon$.
+
+  \vspace{0.5em}
+  Positive gap makes $m$ reappear:
+  \[
+    \RMED(m,k,\epsilon)
+    \geq
+    \frac{\log \binom{m}{k}}{\log(1+2/\epsilon)} .
+  \]
+
+  \vspace{0.2em}
+  Score gaps above
+  \[
+    \epsilon_\star(m,k)=\frac{m}{\sqrt{k(m-1)(m-k)}}\sim \frac{1}{\sqrt{k}}
+  \]
+  are infeasible when $m \gg k$.
+
+  \vspace{0.2em}
+  At the feasible scale, a Gaussian centroid witness gives
+  \[
+    \RMEDC(m,k,c/\sqrt{k}) \leq O(k^2\log m).
+  \]
+\end{frame}
+
+\begin{frame}{Synthetic top-$2$: checked witnesses, not lower bounds}
+  \begin{center}
+    \includegraphics[height=0.66\textheight]{\figdir/top2_dimension_fit.pdf}
+  \end{center}
+
+  \vspace{-0.4em}
+  \begin{itemize}
+    \item Cyclic polytope gives an exact $d=4$ witness for every tested $m$.
+    \item Centroid GD and its log fit stay far below the WBNL fitted curve.
+    \item A failed optimization run is not a proof of infeasibility.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{LIMIT: simple single-vector baselines are strong}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \centering
+      \textbf{LIMIT}
+
+      \vspace{0.3em}
+      \includegraphics[width=\linewidth]{\figdir/limit_retrieval_limit.pdf}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \centering
+      \textbf{LIMIT-small}
+
+      \vspace{0.3em}
+      \includegraphics[width=\linewidth]{\figdir/limit_retrieval_limit_small.pdf}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.6em}
+  \small
+  All three tokenizations cross the reported Promptriever line; vanilla is
+  label-unaware and unsupervised.  The packaged LIMIT top-$2$ tasks can also
+  be exactly overfit in $\R^4$ by the cyclic-polytope construction.
+\end{frame}
+
+\begin{frame}{What this means for retrieval}
+  \begin{block}{Exact MED}
+    Cyclic-polytopal neighborliness gives $\Theta(k)$ dimensions for inner
+    product, cosine, and Euclidean scoring, independent of $m$ up to constants.
+  \end{block}
+
+  \begin{block}{Robust MED}
+    The normalized-gap problem is different: $m$ reappears, and Gaussian
+    centroid witnesses give logarithmic growth in $m$ in the feasible regime.
+  \end{block}
+
+  \begin{block}{Empirical interpretation}
+    The synthetic and LIMIT failures are not failures of geometric
+    approximability; they are entangled with optimization protocol,
+    tokenization, or neural embedding models.
+  \end{block}
+\end{frame}
+
+\end{document}

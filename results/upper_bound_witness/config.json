@@ -1,0 +1,31 @@
+{
+  "k": 2,
+  "m_values": [
+    10,
+    20,
+    40,
+    80,
+    160,
+    320,
+    640
+  ],
+  "scoring_function": "inner_product",
+  "mean_embedding": {
+    "trainer": "gd",
+    "num_epochs": 2000,
+    "patience": 1000,
+    "learning_rate": 1.0,
+    "margin": 1e-06,
+    "constraint_chunk_size": 8192,
+    "show_progress": false
+  },
+  "env": {
+    "python": "3.13.12",
+    "platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
+    "torch": "2.11.0",
+    "cuda_available": false,
+    "cuda_device_count": 0,
+    "cuda_device_name": null
+  },
+  "run_dir": "/Users/zihao/Project/med/results/upper_bound_witness"
+}
