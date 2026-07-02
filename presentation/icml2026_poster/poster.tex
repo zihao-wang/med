@@ -150,7 +150,8 @@
       \end{tikzpicture}
       \begin{itemize}[label=\textbullet,leftmargin=0.48in,labelsep=0.12in,itemsep=0.02in,topsep=0.02in,parsep=0pt]
         \item {\bfseries Minimal Embeddable Dimension (MED):}
-        The minimal dimension of embeddable space $\mathbb{R}^d$.
+        the smallest $d$ for which one shared configuration in
+        $\mathbb{R}^d$ distinguishes every target set $|S|\le k$.
       \end{itemize}
       \end{center}
     \end{posterbox}
@@ -252,12 +253,14 @@
       \[
         P_S(t) = \prod_{i\in S}(t-t_i).
       \]
-      Note that $P_S^2$ has degree $2k$, so we can select $u_S$ as the
-      coefficient vector of $-P_S^2(t)$, then:
+      Note that $P_S^2$ has degree at most $2k$. Select $u_S$ from the
+      nonconstant coefficients of $-P_S^2(t)$, giving a constant shift
+      $c_S$:
       \[
-        s(v_i,u_S) = \langle v_i,u_S\rangle = -P_S^2(t_i) \begin{cases}
-          =0, & i\in S,\\
-          >0, & j\notin S.
+        s(v_i,u_S)=\langle v_i,u_S\rangle=c_S-P_S^2(t_i)
+        \begin{cases}
+          =c_S, & i\in S,\\
+          <c_S, & i\notin S.
         \end{cases}
       \]
     \end{posterbox}
@@ -290,11 +293,10 @@
       \[
         \epsilon_\star(m,k)=
         \frac{m}{\sqrt{k(m-1)(m-k)}}
-        \sim \frac{1}{\sqrt{k}} .
+        \sim \frac{1}{\sqrt{k}}.
       \]
-      If $\epsilon>\epsilon_\star(m,k)$, robust retrieval is impossible
-      in any finite dimension. The ceiling is tight in $\mathbb{R}^{m-1}$
-      by a regular simplex.
+      If $\epsilon>\epsilon_\star(m,k)$, RMED is infinity.
+      The ceiling is tight in $\mathbb{R}^{m-1}$ by a regular simplex.
     \end{posterbox}
 
     \vspace{0.22in}
@@ -315,11 +317,25 @@
       $\Omega(1/\sqrt{k})$.
     \end{posterbox}
 
-    % @codex find a new block describing the theory results abour RMED,
-    % states something like k < MED < RMED(...) < Gaussian witness...
+    \vspace{0.16in}
+    \begin{posterbox}[colback=amberlight, colframe=amber]
+      {\SubheadFont RMED dimension ladder}\par\vspace{0.02in}
+      { At $\epsilon_k=c/\sqrt{k}$, packing and Gaussian witnesses give}\vspace{-0.08in}
+      {
+      \[
+      \begin{aligned}
+        \max\!\left\{k-1,\frac{\log\binom{m}{k}}
+        {\log(1+2/\epsilon)}\right\}
+        &\le \mathrm{RMED}(m,k,\epsilon_k)
+        &\le \mathrm{RMED\text{-}C}(m,k,\epsilon_k)\le Ck^2\log m .
+      \end{aligned}
+      \]
+      }\vspace{-0.12in}
+      { Packing supplies another lower bound for about $\log m$-dependent term.}
+    \end{posterbox}
 
     \begin{posterbox}[takeawayblock, height=1.25in, valign=center]
-      \centering{\SubheadFont Robust MED brings back $m$; Gaussian witness pays only $\log m$.}
+      \centering{\SubheadFont $2k$ is enough for exact MED; $O(k^2\log m)$ is enough for robust MED.}
     \end{posterbox}
   \end{posterbox}
 \end{minipage}\hfill
@@ -341,13 +357,14 @@
 
     \vspace{0.25in}
     \begin{posterbox}[resultblock]
-      {\color{red}\SubheadFont LIMIT: random single-vector controls pass}\par\vspace{0.1in}
+      {\color{red}\SubheadFont LIMIT: random vectors outperform embedding
+      models}\par\vspace{0.1in}
       \begin{center}
-        \tightinclude[width=0.95\linewidth,height=5.05in,keepaspectratio]{../../paper/figures/limit_retrieval_limit.pdf}
+        \tightinclude[width=0.95\linewidth,height=5.5in,keepaspectratio]{../../paper/figures/limit_retrieval_limit.pdf}
       \end{center}
       \vspace{0.04in}
       \begin{center}
-        \tightinclude[width=0.95\linewidth,height=5.05in,keepaspectratio]{../../paper/figures/limit_retrieval_limit_small.pdf}
+        \tightinclude[width=0.95\linewidth,height=5.5in,keepaspectratio]{../../paper/figures/limit_retrieval_limit_small.pdf}
       \end{center}
       \vspace{0.04in}
       \begin{center}
@@ -362,15 +379,14 @@
           \bottomrule
         \end{tabular}}
       \end{center}
-      \vspace{0.02in}
-      Vanilla token sums use no labels and no handcrafted phrases,
+      \vspace{0.3in}
+      {\SmallFont Vanilla token sums use no labels and no handcrafted phrases,
       yet exceed the strongest comparable single-vector Promptriever line.
-      Handmade reaches R@2 $0.9980/1.0000$ at $d=4096$.
+      Handmade reaches R@2 $0.9980/1.0000$ at $d=4096$.}
     \end{posterbox}
 
     \begin{posterbox}[takeawayblock, height=1.65in, valign=center]
-      {\SubheadFont Takeaway:} these failures stress learning, tokenization,
-      conditioning, and optimization, not exact geometric capacity.
+      {\SubheadFont Failures of embedding models DO NOT stress geometric capacity.}
     \end{posterbox}
   \end{posterbox}
 \end{minipage}
