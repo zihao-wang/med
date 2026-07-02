@@ -2,30 +2,30 @@
 
 Read the quoted paragraphs word for word. The timings are targets for a roughly five-minute video and assume a calm conference-recording pace.
 
-## Slide 1 - Title, 0:00-0:30
+## Slide 1 - Title, 0:00-0:25
 
-"This talk is about Minimal Embeddable Dimension, or MED. The question is simple: if a retrieval system stores objects as vectors, how many dimensions are theoretically needed before every top-k answer set can be represented? The main result is that exact separability is much cheaper than one might expect. For answer sets of size at most k, two k dimensions are enough for inner-product retrieval."
+"This talk is about Minimal Embeddable Dimension, or MED, for embedding-based top-k retrieval. The question is: how many dimensions are theoretically needed before every answer set of size at most k can be represented by vector scores? The main message is that exact geometric approximability is not the obstruction."
 
-## Slide 2 - Problem, 0:30-1:08
+## Slide 2 - Settings, 0:25-1:10
 
-"Here is the formal version of the question. We have a universe of m objects. Each object is embedded as a vector in R to the d. For every subset S with size between one and k, we want a query vector and a threshold so that exactly the objects in S score above the threshold. If the answer size is known, this is the same as returning that many highest-scoring objects. MED is the smallest dimension where such a configuration exists."
+"Here is the setting. We store m objects as vectors, and a query retrieves by comparing scores against a threshold. Exact MED asks for a configuration where every subset S of size between one and k can be separated from its complement by some query and threshold. If the answer size is known, this is equivalent to top size-of-S retrieval. Robust MED asks for more. Now the objects and queries are normalized, and selected objects must beat unselected objects by a fixed score gap epsilon. This margin requirement is the first place where exact separability and robust retrieval diverge."
 
-## Slide 3 - Exact MED result, 1:08-1:52
+## Slide 3 - MED, 1:10-2:05
 
-"The exact MED answer is Theta of k for the standard scoring rules. For inner product, the lower bound is k minus one and the upper bound is two k. Euclidean distance has the same bounds. Cosine similarity costs at most one additional dimension, giving an upper bound of two k plus one. The important point is what is not in this table: there is no dependence on m, up to constants, for exact threshold retrieval."
+"The upper bound comes first. Put the objects on the moment curve in R to the two k. For a target set S, form the polynomial whose roots are exactly the selected parameters, then square it and take the negative coefficients as the query vector. The selected objects score zero, and every unselected object scores strictly below zero. This gives an explicit inner-product witness in two k dimensions. The lower bound comes from VC dimension. If MED works, then among any k chosen objects it realizes every subset, so the threshold class shatters k points. Since linear thresholds in d dimensions have VC dimension d plus one, we need d at least k minus one. Together with the Euclidean and cosine reductions, this gives the displayed MED bounds."
 
-## Slide 4 - Construction, 1:52-2:36
+## Slide 4 - RMED, 2:05-3:00
 
-"The upper bound is constructive. Put the m objects on the moment curve in R to the two k, using coordinates t, t squared, up through t to the two k. Now fix any desired answer set S. Build the polynomial whose roots are exactly the t values for the selected objects, then square that polynomial. The squared polynomial is zero on S and positive everywhere else. Using its coefficients as a query vector makes the selected objects share the maximum score, while every unselected object scores lower."
+"Robust MED changes the regime because the margin cannot be arbitrarily large. For one through k at most m over two, any robust witness must have epsilon at most epsilon star of m and k, equal to m divided by the square root of k times m minus one times m minus k. This ceiling is tight in high dimension by a regular simplex construction. In the large-universe retrieval regime, where m over k goes to infinity, the ceiling is order one over square root k. At that feasible scale, a Gaussian centroid construction gives an upper bound: sample random unit object vectors in dimension on the order of k squared log m, and use the normalized centroid of the selected vectors as the query. With positive probability, all selected objects beat all outsiders by a constant over square root k margin."
 
-## Slide 5 - Robust margins, 2:36-3:32
+## Slide 5 - Experiments (1), 3:00-3:45
 
-"This does not mean practical retrieval is solved. Exact separability can use extremely small gaps. To study this stronger requirement, the paper defines robust MED. Now all object and query vectors are normalized, and selected objects must beat unselected objects by a fixed score gap epsilon. In this regime, m comes back through a packing lower bound. There is also a finite-m feasibility ceiling, epsilon star of m and k. Our asymptotic shorthand for RMED is the large-universe regime, m over k going to infinity, where that ceiling becomes order one over square root k. At the feasible scale, Gaussian centroid witnesses give dimensions of order k squared log m."
+"The first experiment checks the synthetic top-two query setting. For k equals two, the exact cyclic-polytope construction predicts dimension four, independent of the number of objects, and the blue line shows that witness. The centroid gradient-descent witness is a different, more restricted protocol, but it still grows slowly on this grid and stays far below the fitted Weller baseline curve. These plotted points are upper-bound witnesses, not certified minima, so failed optimization should not be read as proof of infeasibility."
 
-## Slide 6 - Evidence, 3:32-4:32
+## Slide 6 - Experiments (2), 3:45-4:30
 
-"The experiments are best read as upper-bound witnesses, not as certified minima. For k equals two, the cyclic-polytope construction gives an exact dimension-four witness for arbitrary top-two answer sets. The centroid gradient-descent witness is more constrained, but it grows slowly on the tested grid. The LIMIT retrieval runs show a separate practical lesson. At dimension four thousand ninety six, handmade random token sums reach Recall at two of point nine nine eight, vanilla word tokens reach point seven zero six, and Qwen token ids reach point two six seven five. Geometry helps, but tokenization and construction still strongly shape realized retrieval."
+"The second experiment studies LIMIT and LIMIT-small. We use random additive single-vector embeddings: tokenize a document or query, assign each token a random vector, sum the token vectors, and rank by inner product. The dotted lines are the reported Promptriever single-vector baselines. All three tokenizations cross those lines. The vanilla tokenizer is the key control because it is label-unaware and unsupervised, yet at dimension four thousand ninety six it reaches Recall at two of point seven zero six on LIMIT and point nine five four five on LIMIT-small. The packaged top-two instances can also be exactly overfit in R to the four by the cyclic-polytope construction."
 
-## Slide 7 - Takeaway, 4:32-5:00
+## Slide 7 - Conclusion, 4:30-5:00
 
-"The takeaway is the separation. For exact threshold retrieval, ambient dimension alone is not the bottleneck: dimension proportional to k is enough, with explicit query vectors. For robust retrieval, finite-m score gaps are capped, and feasible large-universe margins have a different dimension regime. For learned retrieval, the remaining hard parts are learning, tokenization, objectives, conditioning, finite precision, and optimization. The repository packages the constructions, experiments, LIMIT runs, and paper-facing artifacts needed to reproduce that distinction."
+"The conclusion is the separation. Exact MED is low-dimensional: cyclic-polytopal neighborliness gives explicit Theta of k witnesses for arbitrary top-k answer sets. Robust MED is different: finite-m score gaps are capped by epsilon star, and feasible large-universe margins have an order k squared log m Gaussian centroid witness. The empirical failures here are therefore not failures of exact geometric capacity. The remaining difficulties are learning, tokenization, objectives, conditioning, finite precision, and optimization."

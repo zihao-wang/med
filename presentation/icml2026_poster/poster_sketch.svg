@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1200" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title id="title">ICML 2026 poster sketch for Minimal Embeddable Dimension</title>
+  <desc id="desc">A landscape scientific poster layout sketch with title, theory columns, experiment panels, and core takeaway.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f6f7f4; }
+      .ink { fill: #1f2933; }
+      .muted { fill: #5b6770; }
+      .tiny { font: 17px Inter, Helvetica, Arial, sans-serif; }
+      .small { font: 20px Inter, Helvetica, Arial, sans-serif; }
+      .body { font: 22px Inter, Helvetica, Arial, sans-serif; }
+      .body-strong { font: 700 23px Inter, Helvetica, Arial, sans-serif; }
+      .section { font: 700 30px Inter, Helvetica, Arial, sans-serif; fill: #1f2933; }
+      .title { font: 800 43px Inter, Helvetica, Arial, sans-serif; fill: #101820; }
+      .subtitle { font: 500 20px Inter, Helvetica, Arial, sans-serif; fill: #3e4c59; }
+      .caption { font: 17px Inter, Helvetica, Arial, sans-serif; fill: #5b6770; }
+      .equation { font: 700 25px "STIX Two Text", Georgia, serif; fill: #1f2933; }
+      .panel { fill: #ffffff; stroke: #d7dde2; stroke-width: 2; }
+      .callout { fill: #fff4d6; stroke: #d79a18; stroke-width: 2; }
+      .teal { fill: #0f766e; }
+      .teal-light { fill: #d8f0ed; }
+      .amber { fill: #d97706; }
+      .amber-light { fill: #fce8c3; }
+      .red { fill: #b5473c; }
+      .red-light { fill: #f8d7d1; }
+      .blue { fill: #315f72; }
+      .blue-light { fill: #d8e7ed; }
+      .line { fill: none; stroke: #315f72; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .line-teal { fill: none; stroke: #0f766e; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .line-amber { fill: none; stroke: #d97706; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .grid { stroke: #d7dde2; stroke-width: 2; }
+      .hair { stroke: #a8b2bc; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="1200"/>
+
+  <rect x="0" y="0" width="1600" height="185" fill="#ffffff"/>
+  <rect x="0" y="176" width="1600" height="9" fill="#0f766e"/>
+  <text class="tiny muted" x="52" y="42">ICML 2026 poster sketch</text>
+  <text class="title" x="52" y="87">R^{2k} is Theoretically Large Enough</text>
+  <text class="title" x="52" y="137">for Embedding-based Top-k Retrieval</text>
+  <text class="subtitle" x="52" y="169">Zihao Wang, Hang Yin, Lihui Liu, Hanghang Tong, Yangqiu Song, Ginny Wong, Simon See</text>
+  <rect x="920" y="70" width="460" height="72" rx="8" fill="#d8f0ed"/>
+  <text class="small" x="942" y="101" fill="#0f514c">Main message: exact geometry</text>
+  <text class="small" x="942" y="128" fill="#0f514c">is not the obstruction.</text>
+  <rect x="1430" y="36" width="115" height="115" rx="8" fill="#ffffff" stroke="#a8b2bc" stroke-width="2"/>
+  <path d="M1450 56h28v28h-28zM1497 56h28v28h-28zM1450 103h28v28h-28zM1498 106h10v10h-10zM1515 102h13v13h-13zM1494 124h35v7h-35zM1488 91h8v34h-8z" fill="#1f2933"/>
+  <text class="caption" x="1416" y="172">QR / code / paper</text>
+
+  <rect class="callout" x="52" y="210" width="1493" height="86" rx="8"/>
+  <text class="body-strong" x="86" y="246">Poster read path:</text>
+  <text class="body" x="280" y="246">Exact MED is only Theta(k), independent of m; robust margins reintroduce m.</text>
+  <text class="body" x="280" y="276">Experiments show the hard cases are not exact-capacity failures.</text>
+
+  <!-- Column panels -->
+  <rect class="panel" x="52" y="326" width="470" height="804" rx="8"/>
+  <rect class="panel" x="565" y="326" width="470" height="804" rx="8"/>
+  <rect class="panel" x="1078" y="326" width="467" height="804" rx="8"/>
+
+  <!-- Left column: problem and exact MED -->
+  <circle class="teal" cx="90" cy="372" r="14"/>
+  <text class="section" x="116" y="383">1. What is MED?</text>
+  <text class="body" x="86" y="430">Store m objects as vectors, then retrieve</text>
+  <text class="body" x="86" y="462">every answer set S with 1 &lt;= |S| &lt;= k</text>
+  <text class="body" x="86" y="494">by score comparison.</text>
+
+  <rect x="86" y="526" width="398" height="146" rx="8" fill="#f6f7f4" stroke="#d7dde2" stroke-width="2"/>
+  <text class="small" x="112" y="562" fill="#315f72">Exact MED</text>
+  <text class="equation" x="112" y="604">min selected score &gt; threshold</text>
+  <text class="equation" x="112" y="642">threshold &gt; max outsider score</text>
+
+  <g transform="translate(102 708)">
+    <line x1="0" y1="120" x2="370" y2="120" class="hair"/>
+    <path d="M14 100 C74 30 135 38 190 78 S300 149 358 45" class="line"/>
+    <circle cx="36" cy="84" r="11" fill="#315f72"/>
+    <circle cx="106" cy="44" r="11" fill="#d97706"/>
+    <circle cx="174" cy="68" r="11" fill="#315f72"/>
+    <circle cx="250" cy="128" r="11" fill="#d97706"/>
+    <circle cx="334" cy="70" r="11" fill="#315f72"/>
+    <path d="M92 20 L108 1 L124 20" fill="none" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+    <path d="M236 154 L252 174 L268 154" fill="none" stroke="#d97706" stroke-width="4" stroke-linecap="round"/>
+    <text class="caption" x="5" y="178">Moment curve: selected vertices get a separating query.</text>
+  </g>
+
+  <text class="body-strong" x="86" y="920">Construction:</text>
+  <text class="body" x="86" y="954">v_i = (t_i, t_i^2, ..., t_i^{2k})</text>
+  <text class="body" x="86" y="989">P_S(t) = product over selected roots</text>
+  <text class="body" x="86" y="1024">query = negative coefficients</text>
+  <text class="body" x="86" y="1054">of P_S(t)^2</text>
+
+  <rect x="86" y="1072" width="398" height="48" rx="8" fill="#d8f0ed"/>
+  <text class="body-strong" x="107" y="1102">Exact: k - 1 &lt;= MED &lt;= 2k</text>
+
+  <!-- Middle column: robust theory -->
+  <circle class="amber" cx="603" cy="372" r="14"/>
+  <text class="section" x="629" y="383">2. Margins change it</text>
+  <text class="body" x="599" y="430">Exact retrieval only needs strict ordering.</text>
+  <text class="body" x="599" y="462">Robust retrieval requires a normalized</text>
+  <text class="body" x="599" y="494">score gap epsilon for every subset.</text>
+
+  <rect x="599" y="526" width="398" height="158" rx="8" fill="#fff8eb" stroke="#e8ba69" stroke-width="2"/>
+  <text class="small" x="623" y="562" fill="#965e05">Finite-m feasibility ceiling</text>
+  <text class="equation" x="623" y="603">epsilon* = m / sqrt(</text>
+  <text class="equation" x="623" y="635">k(m-1)(m-k))</text>
+  <text class="body" x="623" y="667">For m/k -> infinity: epsilon* ~ 1 / sqrt(k)</text>
+
+  <g transform="translate(606 724)">
+    <rect x="0" y="0" width="384" height="168" rx="8" fill="#f6f7f4" stroke="#d7dde2" stroke-width="2"/>
+    <line x1="34" y1="132" x2="352" y2="132" class="grid"/>
+    <line x1="34" y1="25" x2="34" y2="132" class="grid"/>
+    <rect x="67" y="82" width="70" height="50" fill="#d8f0ed"/>
+    <rect x="160" y="45" width="70" height="87" fill="#fce8c3"/>
+    <rect x="253" y="24" width="70" height="108" fill="#f8d7d1"/>
+    <text class="caption" x="63" y="155">exact</text>
+    <text class="caption" x="150" y="155">robust</text>
+    <text class="caption" x="242" y="155">learned</text>
+    <text class="caption" x="42" y="22">dim.</text>
+    <text class="caption" x="45" y="183">Sketch: adding constraints raises the regime.</text>
+  </g>
+
+  <text class="body-strong" x="599" y="946">Gaussian centroid witness:</text>
+  <text class="body" x="599" y="981">sample random unit object vectors</text>
+  <text class="body" x="599" y="1016">query u_S = normalized sum</text>
+  <text class="body" x="599" y="1048">of selected vectors</text>
+  <text class="body" x="599" y="1080">dimension d = O(k^2 log m)</text>
+  <rect x="599" y="1096" width="398" height="30" rx="8" fill="#fce8c3"/>
+  <text class="small" x="619" y="1118" fill="#7a4a00">Margins expose the practical hardness.</text>
+
+  <!-- Right column: experiments -->
+  <circle class="red" cx="1116" cy="372" r="14"/>
+  <text class="section" x="1142" y="383">3. Experiments</text>
+  <text class="body" x="1112" y="430">Two sanity checks push against the</text>
+  <text class="body" x="1112" y="462">“not enough dimensions” explanation.</text>
+
+  <rect x="1112" y="498" width="396" height="258" rx="8" fill="#f6f7f4" stroke="#d7dde2" stroke-width="2"/>
+  <text class="small" x="1138" y="535" fill="#315f72">Synthetic top-2 witness</text>
+  <line x1="1153" y1="704" x2="1470" y2="704" class="grid"/>
+  <line x1="1153" y1="570" x2="1153" y2="704" class="grid"/>
+  <path d="M1164 676 L1210 676 L1256 676 L1302 676 L1348 676 L1394 676 L1440 676" class="line-teal"/>
+  <path d="M1164 666 C1220 650 1275 628 1335 608 S1410 560 1450 540" class="line-amber"/>
+  <text class="caption" x="1162" y="732">Cyclic stays at d=4; centroid grows slowly.</text>
+  <circle cx="1168" cy="775" r="8" fill="#0f766e"/>
+  <text class="caption" x="1185" y="781">cyclic polytope</text>
+  <circle cx="1325" cy="775" r="8" fill="#d97706"/>
+  <text class="caption" x="1342" y="781">centroid GD</text>
+
+  <rect x="1112" y="810" width="396" height="230" rx="8" fill="#fff5f3" stroke="#e9aaa3" stroke-width="2"/>
+  <text class="small" x="1138" y="847" fill="#8c2f28">LIMIT / LIMIT-small</text>
+  <text class="caption" x="1138" y="878">Random token-sum embeddings, no label training.</text>
+  <g transform="translate(1138 904)">
+    <text class="caption" x="0" y="22">LIMIT</text>
+    <rect x="92" y="2" width="220" height="26" rx="5" fill="#f8d7d1"/>
+    <rect x="92" y="2" width="155" height="26" rx="5" fill="#b5473c"/>
+    <text class="caption" x="320" y="23">0.706 @ 4096</text>
+    <text class="caption" x="0" y="68">LIMIT-small</text>
+    <rect x="92" y="48" width="220" height="26" rx="5" fill="#f8d7d1"/>
+    <rect x="92" y="48" width="210" height="26" rx="5" fill="#b5473c"/>
+    <text class="caption" x="320" y="69">0.9545 @ 4096</text>
+    <line x1="42" y1="95" x2="312" y2="95" stroke="#a8b2bc" stroke-width="2"/>
+    <text class="caption" x="0" y="125">Cyclic overfit: exact Recall@2 = 1 in R^4.</text>
+  </g>
+
+  <rect x="1112" y="1073" width="396" height="40" rx="8" fill="#d8e7ed"/>
+  <text class="small" x="1132" y="1100" fill="#28495a">Put the full paper figures here in the final poster.</text>
+
+  <!-- Bottom strip -->
+  <rect x="52" y="1150" width="1493" height="28" rx="8" fill="#1f2933"/>
+  <text class="tiny" x="75" y="1170" fill="#ffffff">Final poster direction: theory-heavy but visitor-friendly; emphasize the distinction between exact capacity and deployable retrieval systems.</text>
+</svg>

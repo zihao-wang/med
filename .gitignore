@@ -232,6 +232,8 @@ __marimo__/
 !paper/figures/*.pdf
 !presentation/**/*.pdf
 !presentation/**/*.pptx
+presentation/icml2026_5min/slides_beamer.pdf
+!presentation/icml2026_5min/icml2026_5min_beamer.pdf
 
 # Runtime artifacts
 minimal_dem_log.txt

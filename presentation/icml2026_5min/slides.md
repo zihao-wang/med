@@ -7,7 +7,10 @@ math: mathjax
 ---
 
 <!--
-Target: 5-minute ICML-style video, 7--8 slides.
+Target: 5-minute ICML-style video, 7 slides.
+
+Canonical editable deck:
+- slides_beamer.tex
 
 Primary sources:
 - README.md
@@ -25,33 +28,57 @@ Visual assets:
 
 # $\mathbb{R}^{2k}$ is theoretically large enough for embedding-based top-$k$ retrieval
 
-## Minimal Embeddable Dimension (MED)
-
 Zihao Wang, Hang Yin, Lihui Liu, Hanghang Tong, Yangqiu Song, Ginny Wong, Simon See
 
 **Main message:** exact geometric approximability is not the obstruction.
 
 ---
 
-# The question behind vector retrieval
+# Settings: exact and robust retrieval
 
-Embedding retrieval stores $m$ objects as vectors in $\mathbb{R}^d$.
+Embedding retrieval stores $m$ objects as vectors and ranks them by query-object scores.
 
-A query should recover any answer set
+**Exact MED:** for every answer set
 
 $$
-S \subseteq X,\qquad 1 \le |S| \le k
+S\subseteq X,\qquad 1\le |S|\le k,
 $$
 
-by score comparison and a threshold.
+there is a query $u_S$ and threshold $b_S$ such that
 
-**MED** is the smallest dimension $d$ where this is possible for every such $S$.
+$$
+\min_{i\in S}s(v_i,u_S)>b_S\ge \max_{j\notin S}s(v_j,u_S).
+$$
 
-When $|S|$ is known, thresholding is equivalent to top-$|S|$ retrieval.
+If $|S|$ is known, this is top-$|S|$ retrieval.
+
+**Robust MED:** unit-normalized objects and queries must also satisfy
+
+$$
+\min_{i\in S}s(v_i,u_S)
+\ge
+\max_{j\notin S}s(v_j,u_S)+\epsilon.
+$$
 
 ---
 
-# Exact MED is $\Theta(k)$, not a function of $m$
+# MED
+
+**Upper bound:** place objects on the moment curve in $\mathbb{R}^{2k}$:
+
+$$
+v_i=(t_i,t_i^2,\ldots,t_i^{2k}).
+$$
+
+For target $S$, define
+
+$$
+P_S(t)=\prod_{i\in S}(t-t_i),
+$$
+
+and use the coefficients of $-P_S(t)^2$ as the query vector. Selected objects score $0$; unselected objects score below $0$.
+
+**Lower bound:** MED realizes every subset of any $k$ chosen objects, so the threshold class shatters $k$ points. Since linear thresholds in $\mathbb{R}^d$ have VC dimension $d+1$, we need $d\ge k-1$.
 
 | Scoring rule | Lower bound | Upper bound |
 |---|---:|---:|
@@ -59,107 +86,70 @@ When $|S|$ is known, thresholding is equivalent to top-$|S|$ retrieval.
 | Euclidean distance | $k-1$ | $2k$ |
 | Cosine similarity | $k-1$ | $2k+1$ |
 
-The lower bounds come from VC dimension.
-
-The upper bounds are explicit constructions.
-
-**Takeaway:** for exact threshold retrieval, the universe size $m$ does not drive the dimension up.
-
 ---
 
-# Why $2k$ dimensions are enough
+# RMED: feasible margins and Gaussian upper bound
 
-Place objects on the moment curve:
-
-$$
-v_i = (t_i, t_i^2, \ldots, t_i^{2k})
-$$
-
-For a target subset $S$, form
-
-$$
-P_S(t)=\prod_{i\in S}(t-t_i).
-$$
-
-Use the coefficients of $-P_S(t)^2$ as the query vector.
-
-Selected objects score at the shared maximum; every other object scores lower.
-
-This is the cyclic-polytope neighborliness witness in closed form.
-
----
-
-# Margins change the problem
-
-Exact retrieval can rely on arbitrarily small gaps.
-
-Robust MED asks for unit vectors and a normalized gap $\epsilon$:
-
-$$
-\min_{i\in S}\langle u_S,v_i\rangle
-\ge
-\max_{j\notin S}\langle u_S,v_j\rangle+\epsilon .
-$$
-
-Then $m$ reappears:
-
-$$
-\operatorname{RMED}(m,k,\epsilon)
-\ge
-\frac{\log {m \choose k}}{\log(1+2/\epsilon)} .
-$$
-
-Finite-$m$ score gaps are capped by
+Robust retrieval is impossible above the finite-$m$ margin ceiling
 
 $$
 \epsilon_\star(m,k)=\frac{m}{\sqrt{k(m-1)(m-k)}}.
 $$
 
-Our RMED shorthand uses the large-universe regime $m/k\to\infty$, where
+The ceiling is attained by a regular simplex in $\mathbb{R}^{m-1}$.
+
+In the retrieval regime $m/k\to\infty$,
 
 $$
 \epsilon_\star(m,k)\sim \frac{1}{\sqrt{k}}.
 $$
 
-At the feasible $c/\sqrt{k}$ scale, Gaussian centroid witnesses give
-$O(k^2\log m)$ dimensions.
+At the feasible scale $\epsilon_k=c/\sqrt{k}$, a Gaussian centroid witness uses
+
+$$
+d=Ck^2\log m,\qquad
+u_S=\frac{\sum_{i\in S}v_i}{\left\|\sum_{i\in S}v_i\right\|_2},
+$$
+
+and gives
+
+$$
+\operatorname{RMED\text{-}C}(m,k,\epsilon_k)\le O(k^2\log m).
+$$
 
 ---
 
-# Evidence: witnesses, not minima
+# Experiments (1): synthetic top-2 query
 
-For $k=2$, the exact construction uses $d=4$.
+For $k=2$, the cyclic-polytope construction predicts an exact $d=4$ witness.
 
-| Paper witness grid | Final row |
-|---|---|
-| Cyclic polytope | exact $d=4$ witness for arbitrary top-2 answer sets |
-| Centroid GD | zero violations at $d=24$ for $m=640$ |
+![height:360px](../../paper/figures/top2_dimension_fit.pdf)
 
-LIMIT retrieval shows the practical side:
-
-| LIMIT full, Recall@2 at $d=4096$ | Result |
-|---|---:|
-| Handmade token sums | 0.9980 |
-| Vanilla word tokens | 0.7060 |
-| Qwen token ids | 0.2675 |
-
-Tokenizer geometry and construction choices still matter.
+- Cyclic polytope stays at $d=4$.
+- Centroid optimization grows slowly on the tested grid.
+- These are checked upper-bound witnesses, not certified minima.
 
 ---
 
-# What this means for retrieval
+# Experiments (2): LIMIT and LIMIT-small
 
-Exact threshold retrieval:
+Random additive single-vector embeddings cross the reported Promptriever line.
 
-**Ambient dimension alone is not the bottleneck.**
+![height:300px](../../paper/figures/limit_retrieval_limit.pdf)
+![height:300px](../../paper/figures/limit_retrieval_limit_small.pdf)
 
-Robust or learned retrieval:
+At $d=4096$, vanilla reaches Recall@2 $0.7060$ on LIMIT and $0.9545$ on LIMIT-small without using labels.
 
-**The bottlenecks are margin, learning, tokenization, objectives, conditioning, finite precision, and optimization.**
+The packaged LIMIT top-$2$ tasks can also be exactly overfit in $\mathbb{R}^4$ by the cyclic-polytope construction.
 
-The repository provides:
+---
 
-- exact cyclic-polytope witnesses;
-- centroid/Gaussian witness experiments;
-- LIMIT random-token retrieval runs;
-- paper-ready result tables and figures.
+# Conclusion
+
+**Exact MED:** cyclic-polytopal neighborliness gives explicit $\Theta(k)$-dimensional witnesses for arbitrary top-$k$ answer sets.
+
+**Robust MED:** normalized margins change the regime: feasible gaps are capped by $\epsilon_\star(m,k)$, and Gaussian centroids give $O(k^2\log m)$ dimensions at the $c/\sqrt{k}$ scale.
+
+**Empirical interpretation:** synthetic and LIMIT failures are not exact-capacity failures.
+
+The remaining difficulties lie in learning, tokenization, objectives, conditioning, finite precision, and optimization.

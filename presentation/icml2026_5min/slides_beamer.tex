@@ -8,6 +8,7 @@
 \usepackage{amsmath,amssymb,booktabs}
 \usepackage{graphicx}
 \usepackage{microtype}
+\usepackage{tikz}
 
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{footline}[frame number]
@@ -22,10 +23,29 @@
 \newcommand{\RMEDC}{\mathrm{RMED\text{-}C}}
 \newcommand{\figdir}{../../paper/figures}
 
-\title[\texorpdfstring{$\R^{2k}$}{R2k} is Enough for Top-$k$ Retrieval]{\texorpdfstring{$\R^{2k}$}{R2k} is Theoretically Large Enough for Embedding-based Top-$k$ Retrieval}
-\subtitle{Minimal Embeddable Dimension}
-\author{Zihao Wang \and Hang Yin \and Lihui Liu \and Hanghang Tong \and Yangqiu Song \and Ginny Wong \and Simon See}
-\institute{ICML 2026}
+\title[\texorpdfstring{$\R^{2k}$ is Enough for Top-$k$ Retrieval}{R2k
+is Enough for Top-k Retrieval}]{\texorpdfstring{$\R^{2k}$ is
+    Theoretically Large Enough\\for Embedding-based Top-$k$
+  Retrieval}{R2k is Theoretically Large Enough for Embedding-based
+Top-k Retrieval}}
+\author[Zihao Wang et al.]{\texorpdfstring{%
+    \small
+    Zihao Wang\inst{1} \quad Hang Yin\inst{2} \quad Lihui Liu\inst{3}\\[0.15em]
+    Hanghang Tong\inst{4} \quad Yangqiu Song\inst{5} \quad Ginny Wong\inst{6}
+    \quad Simon See\inst{6}%
+  }{Zihao Wang, Hang Yin, Lihui Liu, Hanghang Tong, Yangqiu Song, Ginny
+Wong, Simon See}}
+\institute[TSY Capital; Squarepoint Capital; Wayne State; UIUC;
+HKUST; NVIDIA]{\texorpdfstring{%
+    \scriptsize
+    \inst{1}\,TSY Capital \quad
+    \inst{2}\,Squarepoint Capital \quad
+    \inst{3}\,Wayne State University\\[-0.1em]
+    \inst{4}\,UIUC \quad
+    \inst{5}\,HKUST \quad
+    \inst{6}\,NVIDIA%
+  }{TSY Capital; Squarepoint Capital; Wayne State University; UIUC;
+HKUST; NVIDIA}}
 \date{}
 
 \begin{document}
@@ -38,110 +58,171 @@
   \end{center}
 \end{frame}
 
-\begin{frame}{The approximability question}
-  Embedding retrieval stores objects as vectors, embeds a query, and
-  retrieves by score comparison.
+\begin{frame}{MED = Minimal Dimension to achieve (robust) $k$-shattering}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.55\textwidth}
+      \begin{block}{$k$-shattering}
+        Store $m$ objects as vectors.  For every answer set
+        $S\subseteq X$, $1\le |S|\le k$, choose a query and threshold:
+        \[
+          \min_{i\in S}s(v_i,u_S)
+          >
+          b_S
+          \ge
+          \max_{j\notin S}s(v_j,u_S).
+        \]
+        If $|S|$ is known, this is top-$|S|$ retrieval.
+      \end{block}
+
+      \begin{block}{Robust $k$-shattering}
+        Unit-normalized objects and queries must also have margin:
+        \[
+          \min_{i\in S}s(v_i,u_S)
+          \ge
+          \max_{j\notin S}s(v_j,u_S)+\epsilon.
+        \]
+      \end{block}
+    \end{column}
+    \begin{column}{0.40\textwidth}
+      \centering
+      \begin{tikzpicture}[x=1cm,y=1cm]
+        \draw[->,line width=0.4pt] (0,0.2) -- (0,4.0);
+        \node[anchor=east] at (-0.05,3.85) {\small score};
+        \draw[dashed,blue!55!black] (-0.45,2.1) -- (2.9,2.1)
+        node[right] {\small $b_S$};
+        \draw[densely dotted,red!70!black] (-0.45,2.75) -- (2.9,2.75)
+        node[right] {\small $b_S+\epsilon$};
+        \draw[<->,red!70!black] (2.55,2.1) -- (2.55,2.75)
+        node[midway,right] {\scriptsize gap};
+
+        \foreach \x/\y in {0.55/3.45,1.35/3.15,2.05/3.35}
+        \fill[blue!70!black] (\x,\y) circle (3pt);
+        \foreach \x/\y in {0.45/1.1,1.15/1.55,1.9/0.8,2.35/1.4}
+        \fill[gray!60] (\x,\y) circle (3pt);
+        \node[blue!70!black] at (1.35,3.78) {\small selected $S$};
+        \node[gray!60!black] at (1.55,0.35) {\small unselected};
+
+        \node[draw,rounded corners,inner sep=4pt,align=center]
+        at (1.25,4.45) {\small one query\\[-0.2em]\small ranks all objects};
+      \end{tikzpicture}
+
+      \vspace{0.7em}
+      \small
+      Exact $k$-shattering asks for strict separation.
+      Robust $k$-shattering asks for a normalized score gap that cannot be removed by rescaling.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{MED bounds}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Upper bound construction: \\cyclic polytope and square polynomials}
+        Pick $t_1<t_2 <\cdots < t_m$. Put objects in $\R^{2k}$:
+        \[
+          v_i=(t_i,t_i^2,\ldots,t_i^{2k}).
+        \]
+        For target $S$, define
+        \[
+          P_S(t)=\prod_{i\in S}(t-t_i).
+        \]
+        Use coefficients of $-P_S(t)^2$ as $u_S$.
+
+        \vspace{0.2em}
+        Then selected objects score $0$, and every unselected object
+        scores $<0$.
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Lower bound: VC dimension}
+        MED realizes every subset of any $k$ chosen objects, so the score
+        threshold class shatters $k$ points.
+
+        \vspace{0.3em}
+        Linear thresholds in $\R^d$ have VC dimension $d+1$, hence
+        \[
+          d+1\ge k\quad\Rightarrow\quad d\ge k-1.
+        \]
+      \end{block}
+
+      \vspace{0.2em}
+      \centering
+      \small
+      \begin{tabular}{lcc}
+        \toprule
+        Scoring & Lower & Upper \\
+        \midrule
+        Inner product & $k-1$ & $2k$ \\
+        Euclidean & $k-1$ & $2k$ \\
+        Cosine & $k-1$ & $2k+1$ \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+  \end{columns}
 
   \vspace{0.5em}
-  \begin{block}{Minimal Embeddable Dimension}
-    Given $m$ objects, $\MED$ is the least $d$ such that some vectors in
-    $\R^d$ can exactly retrieve every answer set
-    \[
-      S \subseteq X,\qquad 1 \leq |S| \leq k
-    \]
-    by score comparison and a threshold.
-  \end{block}
-
-  This isolates exact geometric capacity from positive-margin or learned
-  embedding protocols.
+  \centering
+  \large Exact MED is $\Theta(k)$ and does not grow with $m$.
 \end{frame}
 
-\begin{frame}{Exact capacity is $\Theta(k)$, not a function of $m$}
-  \begin{center}
-  \begin{tabular}{lcc}
-    \toprule
-    Scoring rule & Lower bound & Upper bound \\
-    \midrule
-    Inner product & $k-1$ & $2k$ \\
-    Euclidean distance & $k-1$ & $2k$ \\
-    Cosine similarity & $k-1$ & $2k+1$ \\
-    \bottomrule
-  \end{tabular}
-  \end{center}
+\begin{frame}{RMED: feasible margins and Gaussian upper bound}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Feasibility of $\epsilon$ (informal).}
 
-  \vspace{0.8em}
-  \begin{itemize}
-    \item Lower bounds come from VC dimension.
-    \item Upper bounds are explicit constructions.
-    \item Exact geometric capacity does not grow with the universe size $m$.
-  \end{itemize}
+      Every robust witness must satisfy
+      \[
+        \epsilon\le
+        \epsilon_\star(m,k)
+        =
+        \frac{m}{\sqrt{k(m-1)(m-k)}}.
+      \]
+
+      \begin{itemize}
+        \item $\epsilon>\epsilon_\star(m,k)$: infeasible.
+        \item $\epsilon\le\epsilon_\star(m,k)$: feasible in $\R^{m-1}$
+          by a regular simplex.
+        \item If $m/k\to\infty$, then
+          $\epsilon_\star(m,k)\sim1/\sqrt{k}$.
+      \end{itemize}
+    \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Gaussian centroid witness.}
+
+      We sample random unit object vectors $v_i$ and construct query vectors
+      \[
+        u_S=
+        \frac{\sum_{i\in S}v_i}
+        {\left\|\sum_{i\in S}v_i\right\|_2}.
+      \]
+    \end{block}
+      At the feasible margin scale $\epsilon_k=c/\sqrt{k}$, when $d=Ck^2\log m$,
+      concentration and union bounds implies that robust MED exists.
+      \[
+        \RMEDC(m,k,\epsilon_k)\le O(k^2\log m),
+      \]
+      and $\RMED$ is no larger than this restricted centroid-query quantity.
+
+    \end{column}
+  \end{columns}
 \end{frame}
 
-\begin{frame}{The construction in one line}
-  Place objects on the moment curve:
-  \[
-    v_i = (t_i,t_i^2,\ldots,t_i^{2k}).
-  \]
-
-  For a target subset $S$, form
-  \[
-    P_S(t)=\prod_{i\in S}(t-t_i).
-  \]
-
-  Use the coefficients of $-P_S(t)^2$ as the query vector.
-
-  \vspace{0.6em}
-  \begin{block}{Closed-form witness}
-    Selected objects score at the shared maximum; every other object scores lower.
-  \end{block}
-\end{frame}
-
-\begin{frame}{Robust MED: normalized gaps change the regime}
-  Exact MED is the no-margin problem.
-
-  \vspace{0.4em}
-  RMED adds unit-norm vectors and a fixed selected-unselected score gap
-  $\epsilon$.
-
-  \vspace{0.5em}
-  Positive gap makes $m$ reappear through packing:
-  \[
-    \RMED(m,k,\epsilon)
-    \geq
-    \frac{\log \binom{m}{k}}{\log(1+2/\epsilon)} .
-  \]
-
-  \vspace{0.2em}
-  Finite-$m$ gaps are capped by
-  \[
-    \epsilon_\star(m,k)=\frac{m}{\sqrt{k(m-1)(m-k)}}.
-  \]
-
-  \vspace{0.1em}
-  The paper's RMED shorthand is the large-universe regime
-  $m/k\to\infty$, where $\epsilon_\star(m,k)\sim1/\sqrt{k}$.
-
-  \vspace{0.2em}
-  At the feasible $c/\sqrt{k}$ scale, a Gaussian centroid witness gives
-  \[
-    \RMEDC(m,k,c/\sqrt{k}) \leq O(k^2\log m).
-  \]
-\end{frame}
-
-\begin{frame}{Synthetic top-$2$: checked witnesses, not lower bounds}
+\begin{frame}{Experiments (1): synthetic top-$2$ query}
   \begin{center}
     \includegraphics[height=0.66\textheight]{\figdir/top2_dimension_fit.pdf}
   \end{center}
 
   \vspace{-0.4em}
   \begin{itemize}
-    \item Cyclic polytope gives an exact $d=4$ witness for every tested $m$.
-    \item Centroid GD and its log fit stay far below the WBNL fitted curve.
-    \item A failed optimization run is not a proof of infeasibility.
+    \item For $k=2$, the construction predicts an exact $d=4$ witness.
+    \item Centroid optimization grows slowly on the tested grid.
+    \item These are checked upper-bound witnesses, not certified minima.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{LIMIT: simple single-vector baselines are strong}
+\begin{frame}{Experiments (2): LIMIT and LIMIT-small}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.49\textwidth}
       \centering
@@ -161,26 +242,26 @@
 
   \vspace{0.6em}
   \small
-  All three tokenizations cross the reported Promptriever line; vanilla is
-  label-unaware and unsupervised.  The packaged LIMIT top-$2$ tasks can also
-  be exactly overfit in $\R^4$ by the cyclic-polytope construction.
+  Random additive single-vector embeddings cross the reported Promptriever
+  line.  At $d=4096$, vanilla reaches Recall@2 $0.7060$ on LIMIT and
+  $0.9545$ on LIMIT-small without using labels.
 \end{frame}
 
-\begin{frame}{What this means for retrieval}
+\begin{frame}{Conclusion}
   \begin{block}{Exact MED}
-    Cyclic-polytopal neighborliness gives $\Theta(k)$ dimensions for inner
-    product, cosine, and Euclidean scoring, independent of $m$ up to constants.
+    Cyclic-polytopal neighborliness gives explicit $\Theta(k)$-dimensional
+    witnesses for arbitrary top-$k$ answer sets.
   \end{block}
 
   \begin{block}{Robust MED}
-    The normalized-gap problem is different: finite-$m$ gaps are capped by
-    $\epsilon_\star(m,k)$, and Gaussian centroid witnesses give
-    $O(k^2\log m)$ dimensions at the feasible large-universe scale.
+    Normalized margins change the regime: feasible gaps are capped by
+    $\epsilon_\star(m,k)$, and Gaussian centroids give
+    $O(k^2\log m)$ dimensions at the $c/\sqrt{k}$ scale.
   \end{block}
 
   \begin{block}{Empirical interpretation}
-    The synthetic and LIMIT failures are not failures of geometric
-    approximability; the remaining difficulties lie in learning,
+    The observed failures are not exact-capacity failures.  The remaining
+    difficulties lie in learning,
     tokenization, objectives, conditioning, finite precision, and optimization.
   \end{block}
 \end{frame}

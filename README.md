@@ -124,6 +124,8 @@ Only the three paper-used PDFs are generated:
 │   ├── figures/            #   figures used by draft_main.tex
 │   ├── tables/             #   table inputs used by draft_main.tex
 │   └── overleaf_final.zip  #   final Overleaf upload snapshot
+├── presentation/           # ICML presentation artifacts
+│   └── icml2026_5min/      #   5-minute deck source, PDF, and narration
 ├── src/med/                # editable package root
 │   ├── scoring.py          #   inner-product/cosine scoring helpers
 │   ├── plotting.py         #   WBNL curve reference and plot styling
@@ -159,6 +161,19 @@ uv run pytest tests -q
 ```bash
 cd paper
 SOURCE_DATE_EPOCH=1780164721 FORCE_SOURCE_DATE=1 latexmk -pdf draft_main.tex
+```
+
+## Build the presentation
+
+The 5-minute ICML video deck lives in `presentation/icml2026_5min/`.
+`slides_beamer.tex` is the editable Beamer source,
+`icml2026_5min_beamer.pdf` is the release PDF, and `narration.md` contains
+the recording script.
+
+```bash
+cd presentation/icml2026_5min
+SOURCE_DATE_EPOCH=1780164721 FORCE_SOURCE_DATE=1 latexmk -pdf slides_beamer.tex
+cp slides_beamer.pdf icml2026_5min_beamer.pdf
 ```
 
 ## License
