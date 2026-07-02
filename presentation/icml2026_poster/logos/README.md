@@ -11,3 +11,4 @@ These assets are used by `../poster.tex`.
 - `nvidia_formal_horizontal.svg` / `nvidia_formal_horizontal.png`: official horizontal NVIDIA logo from NVIDIA's logo and brand guidelines page; the PNG is a Quick Look render used by pdfLaTeX.
 
 - `tsy_capital_original.png` / `tsy_capital.png`: TSY Capital logo supplied by the user from the clipboard image in this Codex thread; `tsy_capital.png` is a trimmed copy used by LaTeX.
+- `tsy_capital_web.png`: TSY Capital horizontal logo from `https://tsycapital.com/`, used for the TSY-styled poster header.

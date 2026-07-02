@@ -3,70 +3,79 @@
 \usepackage[paperwidth=60in,paperheight=36in,margin=0.5in]{geometry}
 \usepackage{fix-cm}
 \usepackage[T1]{fontenc}
-\usepackage{helvet}
-\renewcommand{\familydefault}{\sfdefault}
+\usepackage[default,scaled=0.92]{sourcecodepro}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{tikz}
 \usepackage{array,booktabs}
+\usepackage{enumitem}
 \usepackage[most]{tcolorbox}
 \usetikzlibrary{calc}
 
 \pagestyle{empty}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.18em}
+\setlength{\abovedisplayskip}{0.10in}
+\setlength{\belowdisplayskip}{0.10in}
+\setlength{\abovedisplayshortskip}{0.07in}
+\setlength{\belowdisplayshortskip}{0.07in}
 
-\definecolor{posterbg}{HTML}{F6F7F4}
-\definecolor{ink}{HTML}{1F2933}
-\definecolor{muted}{HTML}{586673}
-\definecolor{teal}{HTML}{0F766E}
-\definecolor{teallight}{HTML}{D8F0ED}
-\definecolor{amber}{HTML}{D97706}
-\definecolor{amberlight}{HTML}{FFF2CF}
-\definecolor{red}{HTML}{B5473C}
-\definecolor{redlight}{HTML}{FFF0EE}
-\definecolor{blue}{HTML}{315F72}
-\definecolor{bluelight}{HTML}{D8E7ED}
-\definecolor{border}{HTML}{D7DDE2}
+\definecolor{posterbg}{HTML}{FFFFFF}
+\definecolor{ink}{HTML}{000000}
+\definecolor{muted}{HTML}{5F5F5F}
+\definecolor{teal}{HTML}{000000}
+\definecolor{teallight}{HTML}{F2F2F2}
+\definecolor{amber}{HTML}{202020}
+\definecolor{amberlight}{HTML}{F7F7F7}
+\definecolor{red}{HTML}{303030}
+\definecolor{redlight}{HTML}{F4F4F4}
+\definecolor{blue}{HTML}{111111}
+\definecolor{bluelight}{HTML}{ECECEC}
+\definecolor{border}{HTML}{000000}
 
 \pagecolor{posterbg}
 \color{ink}
 
-\newcommand{\TitleFont}{\fontsize{58}{64}\selectfont}
-\newcommand{\AuthorFont}{\fontsize{26}{31}\selectfont}
-\newcommand{\BodyFont}{\fontsize{30}{35}\selectfont}
-\newcommand{\SmallFont}{\fontsize{24}{29}\selectfont}
-\newcommand{\TinyFont}{\fontsize{20}{24}\selectfont}
-\newcommand{\ClaimFont}{\fontsize{27}{32}\selectfont}
-\newcommand{\SectionFont}{\fontsize{44}{50}\selectfont\bfseries}
-\newcommand{\SubheadFont}{\fontsize{34}{39}\selectfont\bfseries}
-\newcommand{\MiniHeadFont}{\fontsize{29}{34}\selectfont\bfseries}
-\newcommand{\EquationFont}{\fontsize{34}{39}\selectfont}
-\newcommand{\TableFont}{\fontsize{22}{26}\selectfont}
+\newcommand{\TitleFont}{\fontsize{52}{60}\selectfont}
+\newcommand{\AuthorFont}{\fontsize{27}{32}\selectfont}
+\newcommand{\BodyFont}{\fontsize{34}{40}\selectfont}
+\newcommand{\SmallFont}{\fontsize{28}{33}\selectfont}
+\newcommand{\TinyFont}{\fontsize{24}{29}\selectfont}
+\newcommand{\ClaimFont}{\fontsize{32}{37}\selectfont}
+\newcommand{\SectionFont}{\fontsize{46}{52}\selectfont\bfseries}
+\newcommand{\SubheadFont}{\fontsize{36}{42}\selectfont\bfseries}
+\newcommand{\MiniHeadFont}{\fontsize{32}{37}\selectfont\bfseries}
+\newcommand{\EquationFont}{\fontsize{36}{42}\selectfont}
+\newcommand{\TableFont}{\fontsize{25}{30}\selectfont}
 
 \tcbset{
   colback=white,
   colframe=border,
-  boxrule=1.25pt,
-  arc=3mm,
+  boxrule=1.15pt,
+  arc=0mm,
+  outer arc=0mm,
+  sharp corners,
   left=7mm,
   right=7mm,
   top=5mm,
   bottom=5mm,
   boxsep=0mm,
+  defblock/.style={colback=bluelight, colframe=border},
+  resultblock/.style={colback=white, colframe=border},
+  witnessblock/.style={colback=teallight, colframe=teallight, boxrule=0pt},
+  takeawayblock/.style={colback=black, colframe=black, coltext=white},
 }
 
 \newtcolorbox{posterbox}[1][]{
   enhanced,
-  drop shadow={black!10!white},
   #1
 }
 
 \newcommand{\sectionhead}[2]{%
   \begin{tikzpicture}[baseline=(txt.base)]
-    \node[fill=#1,circle,minimum size=0.48in,inner sep=0pt] at (0,0) {};
-    \node[anchor=west] (txt) at (0.44in,0) {{\SectionFont #2}};
+    \fill[#1] (0,-0.24in) rectangle (0.16in,0.34in);
+    \node[anchor=west] (txt) at (0.36in,0) {{\SectionFont\MakeUppercase{#2}}};
   \end{tikzpicture}\par\vspace{0.18in}
 }
 
@@ -76,56 +85,102 @@
 
 \begin{document}
 \BodyFont
+\raggedright
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\emergencystretch=1.5em
 
 % Header
-\begin{posterbox}[height=4.85in, colback=white, colframe=white, drop shadow={black!0!white}]
-  \centering
-  {\SmallFont\color{muted} ICML 2026 main-conference poster}\par\vspace{0.10in}
-  \begin{minipage}[c]{0.16\linewidth}
+\begin{posterbox}[height=3.85in, colback=white, colframe=black]
+  \begin{minipage}[c][2.95in][c]{0.23\linewidth}
     \raggedright
-    \tightinclude[width=5.75in]{logos/icml.png}
+    \tightinclude[height=1.35in]{logos/icml.png}\hspace{0.45in}
+    \tightinclude[height=1.35in]{logos/tsy_capital_web.png}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.66\linewidth}
+  \begin{minipage}[c][2.95in][c]{0.50\linewidth}
     \centering
-    {\TitleFont\bfseries R\textsuperscript{2k} is Theoretically Large Enough for Embedding-based Top-$k$ Retrieval}\par\vspace{0.12in}
+    {\TitleFont\bfseries\boldmath $\mathbb{R}^{2k}$ is Theoretically Large Enough for Embedding-based Top-$k$ Retrieval}\par\vspace{0.12in}
     {\AuthorFont\color{muted} Zihao Wang, Hang Yin, Lihui Liu, Hanghang Tong, Yangqiu Song, Ginny Wong, Simon See}
   \end{minipage}\hfill
-  \begin{minipage}[c]{0.16\linewidth}
-    \hspace*{\linewidth}
+  \begin{minipage}[c][2.95in][c]{0.26\linewidth}
+    \raggedleft
+    \resizebox{\linewidth}{!}{%
+      \tightinclude[height=0.72in]{logos/squarepoint.png}\hspace{0.18in}%
+      \tightinclude[height=0.72in]{logos/wayne_state.png}\hspace{0.18in}%
+      \tightinclude[height=0.72in]{logos/uiuc.png}\hspace{0.18in}%
+      \tightinclude[height=0.72in]{logos/hkust.png}\hspace{0.18in}%
+      \tightinclude[height=0.72in, trim=90 540 90 555, clip]{logos/nvidia_formal_horizontal.png}%
+    }
   \end{minipage}
 
-  \vspace{0.22in}
-  {\color{border}\rule{\linewidth}{1.2pt}}\par\vspace{0.16in}
-  \setlength{\fboxsep}{5pt}%
-  \begin{minipage}[c]{0.38\linewidth}
-    \raggedright
-    \hspace*{1.55in}%
-    \tightinclude[height=0.76in]{logos/tsy_capital.png}\hspace{0.85in}
-    \tightinclude[height=0.58in]{logos/squarepoint.png}
-  \end{minipage}\hfill
-  \begin{minipage}[c]{0.58\linewidth}
-    \raggedleft
-    \tightinclude[height=0.64in]{logos/wayne_state.png}\hspace{0.85in}
-    \tightinclude[height=0.64in]{logos/uiuc.png}\hspace{0.85in}
-    \tightinclude[height=0.74in]{logos/hkust.png}\hspace{0.85in}
-    \tightinclude[height=0.78in, trim=90 540 90 555, clip]{logos/nvidia_formal_horizontal.png}
-  \end{minipage}
+  \vspace{0.05in}
+  {\color{black}\rule{\linewidth}{2.2pt}}
 \end{posterbox}
 
 \vspace{0.20in}
 
 \begin{minipage}[t]{0.315\linewidth}
-  \begin{posterbox}[height=29.35in]
+  \vspace{0pt}
+  \begin{posterbox}
     \sectionhead{teal}{1. Definitions}
-    {\MiniHeadFont\color{teal} MED is a dimension of a score family, not a
-    training protocol.}\par\vspace{0.12in}
-    Store $m$ objects as $X=\{v_1,\ldots,v_m\}\subset\mathbb{R}^d$.
-    For every answer set $S\subseteq X$ with $1\le |S|\le k$, a query
-    vector $u_S$ and threshold $b_S$ must retrieve exactly $S$.
 
-    \vspace{0.18in}
-    \begin{posterbox}[colback=posterbg, height=8.2in]
-      {\SubheadFont What must be realized?}\par\vspace{0.08in}
+    \begin{posterbox}[defblock]
+      {\SubheadFont Setting: embedding-based retrieval}\par\vspace{0.06in}
+      \begin{itemize}[label=\textbullet,leftmargin=0.48in,labelsep=0.12in,itemsep=0.02in,topsep=0.02in,parsep=0pt]
+        \item {\bfseries Universe:}
+        $\mathcal{U}=[m]=\{1,\ldots,m\}$.
+        \item {\bfseries Object embeddings:}
+        one shared configuration $v_1,\ldots,v_m\in\mathbb{R}^d$.
+        \item {\bfseries Score rule:}
+        $s(v_i,u_S)$ ranks object $i$ for query embedding $u_S$.
+        \item {\bfseries Embeddable (top-$k$ retrieval view):}
+      \end{itemize}
+      \vspace{0.04in}
+      \begin{center}
+      \begin{tikzpicture}[x=1in,y=1in]
+        \node[draw=black,fill=white,line width=1.1pt,inner xsep=0.14in,inner ysep=0.08in,anchor=west]
+          (forall) at (0,0) {{\MiniHeadFont $\forall S\subseteq\mathcal{U},\ 1\le |S|\le k$}};
+        \node[draw=black,fill=white,line width=1.1pt,inner xsep=0.14in,inner ysep=0.08in,anchor=west]
+          (exists) at (0.55,-0.62) {{\MiniHeadFont $\exists$ one query embedding $u_S$}};
+        \node[draw=black,fill=white,line width=1.1pt,inner xsep=0.14in,inner ysep=0.08in,anchor=west]
+          (such) at (1.1,-1.24) {{\MiniHeadFont such that $i\mapsto s(v_i,u_S)$
+          distinguishes $S$ from $\mathcal{U}\setminus S$}};
+        % \draw[->,line width=2pt] (forall.south west) -- (exists.west);
+        % \draw[->,line width=2pt] (exists.south west) -- (such.west);
+      \end{tikzpicture}
+      \begin{itemize}[label=\textbullet,leftmargin=0.48in,labelsep=0.12in,itemsep=0.02in,topsep=0.02in,parsep=0pt]
+        \item {\bfseries Minimal Embeddable Dimension (MED):}
+        The minimal dimension of embeddable space $\mathbb{R}^d$.
+      \end{itemize}
+      \end{center}
+    \end{posterbox}
+
+    \vspace{0.25in}
+    \begin{posterbox}[defblock]
+      {\SubheadFont Exact MED}\par\vspace{0.04in}
+      {\centering\EquationFont
+        $\displaystyle
+        \min_{i\in S}s(v_i,u_S)>
+        \max_{j\notin S}s(v_j,u_S)$\par}
+      \vspace{0.04in}
+      Strict ordering is enough. No prescribed margin or
+      normalization is required.
+    \end{posterbox}
+
+    \vspace{0.25in}
+    \begin{posterbox}[defblock]
+      {\SubheadFont $\epsilon$-Robust MED}\par\vspace{0.04in}
+      {\centering\EquationFont
+        $\displaystyle
+        \min_{i\in S}s(v_i,u_S)\ge
+        \max_{j\notin S}s(v_j,u_S)+\epsilon$\par}
+      \vspace{0.04in}
+      Objects and queries are normalized, e.g. in unit ball. \\A uniform positive
+      score gap must work for every target set.
+    \end{posterbox}
+
+    \vspace{0.25in}
+    \begin{posterbox}[witnessblock]
       \begin{minipage}[t]{0.47\linewidth}
         {\MiniHeadFont\color{blue} Target set $S$}\par\vspace{0.1in}
         \begin{center}
@@ -137,9 +192,8 @@
           \node[muted] at (2.55,1.55) {\SmallFont outsiders};
         \end{tikzpicture}
         \end{center}
-        {\SmallFont Each subset up to size $k$ may choose its own query
-        vector. MED asks whether all such subsets can be realized in one
-        object configuration.}
+        {\SmallFont Fixed object embeddings; the witness query $u_S$
+        changes with $S$.}
       \end{minipage}\hfill
       \begin{minipage}[t]{0.49\linewidth}
         {\MiniHeadFont\color{amber} Score axis}\par\vspace{0.05in}
@@ -160,32 +214,11 @@
         \end{tikzpicture}
         \end{center}
       \end{minipage}
+      \vspace{0.05in}
     \end{posterbox}
 
     \vspace{0.25in}
-    \begin{posterbox}[colback=teallight, colframe=teal, height=4.15in]
-      {\SubheadFont Exact MED}\par\vspace{0.06in}
-      \[
-        \min_{i\in S}s(v_i,u_S)>b_S>
-        \max_{j\notin S}s(v_j,u_S).
-      \]
-      {\SmallFont Strict ordering is enough. No prescribed margin or
-      normalization is required.}
-    \end{posterbox}
-
-    \vspace{0.25in}
-    \begin{posterbox}[colback=amberlight, colframe=amber, height=4.25in]
-      {\SubheadFont Robust MED}\par\vspace{0.06in}
-      \[
-        \min_{i\in S}s(v_i,u_S)\ge
-        \max_{j\notin S}s(v_j,u_S)+\epsilon .
-      \]
-      {\SmallFont Objects and queries are normalized. A uniform positive
-      score gap must work for every target set.}
-    \end{posterbox}
-
-    \vspace{0.25in}
-    \begin{posterbox}[colback=bluelight, colframe=blue, height=5.35in]
+    \begin{posterbox}[defblock]
       {\SubheadFont VC lower bound}\par
       If all subsets of size at most $k$ can be realized, then the
       thresholded score class shatters any chosen $k$ objects. Thus
@@ -197,65 +230,62 @@
       $d\ge k-1$.
     \end{posterbox}
 
-    \vfill
-    \begin{posterbox}[colback=teallight, colframe=teallight, height=1.45in, valign=center]
+    \begin{posterbox}[takeawayblock, height=1.45in, valign=center]
       \centering{\SubheadFont Lower bounds are $\Omega(k)$; the question is whether $m$ must enter.}
     \end{posterbox}
   \end{posterbox}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.315\linewidth}
-  \begin{posterbox}[height=29.35in]
+  \vspace{0pt}
+  \begin{posterbox}
     \sectionhead{amber}{2. Theory}
     {\MiniHeadFont\color{amber} Exact capacity is $m$-independent; robust
     capacity pays for margin.}\par\vspace{0.12in}
 
-    \begin{posterbox}[colback=teallight, colframe=teal, height=3.35in]
+    \begin{posterbox}[witnessblock]
+      {\SubheadFont Cyclic-polytopal witness for Exact MED upper bound}\par
+      Put all $m$ objects on the moment curve in $\mathbb{R}^{2k}$:
+      \[
+        v_i=(t_i,t_i^2,\ldots,t_i^{2k}),  \qquad 0 < t_1 < t_2 < \cdots < t_m < 1.
+      \]
+      For target $S$, consider the square polynomial $-P_S^2(t)$, where
+      \[
+        P_S(t) = \prod_{i\in S}(t-t_i).
+      \]
+      Note that $P_S^2$ has degree $2k$, so we can select $u_S$ as the
+      coefficient vector of $-P_S^2(t)$, then:
+      \[
+        s(v_i,u_S) = \langle v_i,u_S\rangle = -P_S^2(t_i) \begin{cases}
+          =0, & i\in S,\\
+          >0, & j\notin S.
+        \end{cases}
+      \]
+    \end{posterbox}
+    \vspace{0.22in}
+
+    \begin{posterbox}[colback=teallight, colframe=teal]
       {\SubheadFont Exact MED theorem}\par\vspace{0.08in}
       {\TableFont
       \renewcommand{\arraystretch}{1.2}
-      \begin{tabular}{>{\bfseries}lcc}
-        \toprule
-        Score & Lower & Upper \\
-        \midrule
-        Inner product & $k-1$ & $2k$ \\
-        Euclidean & $k-1$ & $2k$ \\
-        Cosine & $k-1$ & $2k+1$ \\
-        \bottomrule
-      \end{tabular}}\par\vspace{0.08in}
-      {\SmallFont Main message: $\mathrm{MED}(m,k)=\Theta(k)$, independent
-      of $m$ up to constants.}
-    \end{posterbox}
-
-    \vspace{0.22in}
-    \begin{posterbox}[colback=posterbg, height=6.85in]
-      {\SubheadFont Cyclic-polytopal witness}\par
-      Put all $m$ objects on the moment curve in $\mathbb{R}^{2k}$:
-      \[
-        v_i=(t_i,t_i^2,\ldots,t_i^{2k}).
-      \]
-      For target $S$, use the square polynomial
-      \[
-        P_S(t)=\prod_{i\in S}(t-t_i),\qquad
-        \langle v(t),q_S\rangle=c_0-P_S(t)^2 .
-      \]
-      Selected points are exactly the roots of $P_S$ and score $c_0$;
-      every outsider scores below $c_0$.
       \begin{center}
-      \begin{tikzpicture}[x=1in,y=1in,scale=0.92]
-        \draw[gray!55,line width=1.5pt] (0,0) -- (7.2,0);
-        \draw[blue,line width=4pt,line cap=round]
-          (0.2,0.35) .. controls (1.25,1.55) and (2.4,1.35) .. (3.2,0.7)
-          .. controls (4.2,-0.15) and (5.8,-0.05) .. (6.95,0.95);
-        \foreach \x/\y/\c in {0.55/0.55/blue,1.55/1.42/amber,2.9/0.84/blue,4.25/-0.08/amber,6.2/0.78/blue}
-          \fill[\c] (\x,\y) circle (0.12);
-        \draw[amber,line width=3pt] (1.32,1.85) -- (1.55,2.16) -- (1.78,1.85);
-        \draw[amber,line width=3pt] (4.02,-0.42) -- (4.25,-0.73) -- (4.48,-0.42);
-      \end{tikzpicture}
+        \begin{tabular}{>{\bfseries}lcc}
+          \toprule
+          Score & Lower & Upper \\
+          \midrule
+          Inner product & $k-1$ & $2k$ \\
+          Euclidean & $k-1$ & $2k$ \\
+          Cosine & $k-1$ & $2k+1$ \\
+          \bottomrule
+        \end{tabular}
       \end{center}
+      }
+      \par\vspace{0.08in}
+      Main message: $\mathrm{MED}(m,k)=\Theta(k)$, independent
+      of $m$ up to constants.
     \end{posterbox}
 
     \vspace{0.22in}
-    \begin{posterbox}[colback=amberlight, colframe=amber, height=3.75in]
+    \begin{posterbox}[colback=amberlight, colframe=amber]
       {\SubheadFont Feasible robust margin}\par\vspace{0.04in}
       \[
         \epsilon_\star(m,k)=
@@ -268,8 +298,8 @@
     \end{posterbox}
 
     \vspace{0.22in}
-    \begin{posterbox}[colback=amberlight, colframe=amberlight, height=5.45in]
-      {\SubheadFont Gaussian centroid upper bound}\par
+    \begin{posterbox}[witnessblock]
+      {\SubheadFont Gaussian centroid witness for robust MED upper bound}\par
       Sample random unit object vectors and query by normalized selected
       centroid:
       \[
@@ -285,98 +315,60 @@
       $\Omega(1/\sqrt{k})$.
     \end{posterbox}
 
-    \vspace{0.22in}
-    \begin{posterbox}[colback=bluelight, colframe=blue, height=2.3in]
-      {\SubheadFont Score-rule transfer}\par
-      Cosine agrees with inner product after normalization; Euclidean
-      squared-distance comparisons differ by
-      $2\langle u_S,v_i-v_j\rangle$.
-    \end{posterbox}
+    % @codex find a new block describing the theory results abour RMED,
+    % states something like k < MED < RMED(...) < Gaussian witness...
 
-    \vfill
-    \begin{posterbox}[colback=amberlight, colframe=amberlight, height=1.25in, valign=center]
-      \centering{\SubheadFont Robustness reintroduces $m$, but the Gaussian witness pays only $\log m$.}
+    \begin{posterbox}[takeawayblock, height=1.25in, valign=center]
+      \centering{\SubheadFont Robust MED brings back $m$; Gaussian witness pays only $\log m$.}
     \end{posterbox}
   \end{posterbox}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.315\linewidth}
-  \begin{posterbox}[height=29.35in]
+  \vspace{0pt}
+  \begin{posterbox}
     \sectionhead{red}{3. Empirical}
     {\MiniHeadFont\color{red} Current ``hard'' datasets are easy to crack
     by explicit low-dimensional witnesses.}\par\vspace{0.12in}
 
-    \begin{posterbox}[colback=posterbg, height=7.65in]
+    \begin{posterbox}[resultblock]
       {\color{blue}\SubheadFont Synthetic top-2: explicit $d=4$}\par\vspace{0.08in}
-      \begin{minipage}[t]{0.58\linewidth}
-        \centering
-        \tightinclude[width=\linewidth,height=4.65in,keepaspectratio]{../../paper/figures/top2_dimension_fit.pdf}
-      \end{minipage}\hfill
-      \begin{minipage}[t]{0.39\linewidth}
-        {\TableFont
-        \renewcommand{\arraystretch}{1.08}
-        \begin{tabular}{rcc}
-          \toprule
-          $m$ & cyclic & MED-C \\
-          \midrule
-          10 & 4 & 5\\
-          20 & 4 & 8\\
-          40 & 4 & 9\\
-          80 & 4 & 12\\
-          160 & 4 & 15\\
-          320 & 4 & 19\\
-          640 & 4 & 24\\
-          \bottomrule
-        \end{tabular}}
-      \end{minipage}\par\vspace{0.08in}
+      \begin{center}
+        \tightinclude[width=0.95\linewidth,height=6.45in,keepaspectratio]{../../paper/figures/top2_dimension_fit.pdf}
+      \end{center}
       {\SmallFont At $m=640$, the cyclic construction checks
       $205120/205120$ singleton/pair queries.}
     \end{posterbox}
 
     \vspace{0.25in}
-    \begin{posterbox}[colback=redlight, colframe=red, height=9.15in]
+    \begin{posterbox}[resultblock]
       {\color{red}\SubheadFont LIMIT: random single-vector controls pass}\par\vspace{0.1in}
-      \begin{minipage}[t]{0.49\linewidth}
-        \centering
-        \tightinclude[width=\linewidth,height=3.1in,keepaspectratio]{../../paper/figures/limit_retrieval_limit.pdf}
-      \end{minipage}\hfill
-      \begin{minipage}[t]{0.49\linewidth}
-        \centering
-        \tightinclude[width=\linewidth,height=3.1in,keepaspectratio]{../../paper/figures/limit_retrieval_limit_small.pdf}
-      \end{minipage}
-      \vspace{0.08in}
-
-      {\TableFont
-      \renewcommand{\arraystretch}{1.12}
-      \begin{tabular}{>{\bfseries}lccc}
-        \toprule
-        Dataset & baseline & first vanilla $d$ & vanilla R@2 @4096 \\
-        \midrule
-        LIMIT & 0.030 & 512 & 0.7060 \\
-        LIMIT-small & 0.543 & 512 & 0.9545 \\
-        \bottomrule
-      \end{tabular}}\par\vspace{0.12in}
-      {\SmallFont Vanilla token sums use no labels and no handcrafted phrases,
+      \begin{center}
+        \tightinclude[width=0.95\linewidth,height=5.05in,keepaspectratio]{../../paper/figures/limit_retrieval_limit.pdf}
+      \end{center}
+      \vspace{0.04in}
+      \begin{center}
+        \tightinclude[width=0.95\linewidth,height=5.05in,keepaspectratio]{../../paper/figures/limit_retrieval_limit_small.pdf}
+      \end{center}
+      \vspace{0.04in}
+      \begin{center}
+        {\TableFont
+        \renewcommand{\arraystretch}{1.12}
+        \begin{tabular}{>{\bfseries}lccc}
+          \toprule
+          Dataset & baseline & first vanilla $d$ & vanilla R@2 @4096 \\
+          \midrule
+          LIMIT & 0.030 & 512 & 0.7060 \\
+          LIMIT-small & 0.543 & 512 & 0.9545 \\
+          \bottomrule
+        \end{tabular}}
+      \end{center}
+      \vspace{0.02in}
+      Vanilla token sums use no labels and no handcrafted phrases,
       yet exceed the strongest comparable single-vector Promptriever line.
-      Handmade reaches R@2 $0.9980/1.0000$ at $d=4096$.}
+      Handmade reaches R@2 $0.9980/1.0000$ at $d=4096$.
     \end{posterbox}
 
-    \vspace{0.25in}
-    \begin{posterbox}[colback=bluelight, colframe=blue, height=3.2in]
-      {\SubheadFont LIMIT also has an exact $\mathbb{R}^4$ overfit}\par\vspace{0.08in}
-      {\TableFont
-      \renewcommand{\arraystretch}{1.15}
-      \begin{tabular}{>{\bfseries}lrrrr}
-        \toprule
-        Dataset & docs & queries & min $d$ & R@2 \\
-        \midrule
-        LIMIT-small & 46 & 1000 & 4 & 1\\
-        LIMIT & 50000 & 1000 & 4 & 1\\
-        \bottomrule
-      \end{tabular}}
-    \end{posterbox}
-
-    \vfill
-    \begin{posterbox}[colback=redlight, colframe=redlight, height=1.65in, valign=center]
+    \begin{posterbox}[takeawayblock, height=1.65in, valign=center]
       {\SubheadFont Takeaway:} these failures stress learning, tokenization,
       conditioning, and optimization, not exact geometric capacity.
     \end{posterbox}
